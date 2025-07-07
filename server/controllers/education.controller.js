@@ -5,7 +5,8 @@ const {
   EducationUser,
 } = require("../models/index");
 const fs = require("fs");
-const { convert } = require("pdf-poppler");
+const { fromPath } = require("pdf2pic");
+const { PDFDocument } = require("pdf-lib");
 const cloudinary = require("cloudinary").v2;
 const axios = require("axios");
 const path = require("path");
@@ -73,6 +74,7 @@ exports.getEducationByType = async (req, res) => {
 };
 
 // Tekli dosya yükleme (her sayfa için farklı süre)
+
 exports.uploadSingleFile = async (req, res) => {
   try {
     const { name, duration, type } = req.body;
@@ -82,7 +84,7 @@ exports.uploadSingleFile = async (req, res) => {
       return res.status(400).json({ message: "Dosya yüklenmedi." });
     }
 
-    const fileUrl = file.secure_url || file.path; // Cloudinary URL'si
+    const fileUrl = file.secure_url || file.path; // Cloudinary URL'si veya yerel path
     const ext = path.extname(file.originalname).toLowerCase();
     let numPages = 0;
     let pageImages = [];
@@ -99,29 +101,33 @@ exports.uploadSingleFile = async (req, res) => {
       }
 
       // 2. PDF dosyasını temp klasörüne kaydet
-      const tempPdfPath = `./tmp/${uuidv4()}.pdf`;
+      const tempPdfPath = path.join(tmpDir, `${uuidv4()}.pdf`);
       fs.writeFileSync(tempPdfPath, response.data);
 
-      // 3. Sayfaları JPEG'e çevir
-      const outputDir = `./tmp/${uuidv4()}`;
+      // 3. PDF sayfa sayısını öğrenmek için pdf-lib kullan
+      const pdfBytes = fs.readFileSync(tempPdfPath);
+      const pdfDoc = await PDFDocument.load(pdfBytes);
+      numPages = pdfDoc.getPageCount();
+
+      // 4. Sayfaları JPEG'e çevir (pdf2pic kullanarak)
+      const outputDir = path.join(tmpDir, uuidv4());
       fs.mkdirSync(outputDir, { recursive: true });
 
       const options = {
+        density: 100,
+        saveFilename: "page",
+        savePath: outputDir,
         format: "jpeg",
-        out_dir: outputDir,
-        out_prefix: "page",
-        page: null,
+        width: 800,
+        height: 1000,
       };
 
-      await convert(tempPdfPath, options);
+      const storeAsImage = fromPath(tempPdfPath, options);
 
-      // 4. Her sayfayı Cloudinary'e yükle
-      const files = fs.readdirSync(outputDir).filter((f) => f.endsWith(".jpg"));
-      numPages = files.length;
-
-      for (const fileName of files) {
-        const filePath = path.join(outputDir, fileName);
-        const uploadRes = await cloudinary.uploader.upload(filePath, {
+      for (let i = 1; i <= numPages; i++) {
+        const resImage = await storeAsImage(i);
+        // resImage.path = local temp dosya yolu, bunu cloudinary'e yükle
+        const uploadRes = await cloudinary.uploader.upload(resImage.path, {
           folder: "education_pages",
         });
         pageImages.push(uploadRes.secure_url);
@@ -129,7 +135,7 @@ exports.uploadSingleFile = async (req, res) => {
 
       // 5. Temizlik
       fs.unlinkSync(tempPdfPath);
-      fs.rmSync(outputDir, { recursive: true });
+      fs.rmSync(outputDir, { recursive: true, force: true });
     }
 
     // 6. Veritabanına kaydet
@@ -146,6 +152,7 @@ exports.uploadSingleFile = async (req, res) => {
       action: `${req.user.name} adlı kullanıcı '${name}' adlı eğitimi oluşturdu.`,
       category: "Education",
     });
+
     // 7. Frontend'e görsel sayfalarla yanıt gönder
     res.status(201).json({ newEducation, pages: pageImages });
   } catch (error) {
@@ -182,8 +189,6 @@ exports.addPageDuration = async (req, res) => {
 
     // Toplam süreyi saniyeden dakikaya çevirir ve aşağı yuvarlar (örneğin 121 saniye -> 2 dakika)
     const totalDurationInMinutes = Math.floor(totalDurationInSeconds / 60);
-
- 
 
     // Ana Education modelini toplam dakika süresiyle günceller
     await Education.update(

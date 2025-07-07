@@ -21,13 +21,7 @@ router.post(
 router.post("/admin-login", authController.adminLogin);
 
 // Kullanıcı kayıt
-router.post(
-  "/register",
-  verifyToken,
-  uploadSingle,
-  authorize(1),
-  authController.register
-);
+router.post("/register", uploadSingle, authController.register);
 
 // Kullanıcı girişi
 router.post("/login", authController.login);

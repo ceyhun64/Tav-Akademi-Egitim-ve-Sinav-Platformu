@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { getUserTeoExamsThunk } from "../../../features/thunks/examThunk";
-import "./teoExams.css";
+import "./TeoExams.css";
 
 export default function TeoExams() {
   const dispatch = useDispatch();

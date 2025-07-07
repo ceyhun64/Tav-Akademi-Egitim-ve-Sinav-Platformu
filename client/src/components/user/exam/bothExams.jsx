@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { getUserUnifiedExamsThunk } from "../../../features/thunks/examThunk";
-import "./BothExams.css";
+import "./bothExams.css";
 
 export default function BothExams() {
   const dispatch = useDispatch();

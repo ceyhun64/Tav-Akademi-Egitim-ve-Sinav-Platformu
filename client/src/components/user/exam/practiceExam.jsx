@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { getPracticeExamThunk } from "../../../features/thunks/practiceExamThunk";
-import "./PracticeExam.css";
+import "./practiceExam.css";
 
 export default function PracticeExam() {
   const dispatch = useDispatch();

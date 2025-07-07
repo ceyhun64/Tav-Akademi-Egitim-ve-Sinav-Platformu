@@ -7,7 +7,6 @@ import {
 } from "../../../features/thunks/questionThunk";
 import CountdownTimer from "./timer/teoTimer";
 import AnswerSummary from "./summary/answerSummary";
-// import "./TeoQuestion.css";
 import ExamSecurityHandler from "./examSecurity";
 
 const overlayStyle = {

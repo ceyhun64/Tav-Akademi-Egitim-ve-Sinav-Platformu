@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import "./Banner.css";
+import "./banner.css";
 import banner1 from "../../../public/banner/banner1.jpg";
 import banner2 from "../../../public/banner/banner2.jpg";
 import banner3 from "../../../public/banner/banner3.jpg";

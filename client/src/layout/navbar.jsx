@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logoutThunk } from "../features/thunks/authThunk";
 import logo from "../../public/logo/logo.png";
-import "./Navbar.css";
+import "./navbar.css";
 
 export default function Navbar() {
   const dispatch = useDispatch();

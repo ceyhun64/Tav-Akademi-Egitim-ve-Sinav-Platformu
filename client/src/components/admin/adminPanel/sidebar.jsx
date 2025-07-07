@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { logoutThunk } from "../../../features/thunks/authThunk";
 import logo from "../../../../public/logo/logo.png";
 import { clearAlert } from "../../../features/slices/authSlice";
-import "./Sidebar.css";
+import "./sidebar.css";
 
 export default function Sidebar() {
   const dispatch = useDispatch();

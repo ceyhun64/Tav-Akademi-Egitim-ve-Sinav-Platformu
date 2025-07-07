@@ -554,7 +554,6 @@ export default function BothImgQuestion() {
       return;
     }
 
-
     // Eğer kod giriş ekranı açık, girilen kod doğru mu kontrol et
     if (userInputCode.toUpperCase() !== confirmExitCode) {
       alert("Girdiğiniz kod yanlış. Lütfen doğru kodu girin.");
@@ -620,10 +619,8 @@ export default function BothImgQuestion() {
         <button
           onClick={handleStartExam}
           style={{
-            display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            display: "block",
             marginTop: "24rem",
             margin: "2rem auto",
             padding: "1rem 2.5rem",

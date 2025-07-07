@@ -1,0 +1,19 @@
+.hover-scale {
+  transition: transform 0.3s ease;
+}
+.hover-scale:hover {
+  transform: translateY(-6px);
+}
+
+@media (max-width: 576px) {
+  .responsive-header {
+    font-size: 1.5rem !important;
+    line-height: 1.2; /* başlık için satır yüksekliği */
+  }
+
+  .responsive-paragraph {
+    font-size: 1rem !important;
+    line-height: 1.5; /* paragraf için okunabilirlik */
+    margin-top: 1rem !important; /* mt-3 yerine daha uygun boşluk */
+  }
+}

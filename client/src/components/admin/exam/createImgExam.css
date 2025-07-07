@@ -1,0 +1,16 @@
+/* styles.css */
+.custom-select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1.5px solid #001b66;
+  background-color: #f9fbfe;
+  font-weight: 500;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.custom-select:focus {
+  border-color: #0044cc;
+  outline: none;
+}

@@ -1,0 +1,143 @@
+/* Sidebar genel */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100vh;
+  background-color: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  z-index: 1100;
+  overflow-y: auto;
+  box-shadow: 4px 0 15px rgb(0 0 0 / 0.08);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  transition: box-shadow 0.3s ease;
+}
+
+/* Sidebar header */
+.sidebar .sidebar-header {
+  border-bottom: 1px solid #e0e0e0;
+  padding: 1.2rem 1.5rem;
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: #001b66;
+  background-color: #f9faff;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+/* Menü linkleri */
+.sidebar .sidebar-nav ul {
+  padding-left: 0;
+  margin: 0;
+  list-style: none;
+}
+
+/* Link ve butonlar */
+.sidebar .sidebar-link,
+.sidebar .btn-toggle {
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  color: #001b66;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  border: none;
+  background: none;
+  width: 100%;
+  cursor: pointer;
+  font-size: 1.1rem;
+  height: 65px;
+  border-radius: 6px;
+  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover efektleri */
+.sidebar .sidebar-link:hover,
+.sidebar .btn-toggle:hover {
+  background-color: #003399;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgb(0 51 153 / 0.4);
+  text-decoration: none;
+}
+
+/* Aktif link */
+.sidebar .active-link {
+  background-color: #001b66;
+  color: #ffffff !important;
+  border-radius: 6px;
+  box-shadow: 0 5px 15px rgb(0 27 102 / 0.6);
+}
+
+/* Menü elemanının relative konumu submenu için gerekli */
+.sidebar .btn-toggle {
+  position: relative;
+  justify-content: space-between;
+}
+
+/* Submenu sağda açılır */
+.sidebar .submenu {
+  position: absolute;
+  top: 0;
+  left: 100%; /* Ana menünün sağında */
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.1);
+  width: 200px;
+  margin-top: 0; /* Üst boşluk kaldırıldı */
+  padding-left: 0;
+  border-radius: 0 6px 6px 0;
+  z-index: 1200;
+}
+
+/* Submenu elemanları */
+.sidebar .sidebar-sublink {
+  display: block;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  color: #003399;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.sidebar .sidebar-sublink:hover,
+.sidebar .sidebar-sublink.active-link {
+  background-color: #001b66;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgb(0 27 102 / 0.4);
+}
+
+/* Footer */
+.sidebar .sidebar-footer {
+  border-top: 1px solid #e0e0e0;
+  margin-top: auto;
+  background: #f9faff;
+  text-align: center;
+  padding: 1rem 1.5rem;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #001b66;
+  user-select: none;
+}
+
+/* Welcome text */
+.sidebar .welcome-text {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #001b66;
+}
+
+/* Ana içerik sidebar genişliği kadar sağa kayacak */
+.main-content {
+  margin-left: 260px; /* sidebar genişliği ile uyumlu */
+  padding: 2rem;
+  background: #f5f7fa;
+  min-height: 100vh;
+  transition: margin-left 0.3s ease;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #001b66;
+}

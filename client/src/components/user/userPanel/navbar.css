@@ -1,0 +1,282 @@
+/* Container: Esnek ve tam yükseklik */
+.imggal-container {
+  font-family: "Inter", "Segoe UI", Tahoma, sans-serif;
+  background-color: #f4f6fa;
+  min-height: 100vh;
+  color: #001b66;
+  display: flex;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Sidebar: sabit ve güzel degrade */
+.imggal-sidebar {
+  width: 260px;
+  min-height: 100vh;
+  padding: 2.5rem 2rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: linear-gradient(180deg, #001b66 0%, #003b99 100%);
+  color: #ffffffdd;
+  box-shadow: 3px 0 15px rgba(0, 0, 0, 0.25);
+  overflow-y: auto;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  user-select: none;
+}
+
+/* İçerik: Sidebar genişliği kadar soldan boşluk */
+.imggal-content {
+  flex-grow: 1;
+  padding: 3rem 3.5rem;
+  margin-left: 260px;
+  max-width: 1200px;
+  box-sizing: border-box;
+  background-color: #f4f6fa;
+  min-height: 100vh;
+}
+
+/* İçerik kolonları: geniş ve uyumlu */
+.content-columns {
+  display: flex;
+  gap: 2.25rem;
+  flex-wrap: nowrap;
+  margin-bottom: 2.5rem;
+  align-items: flex-start;
+  justify-content: stretch;
+}
+
+/* Sol sütun - beyaz kutu ve gölge */
+.left-column {
+  flex: 1 1 40% !important;
+  min-width: 280px !important;
+  background-color: #ffffff;
+  padding: 2.5rem 2.5rem;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(0, 27, 102, 0.08);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+
+
+/* Sağ sütun - beyaz kutu ve gölge */
+.right-column {
+  flex: 2 1 60% !important;
+  min-width: 360px !important;
+  background-color: #ffffff;
+  padding: 2.5rem 2.5rem;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(0, 27, 102, 0.08);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+
+/* Form elemanları modern ve tutarlı */
+.form-label {
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+  display: block;
+  color: #003366;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+.form-control,
+.form-select {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1.8px solid #a3b0ff;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #001b66;
+  background-color: #f9fbff;
+  transition: border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  outline-offset: 2px;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #556cd6;
+  box-shadow: 0 0 0 5px rgba(85, 108, 214, 0.25);
+  background-color: #ffffff;
+  outline: none;
+}
+
+/* Butonlar: geniş ve modern */
+.btn-primary {
+  background-color: #001b66;
+  color: #ffffff;
+  border: none;
+  padding: 1rem 1.75rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  border-radius: 14px;
+  transition: background-color 0.4s ease, box-shadow 0.35s ease;
+  cursor: pointer;
+  width: auto;
+  display: inline-block;
+  box-shadow: 0 4px 10px rgba(0, 27, 102, 0.25);
+}
+
+.btn-primary:hover {
+  background-color: #003366;
+  box-shadow: 0 8px 24px rgba(0, 27, 102, 0.45);
+}
+
+/* Galeri kartları: modern kart görünümü */
+.card {
+  border: none;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0, 27, 102, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover {
+  box-shadow: 0 16px 42px rgba(0, 27, 102, 0.22);
+  transform: translateY(-6px);
+}
+
+.card-img-top {
+  border-bottom: 1px solid #e5e9ff;
+  object-fit: cover;
+  height: 200px;
+  width: 100%;
+  transition: transform 0.3s ease;
+}
+
+.card-img-top:hover {
+  transform: scale(1.05);
+}
+
+.card-title {
+  font-weight: 800;
+  font-size: 1.3rem;
+  color: #001b66;
+  margin-bottom: 0.5rem;
+}
+
+.card-text {
+  font-size: 0.95rem;
+  color: #47526e;
+  margin-bottom: 1.2rem;
+  line-height: 1.4;
+  flex-grow: 1;
+}
+
+/* Modal: arkaplan koyu ve merkezde */
+.modal.show {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.75);
+  padding: 1.2rem;
+}
+
+.modal-content {
+  border-radius: 18px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.3);
+  max-width: 720px;
+  width: 95%;
+  background: #ffffff;
+}
+
+.modal-header,
+.modal-footer {
+  border: none;
+  padding: 1.2rem 2.5rem;
+}
+
+.modal-title {
+  font-weight: 800;
+  color: #001b66;
+  font-size: 1.6rem;
+  letter-spacing: 0.03em;
+}
+
+.modal-body {
+  padding: 1.5rem 2.5rem 2.2rem;
+  color: #2c3a67;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.btn-close {
+  border: none;
+  background: transparent;
+  font-size: 1.7rem;
+  cursor: pointer;
+  color: #001b66dd;
+  opacity: 0.75;
+  transition: opacity 0.25s ease;
+}
+
+.btn-close:hover {
+  opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .imggal-content {
+    padding: 2rem 2rem;
+    max-width: 100%;
+  }
+  .content-columns {
+    flex-wrap: wrap;
+    gap: 1.75rem;
+  }
+  .left-column,
+  .right-column {
+    flex: 1 1 100% !important;
+    min-width: 100% !important;
+  }
+  .card-img-top {
+    height: 180px;
+  }
+}
+
+@media (max-width: 576px) {
+  .imggal-container {
+    flex-direction: column;
+  }
+  .imggal-sidebar {
+    position: relative;
+    width: 100%;
+    min-height: auto;
+    box-shadow: none;
+    border-right: none;
+    padding: 1.5rem 1rem;
+  }
+  .imggal-content {
+    margin-left: 0;
+    max-width: 100%;
+    padding: 1.5rem 1rem;
+  }
+  .content-columns {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .left-column,
+  .right-column {
+    min-width: 100%;
+  }
+  .card-img-top {
+    height: 200px;
+  }
+}

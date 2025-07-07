@@ -1,0 +1,130 @@
+.both-exams-container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 24px;
+  background-color: #f4f6fc;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0, 27, 102, 0.15);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+
+  position: relative;
+  overflow: hidden;
+
+  background-image: url("../../../../public/background/background5.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.both-exams-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(244, 246, 252, 0.6);
+  pointer-events: none;
+  border-radius: 12px;
+  z-index: 0;
+}
+
+.both-exams-container > * {
+  position: relative;
+  z-index: 1;
+}
+
+.both-exams-header {
+  color: #001b66;
+  font-weight: 700;
+  font-size: 28px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.exam-card {
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 27, 102, 0.1);
+  border-left: 6px solid #0056cc;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  max-width: 700px;
+  margin: 0 auto;
+  transition: box-shadow 0.3s ease;
+}
+
+.exam-card:hover {
+  box-shadow: 0 8px 20px rgba(0, 27, 102, 0.2);
+}
+
+.exam-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #001b66;
+  margin-bottom: 16px;
+}
+
+.icon {
+  color: #0056cc;
+  margin-right: 6px;
+  font-size: 1.1rem;
+  vertical-align: middle;
+}
+
+p {
+  color: #334a72;
+  font-size: 15px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.info-text {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 1rem;
+}
+
+.start-btn {
+  background-color: #001b66;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 10px 0;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 27, 102, 0.3);
+  margin-top: auto;
+  width: 100%;
+}
+
+.start-btn:hover {
+  background-color: #003399;
+}
+
+.loading-container {
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-text {
+  margin-left: 10px;
+  font-weight: 600;
+  color: #007bff;
+}
+
+.empty-message {
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  font-size: 1.2rem;
+  font-weight: 500;
+}

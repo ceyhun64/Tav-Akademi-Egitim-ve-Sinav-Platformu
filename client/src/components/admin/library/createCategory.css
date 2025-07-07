@@ -1,0 +1,232 @@
+/* Container: Esnek ve tam yükseklik */
+.imggal-container {
+  font-family: "Inter", "Segoe UI", Tahoma, sans-serif;
+  background-color: #f4f6fa;
+  min-height: 100vh;
+  color: #001b66;
+  display: flex;
+  overflow-x: hidden;
+}
+
+/* Sidebar: sabit ve güzel degrade */
+.imggal-sidebar {
+  width: 260px;
+  min-height: 100vh;
+  padding: 2rem 1.5rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: linear-gradient(180deg, #001b66, #003b99);
+  color: #fff;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* İçerik: Sidebar genişliği kadar soldan boşluk */
+.imggal-content {
+  flex-grow: 1;
+  padding: 2.5rem 3rem;
+  margin-left: 260px;
+  max-width: 1200px;
+  box-sizing: border-box;
+  background-color: #f4f6fa;
+  min-height: 100vh;
+}
+
+/* İçerik kolonları: geniş ve uyumlu */
+.content-columns {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-bottom: 2.5rem;
+}
+
+/* Sol sütun - beyaz kutu ve gölge */
+.left-column {
+  flex: 1 1 40% !important;
+  min-width: 260px !important;
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 27, 102, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.right-column {
+  flex: 3 1 55% !important;
+  min-width: 340px !important;
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 27, 102, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+/* Form elemanları modern ve tutarlı */
+.form-label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+  color: #001b66;
+}
+
+.form-control,
+.form-select {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #ccd6f6;
+  font-size: 1rem;
+  font-weight: 400;
+  color: #001b66;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #556cd6;
+  box-shadow: 0 0 0 4px rgba(85, 108, 214, 0.25);
+  outline: none;
+}
+
+/* Butonlar: geniş ve modern */
+.btn-primary {
+  background-color: #001b66;
+  color: white;
+  border: none;
+  padding: 0.9rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  width: auto;
+  display: inline-block;
+}
+
+.btn-primary:hover {
+  background-color: #003366;
+  box-shadow: 0 6px 18px rgba(0, 27, 102, 0.45);
+}
+
+/* Galeri kartları: modern kart görünümü */
+.card {
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 18px rgba(0, 27, 102, 0.12);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  cursor: pointer;
+  background-color: white;
+}
+
+.card:hover {
+  box-shadow: 0 12px 30px rgba(0, 27, 102, 0.2);
+  transform: translateY(-6px);
+}
+
+.card-img-top {
+  border-bottom: 1px solid #eee;
+  object-fit: cover;
+  height: 180px;
+  width: 100%;
+}
+
+.card-title {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #001b66;
+  margin-bottom: 0.4rem;
+}
+
+.card-text {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 1rem;
+}
+
+/* Modal: arkaplan biraz daha koyu ve merkezde */
+.modal.show {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.65);
+  padding: 1rem;
+}
+
+.modal-content {
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.modal-header,
+.modal-footer {
+  border: none;
+  padding: 1rem 2rem;
+}
+
+.modal-title {
+  font-weight: 700;
+  color: #001b66;
+  font-size: 1.5rem;
+}
+
+.modal-body {
+  padding: 1rem 2rem 2rem;
+  color: #333;
+}
+
+.btn-close {
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #001b66;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.btn-close:hover {
+  opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .imggal-container {
+    flex-direction: column;
+  }
+
+  .imggal-sidebar {
+    position: relative;
+    width: 100%;
+    min-height: auto;
+    box-shadow: none;
+    border-right: none;
+    padding: 1.5rem 1rem;
+  }
+
+  .imggal-content {
+    margin-left: 0;
+    max-width: 100%;
+    padding: 1.5rem 1rem;
+  }
+
+  .content-columns {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .left-column,
+  .right-column {
+    min-width: 100%;
+  }
+
+  .card-img-top {
+    height: 200px;
+  }
+}

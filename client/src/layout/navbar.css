@@ -1,0 +1,109 @@
+/* Genel navbar font */
+.navbar {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar-brand span {
+  font-size: 1.2rem;
+  color: #001b66; /* Koyu lacivert */
+}
+
+.custom-nav-link {
+  color: #001b66 !important; /* Koyu lacivert */
+  margin: 0 15px;
+  font-weight: 600;
+  transition: color 0.3s ease, border-bottom 0.3s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.custom-nav-link:hover {
+  color: #003399 !important; /* Açık lacivert */
+  border-bottom: 2px solid #003399;
+}
+
+.custom-nav-link.active-link {
+  color: #001b66 !important; /* Koyu lacivert */
+  border-bottom: 2px solid #001b66;
+}
+
+.navbar-center {
+  margin: 0 auto;
+}
+
+.custom-login-button {
+  background-color: white;
+  border: 2px solid #001b66; /* Koyu lacivert */
+  color: #001b66; /* Koyu lacivert */
+  padding: 8px 20px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.custom-login-button:hover {
+  background-color: #001b66; /* Koyu lacivert */
+  color: white;
+}
+
+/* Dropdown button */
+.btn-success.dropdown-toggle {
+  font-weight: 600;
+  padding: 8px 24px;
+}
+
+/* Dropdown item hover */
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: #004085;
+  color: white;
+}
+
+/* Responsive düzenlemeler */
+
+@media (max-width: 991.98px) {
+  /* Navbar brand küçült */
+  .navbar-brand img {
+    height: 60px !important;
+    margin-right: 12px !important;
+  }
+
+  .navbar-brand span {
+    font-size: 1rem;
+  }
+
+  /* Menü elemanları biraz daha küçük ve ortalanmış */
+  .custom-nav-link {
+    margin: 0 8px;
+    font-size: 0.9rem;
+  }
+
+  /* Dropdown menü genişliği mobilde %100 yap */
+  .dropdown-menu {
+    min-width: 100% !important;
+    left: 0 !important;
+    right: auto !important;
+  }
+
+  /* Dropdown item padding artır */
+  .dropdown-item {
+    padding: 12px 20px;
+    font-size: 1rem;
+  }
+
+  /* Dropdown buton genişliği mobilde %100 */
+  .btn-success.dropdown-toggle {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Navbar collapse içerisindeki menü elemanları alt alta */
+  .navbar-collapse {
+    background-color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+  }
+
+  /* Navbar nav item margin alt */
+  .navbar-nav .nav-item {
+    margin-bottom: 8px;
+  }
+}

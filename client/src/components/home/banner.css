@@ -1,0 +1,266 @@
+/* Başlık */
+.display-4 {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+  color: #222;
+}
+
+.text-primary {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #1d4ed8 !important;
+}
+
+/* Liste stili - özel işaretçiler */
+.custom-checklist li {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+  padding-left: 28px;
+  margin-bottom: 14px;
+  font-size: 1.05rem;
+  color: #4b5563;
+  font-weight: 500;
+  user-select: none;
+}
+
+.custom-checklist li::before {
+  content: "\f058"; /* FontAwesome check-circle, değiştirebilirsin */
+  font-family: "Bootstrap Icons";
+  font-weight: 700;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #123879;
+  font-size: 1.25rem;
+}
+
+/* Buton modern stilleri */
+.btn-modern {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  min-width: 160px;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 10px rgba(29, 78, 216, 0.25);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-modern:hover {
+  background-color: #1e40af;
+  box-shadow: 0 6px 18px rgba(30, 64, 175, 0.45);
+}
+
+.btn-modern-outline {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  min-width: 160px;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  border: 2px solid #1d4ed8;
+  color: #1d4ed8;
+  background-color: transparent;
+  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-modern-outline:hover {
+  background-color: #1d4ed8;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+}
+
+.btn-outline-custom {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  border-color: #001b66 !important;
+  color: #001b66 !important;
+  background-color: transparent;
+  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-outline-custom:hover {
+  background-color: #001b66 !important;
+  color: #fff !important;
+  box-shadow: 0 6px 18px rgba(0, 27, 102, 0.45) !important;
+}
+
+/* Görsel ana resim */
+.hero-image {
+  max-width: 100%;
+  max-height: 400px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 0 30px rgba(29, 78, 216, 0.15);
+  object-fit: cover;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: default;
+}
+
+.hero-image:hover {
+  transform: scale(1.04);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2), 0 0 40px rgba(37, 99, 235, 0.3);
+}
+
+/* Küçük bannerlar - yüzen efekt */
+.small-banner {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  position: absolute;
+  border-radius: 50%;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  object-fit: cover;
+  cursor: default;
+  transition: transform 0.3s ease;
+  opacity: 0.9;
+  border: 3px solid #fff;
+}
+
+.small-banner-1 {
+  width: 200px;
+  height: 200px;
+  top: -10%;
+  left: -10%;
+  animation: float1 7s ease-in-out infinite;
+}
+
+.small-banner-2 {
+  width: 180px;
+  height: 180px;
+  top: 10%;
+  right: 10%;
+  animation: float2 6s ease-in-out infinite;
+}
+
+.small-banner-3 {
+  width: 150px;
+  height: 150px;
+  bottom: 30%;
+  left: 15%;
+  animation: float3 8s ease-in-out infinite;
+}
+
+.small-banner-4 {
+  width: 110px;
+  height: 110px;
+  bottom: 15%;
+  right: 5%;
+  animation: float4 9s ease-in-out infinite;
+}
+.small-banner-5 {
+  width: 100px;
+  height: 100px;
+  bottom: 10%;
+  left: 1%;
+  animation: float5 7s ease-in-out infinite;
+}
+
+/* Animasyonlar aynı kaldı */
+@keyframes float1 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(12px, -8px);
+  }
+}
+
+@keyframes float2 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-10px, 10px);
+  }
+}
+
+@keyframes float3 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(8px, 12px);
+  }
+}
+
+@keyframes float4 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-12px, -6px);
+  }
+}
+
+@keyframes float5 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(10px, 8px);
+  }
+}
+
+/* Responsive Ayarlar */
+@media (max-width: 992px) {
+  .hero-section .hero-img-wrapper {
+    margin-top: 2rem;
+  }
+
+  .small-banner {
+    display: none; /* Küçük ekranlarda küçük banner'ları gizliyoruz */
+  }
+
+  .hero-image {
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .display-4 {
+    font-size: 2.25rem;
+    text-align: center;
+  }
+
+  .hero-section .col-lg-6 {
+    text-align: center;
+  }
+
+  .hero-section ul {
+    text-align: left;
+    display: inline-block;
+    margin: 0 auto;
+  }
+
+  .hero-section .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .hero-image {
+    max-height: 250px;
+  }
+}
+
+@media (max-width: 576px) {
+  .hero-image {
+    max-height: 200px;
+  }
+
+  .hero-section ul {
+    padding-left: 0.5rem;
+  }
+
+  .hero-section .btn-lg {
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .display-4 {
+    font-size: 1.75rem;
+  }
+
+  .lead {
+    font-size: 1rem;
+  }
+}

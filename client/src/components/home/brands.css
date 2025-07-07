@@ -1,0 +1,32 @@
+.brands-container {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap; /* küçük ekranlarda alt satıra geçiş */
+  padding: 0 10px;
+}
+
+.brand-logo {
+  height: 50px;
+  object-fit: contain;
+  margin: 0 10px;
+  flex: 1 1 100px; /* minimum genişlik 100px, esneyebilir */
+  max-width: 120px;
+  transition: transform 0.3s ease;
+}
+
+.brand-logo:hover {
+  transform: scale(1.1);
+}
+
+@media (max-width: 576px) {
+  .brands-container {
+    gap: 15px;
+  }
+  .brand-logo {
+    height: 40px;
+    flex: 1 1 80px;
+    max-width: 100px;
+  /* } */
+}

@@ -1,4 +1,4 @@
-export default function QuestionNavigator({ total, current, setCurrent }) {
+export default function QuestionNavigator({ total, current, setCurrent ,isMobile }) {
   const primaryColor = "#001b66";
 
   return (

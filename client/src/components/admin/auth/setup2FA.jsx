@@ -38,43 +38,52 @@ export default function Setup2FA() {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>İki Adımlı Doğrulama (2FA) Kurulumu</h1>
+      <div style={styles.box}>
+        <h1 style={styles.title}>İki Adımlı Doğrulama (2FA) Kurulumu</h1>
 
-      {qrCode && (
-        <>
-          <p style={styles.message}>{message}</p>
-          <img
-            src={qrCode.qrCodeDataURL || qrCode}
-            alt="2FA QR Kod"
-            style={styles.qrCode}
-          />
-          <p style={styles.instructions}>
-            QR kodu taradıktan sonra uygulama size 6 haneli bir doğrulama kodu
-            verecektir. Bu kodu giriş ekranında kullanabilirsiniz.
-          </p>
-          <button onClick={handleRetry} style={styles.retryButton}>
-            QR Kodunu Yeniden Getir
-          </button>
-          {/* İşte yeni eklenen buton */}
-          <button onClick={handleGoToVerify} style={styles.verifyButton}>
-            Doğrulama Kısmına Geç
-          </button>
-        </>
-      )}
+        {qrCode && (
+          <>
+            <p style={styles.message}>{message}</p>
+            <img
+              src={qrCode.qrCodeDataURL || qrCode}
+              alt="2FA QR Kod"
+              style={styles.qrCode}
+            />
+            <p style={styles.instructions}>
+              QR kodu taradıktan sonra uygulama size 6 haneli bir doğrulama kodu
+              verecektir. Bu kodu giriş ekranında kullanabilirsiniz.
+            </p>
+            <button onClick={handleRetry} style={styles.retryButton}>
+              QR Kodunu Yeniden Getir
+            </button>
+            <button onClick={handleGoToVerify} style={styles.verifyButton}>
+              Doğrulama Kısmına Geç
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }
 
 const styles = {
   container: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    height: "100vh",
+    backgroundColor: "#f0f2f5",
+  },
+  box: {
     maxWidth: 400,
-    margin: "2rem auto",
+    width: "100%",
     padding: "1rem 2rem",
     textAlign: "center",
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     border: "1px solid #ddd",
     borderRadius: 8,
     backgroundColor: "#fafafa",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
   },
   title: {
     marginBottom: "1rem",

@@ -28,6 +28,11 @@ const {
   Permission,
   UploadFileUser,
   UploadFile,
+  Educator,
+  Requester,
+  CourseNo,
+  CourseType,
+  
 } = require("../models/index");
 const { v4: uuidv4 } = require("uuid"); // Eğer UUID üretmen gerekiyorsa
 const bcrypt = require("bcrypt");
@@ -129,6 +134,10 @@ async function populate() {
       name: "Düşük",
       level: 3,
     },
+    {
+      name: "En Düşük",
+      level: 10,
+    },
   ]);
   await RoleLevelPerm.bulkCreate([
     { roleLevelId: 1, permissionId: 1 },
@@ -188,6 +197,41 @@ async function populate() {
       roleLevelId: 3,
       level: 3,
     },
+    {
+      name: "Personel",
+      roleLevelId: 4,
+      level: 10,
+    },
+  ]);
+  await Requester.bulkCreate([
+    { name: "Ceyhun Türkmen" },
+    { name: "John Doe" },
+    { name: "Jane Smith" },
+    { name: "Michael Johnson" },
+  ]);
+  await Educator.bulkCreate([
+    { name: "Ceyhun Türkmen" },
+    { name: "John Doe" },
+    { name: "Jane Smith" },
+  ]);
+  await CourseNo.bulkCreate([
+    {
+      name: "1",
+    },
+    {
+      name: "2",
+    },
+    {
+      name: "3",
+    },
+  ]);
+  await CourseType.bulkCreate([
+    {
+      name: "Temel Eğitim",
+    },
+    {
+      name: "Tazeleme Eğitimi",
+    },
   ]);
   await User.bulkCreate([
     {
@@ -196,7 +240,7 @@ async function populate() {
       ad: "John",
       soyad: "Doe",
       kullanici_adi: "johndoe",
-      sifre: await bcrypt.hash("123456", 10),
+      sifre: await bcrypt.hash("Ceycey.123", 10),
       telefon: "+90 532 123 45 67",
       email: "ctrkmn64@gmail.com",
       il: "İstanbul",

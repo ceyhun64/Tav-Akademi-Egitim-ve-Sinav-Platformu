@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import {
   uploadSingleThunk,
@@ -137,59 +137,82 @@ export default function CreateEducation() {
       setMessage("Önce tekli bir PDF eğitimi yüklemelisiniz.");
     }
   };
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300;
   return (
-    <div className="poolteo-container" style={{ display: "flex" }}>
+    <div
+      className="poolImg-container"
+      style={{ overflowX: "hidden", padding: "1rem" }}
+    >
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
           padding: "1rem",
           position: "fixed",
           left: 0,
           top: 0,
-          backgroundColor: "#001b66",
+          backgroundColor: "white",
           color: "#fff",
           boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
-          zIndex: 10,
+          zIndex: 99999,
         }}
       >
         <Sidebar />
-      </div>{" "}
-      {/* Main Content */}
+      </div>
+
+      {/* Ana İçerik */}
       <div
-        style={{
-          marginLeft: "260px",
-          padding: "2rem",
-          backgroundColor: "#f8f9fc",
-          minHeight: "100vh",
-          flex: 1,
-        }}
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
       >
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "2rem",
+            marginBottom: "2.5rem",
           }}
         >
-          <h2
+          <h1
+            className="mb-4 mt-2 ms-5"
             style={{
-              color: "#001b66",
-              fontSize: "24px",
-              fontWeight: "600",
+              color: "#003399",
+              fontSize: "28px",
+              fontWeight: "700",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.6rem",
+              userSelect: "none",
             }}
           >
-            <i
-              className="bi bi-clipboard-check-fill"
-              style={{ marginRight: "8px" }}
-            ></i>
+            {!isMobile && (
+              <i
+                className="bi bi-journal-bookmark-fill"
+                style={{ fontSize: "1.6rem" }}
+              ></i>
+            )}
             Eğitim Oluştur
-          </h2>
-        </div>{" "}
+          </h1>
+        </div>
         {message && (
           <div
             className={`alert ${
@@ -277,7 +300,8 @@ export default function CreateEducation() {
           </div>
           <button
             onClick={handleSingleUpload}
-            className="btn btn-primary"
+            className="btn btn-primary "
+            style={{ width: "10%" }}
             disabled={isLoading}
           >
             Yükle

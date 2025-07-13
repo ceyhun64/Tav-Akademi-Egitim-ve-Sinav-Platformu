@@ -9,7 +9,7 @@ const PracticeExam = sequelize.define("practice_exam", {
   },
   duration: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
   },
   question_count: {
     type: DataTypes.INTEGER,

@@ -58,44 +58,53 @@ export default function PracticeExam() {
     dispatch(deletePracticeExamThunk(id));
   };
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
+
   return (
     <div
-      className="poolteo-container"
-      style={{
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        overflowX: "hidden", // yatay kaymayı engeller
-      }}
+      className="poolImg-container"
+      style={{ overflowX: "hidden", padding: "1rem" }}
     >
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
-          padding: "1.5rem 1.2rem",
+          padding: "1rem",
           position: "fixed",
           left: 0,
           top: 0,
-          backgroundColor: "#003399", // biraz daha canlı mavi
+          backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 12px rgba(0, 0, 0, 0.25)",
+          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
-          zIndex: 10,
-          borderRadius: "0 12px 12px 0",
+          zIndex: 99999,
         }}
       >
         <Sidebar />
       </div>
 
-      {/* Main Content */}
+      {/* Ana İçerik */}
       <div
-        style={{
-          marginLeft: "260px",
-          padding: "2.5rem 3rem",
-          backgroundColor: "#f4f6fc",
-          minHeight: "100vh",
-          transition: "margin-left 0.3s ease",
-          color: "#222",
-        }}
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
       >
         <div
           style={{
@@ -106,6 +115,7 @@ export default function PracticeExam() {
           }}
         >
           <h1
+            className="mb-4 mt-2 ms-5"
             style={{
               color: "#003399",
               fontSize: "28px",
@@ -116,11 +126,29 @@ export default function PracticeExam() {
               userSelect: "none",
             }}
           >
-            <i
-              className="bi bi-clipboard-check-fill"
-              style={{ fontSize: "1.6rem" }}
-            ></i>
+            {!isMobile && (
+              <i
+                className="bi bi-journal-bookmark-fill"
+                style={{ fontSize: "1.6rem" }}
+              ></i>
+            )}
             Pratik Sınavlar
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                marginLeft: isMobile ? "auto" : "30px",
+                backgroundColor: "#001b66",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "6px 16px", // padding yatay biraz artırıldı
+                cursor: "pointer",
+                fontSize: "1rem",
+                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+              }}
+            >
+              Geri Dön
+            </button>
           </h1>
         </div>
 
@@ -141,17 +169,49 @@ export default function PracticeExam() {
             {/* Form */}
             <form onSubmit={handleSubmit} className="mb-4 row g-3">
               <div className="col-md-6">
-                <input
-                  type="number"
-                  className="form-control"
-                  placeholder="Süre (dakika)"
+                <label htmlFor="duration" style={{ fontWeight: "500" }}>
+                  Süre (sn)
+                </label>
+                <select
+                  id="duration"
+                  className="custom-select"
                   name="duration"
                   value={formData.duration}
                   onChange={handleChange}
                   required
-                />
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    borderRadius: "8px",
+                    border: "1px solid #cbd5e1",
+                    marginTop: "5px",
+                    backgroundColor: "#fff",
+                  }}
+                >
+                  {/* Süresiz seçeneği */}
+                  <option value="0">Süresiz</option>
+
+                  {/* 5'ten 15'e kadar 1'erli artış */}
+                  {Array.from({ length: 11 }, (_, i) => 5 + i).map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+
+                  {/* 20'den 100'e kadar 5'erli artış */}
+                  {Array.from({ length: 17 }, (_, i) => 20 + i * 5).map(
+                    (value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    )
+                  )}
+                </select>
               </div>
               <div className="col-md-6">
+                <label htmlFor="duration" style={{ fontWeight: "500" }}>
+                  Soru Sayısı
+                </label>
                 <input
                   type="number"
                   className="form-control"
@@ -189,7 +249,9 @@ export default function PracticeExam() {
                     key={item.id}
                     className="list-group-item d-flex justify-content-between align-items-center"
                   >
-                    Süre: {item.duration} dk, Soru Sayısı: {item.question_count}
+                    Süre:{" "}
+                    {item.duration === 0 ? "Süresiz" : `${item.duration} dk`},
+                    Soru Sayısı: {item.question_count}
                     <div>
                       <button
                         className="btn btn-sm btn-outline-warning me-2"

@@ -42,9 +42,9 @@ export default function PolygonEditor({
         <g key={pIdx}>
           <polygon
             points={poly.map((pt) => `${pt.x},${pt.y}`).join(" ")}
-            fill="rgba(0,255,0,0.1)"
-            stroke="green"
-            strokeWidth={2}
+            fill="rgba(0, 128, 0, 0.3)" // daha koyu yeşil ve transparan
+            stroke="darkgreen"
+            strokeWidth={3}
             onMouseDown={(e) => onStartDragPolygon(e, pIdx)}
           />
           {poly.map((pt, i) => {
@@ -64,25 +64,26 @@ export default function PolygonEditor({
                 <circle
                   cx={pt.x}
                   cy={pt.y}
-                  r={5}
+                  r={7} // biraz daha büyük
                   fill="white"
-                  stroke="red"
-                  strokeWidth={2}
+                  stroke="#ff0000" // parlak kırmızı kenar
+                  strokeWidth={3}
                   onMouseDown={(e) => onStartDragPoint(e, pIdx, i)}
-                  style={{ cursor: "grab" }}
+                  style={{ cursor: "grab", zIndex: 10000 }}
                 />
               </React.Fragment>
             );
           })}
         </g>
       ))}
+
       {currentPolygon.length > 0 && (
         <>
           <polygon
             points={currentPolygon.map((pt) => `${pt.x},${pt.y}`).join(" ")}
-            fill="rgba(255,0,0,0.1)"
+            fill="rgba(255, 0, 0, 0.3)" // koyu kırmızı transparan
             stroke="red"
-            strokeWidth={2}
+            strokeWidth={4}
           />
           {hoverPoint && (
             <line
@@ -100,12 +101,12 @@ export default function PolygonEditor({
               key={i}
               cx={pt.x}
               cy={pt.y}
-              r={5}
+              r={7}
               fill="white"
               stroke="red"
-              strokeWidth={2}
+              strokeWidth={3}
               onMouseDown={(e) => onStartDragPoint(e, -1, i)}
-              style={{ cursor: "grab" }}
+              style={{ cursor: "grab", zIndex: 10000 }}
             />
           ))}
         </>

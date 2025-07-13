@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { getDownloadedUserThunk } from "../../../features/thunks/uploadFileThunk";
 import Sidebar from "../adminPanel/sidebar";
@@ -11,44 +11,53 @@ export default function Downloaded() {
     dispatch(getDownloadedUserThunk());
   }, [dispatch]);
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
+
   return (
     <div
-      className="poolteo-container"
-      style={{
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        overflowX: "hidden", // yatay kaymayı engeller
-      }}
+      className="poolImg-container"
+      style={{ overflowX: "hidden", padding: "1rem" }}
     >
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
-          padding: "1.5rem 1.2rem",
+          padding: "1rem",
           position: "fixed",
           left: 0,
           top: 0,
-          backgroundColor: "#003399", // biraz daha canlı mavi
+          backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 12px rgba(0, 0, 0, 0.25)",
+          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
-          zIndex: 10,
-          borderRadius: "0 12px 12px 0",
+          zIndex: 99999,
         }}
       >
         <Sidebar />
       </div>
 
-      {/* Main Content */}
+      {/* Ana İçerik */}
       <div
-        style={{
-          marginLeft: "260px",
-          padding: "2.5rem 3rem",
-          backgroundColor: "#f4f6fc",
-          minHeight: "100vh",
-          transition: "margin-left 0.3s ease",
-          color: "#222",
-        }}
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
       >
         <div
           style={{
@@ -59,6 +68,7 @@ export default function Downloaded() {
           }}
         >
           <h1
+            className="mb-4 mt-2 ms-5"
             style={{
               color: "#003399",
               fontSize: "28px",
@@ -69,13 +79,32 @@ export default function Downloaded() {
               userSelect: "none",
             }}
           >
-            <i
-              className="bi bi-clock-history "
-              style={{ fontSize: "1.6rem" }}
-            ></i>
+            {!isMobile && (
+              <i
+                className="bi bi-journal-bookmark-fill"
+                style={{ fontSize: "1.6rem" }}
+              ></i>
+            )}
             Tebliğ Takip
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                marginLeft: isMobile ? "auto" : "30px",
+                backgroundColor: "#001b66",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "6px 16px", // padding yatay biraz artırıldı
+                cursor: "pointer",
+                fontSize: "1rem",
+                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+              }}
+            >
+              Geri Dön
+            </button>
           </h1>
         </div>
+
         {downloadUser && downloadUser.length > 0 ? (
           <div
             className="table-responsive"
@@ -95,7 +124,7 @@ export default function Downloaded() {
               style={{
                 borderCollapse: "separate",
                 borderSpacing: "0 8px",
-                minWidth: "1100px",
+                minWidth: isMobile ? "100%" : "1100px",
                 userSelect: "none",
               }}
             >
@@ -109,11 +138,11 @@ export default function Downloaded() {
                   className="text-center align-middle"
                   style={{ fontWeight: "600", color: "#334155" }}
                 >
-                  <th style={{ width: "40px" }}>#</th>
+                  {!isMobile && <th style={{ width: "40px" }}>#</th>}
                   <th>Kullanıcı Adı</th>
                   <th>Kullanıcı Soyadı</th>
                   <th>Dosya İsmi</th>
-                  <th>İndirme Tarihi</th>
+                  {!isMobile && <th>İndirme Tarihi</th>}
                 </tr>
               </thead>
               <tbody>
@@ -134,12 +163,14 @@ export default function Downloaded() {
                       (e.currentTarget.style.backgroundColor = "#fff")
                     }
                   >
-                    <td
-                      className="text-center"
-                      style={{ verticalAlign: "middle" }}
-                    >
-                      {index + 1}
-                    </td>
+                    {!isMobile && (
+                      <td
+                        className="text-center"
+                        style={{ verticalAlign: "middle" }}
+                      >
+                        {index + 1}
+                      </td>
+                    )}
                     <td
                       className="text-center"
                       style={{ verticalAlign: "middle" }}
@@ -158,12 +189,14 @@ export default function Downloaded() {
                     >
                       {item.file?.name || "-"}
                     </td>
-                    <td
-                      className="text-center"
-                      style={{ verticalAlign: "middle" }}
-                    >
-                      {new Date(item.updatedAt).toLocaleString("tr-TR")}
-                    </td>
+                    {!isMobile && (
+                      <td
+                        className="text-center"
+                        style={{ verticalAlign: "middle" }}
+                      >
+                        {new Date(item.updatedAt).toLocaleString("tr-TR")}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

@@ -141,9 +141,14 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
     };
 
     try {
-      const unifiedExam = await dispatch(
-        createUnifiedExamThunk(dataToSend)
-      ).unwrap();
+      const unifiedExam = await dispatch(createUnifiedExamThunk(dataToSend))
+        .unwrap()
+        .then(() => {
+          alert("Sınav başarıyla oluşturuldu!");
+        })
+        .catch((err) => {
+          alert("Hata oluştu: " + err.message);
+        });
 
       // API'den gelen teoId ve imgId
       const { teoId, imgId } = unifiedExam.unified;
@@ -156,577 +161,672 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
       console.error("Birleşik sınav oluşturulurken hata:", error);
     }
   };
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300;
   return (
-    <div className="container-fluid">
-      <div className="row">
-        {/* Sidebar */}
-        <nav
-          className="col-md-3 col-lg-2 d-md-block bg-primary text-white sidebar collapse vh-100 position-fixed"
-          style={{
-            padding: "1rem",
-            overflowY: "auto",
-            top: 0,
-            left: 0,
-            boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
-            zIndex: 10,
-          }}
-        >
-          <Sidebar />
-        </nav>
+    <div
+      className="poolImg-container"
+      style={{ overflowX: "hidden", padding: "1rem" }}
+    >
+      {/* Sidebar */}
+      <div
+        style={{
+          padding: "1rem",
+          position: "fixed",
+          left: 0,
+          top: 0,
+          backgroundColor: "white",
+          color: "#fff",
+          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
+          overflowY: "auto",
+          zIndex: 99999,
+        }}
+      >
+        <Sidebar />
+      </div>
 
-        {/* Main Content */}
-        <main
-          className="col-md-9 ms-sm-auto col-lg-10 px-md-4"
+      {/* Ana İçerik */}
+      <div
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
+      >
+        <div
           style={{
-            marginLeft: "auto",
-            backgroundColor: "#f8f9fc",
-            minHeight: "100vh",
-            paddingTop: "2rem",
-            paddingBottom: "2rem",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "2.5rem",
           }}
         >
-          <div
+          <h1
+            className="mb-1 mt-2 ms-5"
             style={{
+              color: "#003399",
+              fontSize: "28px",
+              fontWeight: "700",
               display: "flex",
-              justifyContent: "space-between",
               alignItems: "center",
-              marginBottom: "2rem",
+              gap: "0.6rem",
+              userSelect: "none",
             }}
           >
-            <h1
+            {!isMobile && (
+              <i
+                className="bi bi-journal-bookmark-fill"
+                style={{ fontSize: "1.6rem" }}
+              ></i>
+            )}
+            Karma Sınav Oluştur
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                marginLeft: isMobile ? "auto" : "30px",
+                backgroundColor: "#001b66",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "6px 16px", // padding yatay biraz artırıldı
+                cursor: "pointer",
+                fontSize: "1rem",
+                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+              }}
+            >
+              Geri Dön
+            </button>
+          </h1>
+        </div>
+        <form onSubmit={handleSubmit} style={{ display: "grid", gap: "20px" }}>
+          {/* Form sections container */}
+          <div
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: "12px",
+              padding: "20px",
+              boxShadow: "0 6px 15px rgba(0, 27, 102, 0.1)",
+              marginTop: "30px",
+            }}
+          >
+            <h5
               style={{
                 color: "#001b66",
-                fontSize: "24px",
+                marginBottom: "15px",
                 fontWeight: "600",
               }}
             >
-              <i className="bi bi-ui-checks" style={{ marginRight: "8px" }}></i>
-              Karma Sınav Oluştur
-            </h1>
-          </div>
-          <form onSubmit={handleSubmit} className="p-3">
-            {/* Form sections container */}
-            <div className="row g-4">
-              {/* Sınav Bilgileri */}
-              <div className="card shadow-sm border rounded-3">
-                <div className="card-body">
-                  <h5 className="card-title text-primary mb-3">
-                    <i className="bi bi-info-circle-fill me-2"></i>Sınav
-                    Bilgileri
-                  </h5>
+              <i
+                className="bi bi-people-fill"
+                style={{ marginRight: "8px" }}
+              ></i>
+              Sınav Bilgileri{" "}
+            </h5>
+            {/* Sınav Bilgileri */}
+            <div className="card-body">
+              <div className="mb-3">
+                <label htmlFor="name" className="form-label">
+                  Sınav İsmi
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="form-control"
+                />
+              </div>
 
-                  <div className="mb-3">
-                    <label htmlFor="name" className="form-label">
-                      Sınav İsmi
+              <div className="row">
+                <div className="col-6 mb-3">
+                  <label htmlFor="start_date" className="form-label">
+                    Başlangıç Tarihi
+                  </label>
+                  <input
+                    id="start_date"
+                    type="date"
+                    name="start_date"
+                    value={formData.start_date}
+                    onChange={handleChange}
+                    className="form-control"
+                  />
+                </div>
+                <div className="col-6 mb-3">
+                  <label htmlFor="end_date" className="form-label">
+                    Bitiş Tarihi
+                  </label>
+                  <input
+                    id="end_date"
+                    type="date"
+                    name="end_date"
+                    value={formData.end_date}
+                    onChange={handleChange}
+                    className="form-control"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="form-sections"
+            style={{
+              display: "flex",
+              gap: "20px",
+              flexWrap: "wrap",
+              flexDirection: isMobile ? "column" : "row",
+            }}
+          >
+            {/* Left Column */}
+            <div
+              style={{
+                flex: 1,
+                backgroundColor: "#fff",
+                borderRadius: "12px",
+                padding: "20px",
+                boxShadow: "0 8px 24px rgba(0,27,102,0.08)",
+                border: "1px solid #e0e6ed",
+              }}
+            >
+              <h5
+                style={{
+                  color: "#001b66",
+                  marginBottom: "15px",
+                  fontWeight: "600",
+                }}
+              >
+                <i
+                  className="bi bi-info-circle-fill"
+                  style={{ marginRight: "6px" }}
+                ></i>
+                Teorik Sınav Ayarları
+              </h5>
+              <div className="card-body">
+                <div className="row g-3">
+                  <div className="col-6">
+                    <label htmlFor="start_time_teo" className="form-label">
+                      Başlangıç Saati
                     </label>
                     <input
-                      id="name"
-                      name="name"
-                      value={formData.name}
+                      id="start_time_teo"
+                      type="time"
+                      name="start_time_teo"
+                      value={formData.start_time_teo}
                       onChange={handleChange}
                       className="form-control"
                     />
                   </div>
-
-                  <div className="row">
-                    <div className="col-6 mb-3">
-                      <label htmlFor="start_date" className="form-label">
-                        Başlangıç Tarihi
-                      </label>
-                      <input
-                        id="start_date"
-                        type="date"
-                        name="start_date"
-                        value={formData.start_date}
-                        onChange={handleChange}
-                        className="form-control"
-                      />
-                    </div>
-                    <div className="col-6 mb-3">
-                      <label htmlFor="end_date" className="form-label">
-                        Bitiş Tarihi
-                      </label>
-                      <input
-                        id="end_date"
-                        type="date"
-                        name="end_date"
-                        value={formData.end_date}
-                        onChange={handleChange}
-                        className="form-control"
-                      />
-                    </div>
+                  <div className="col-6">
+                    <label htmlFor="end_time_teo" className="form-label">
+                      Bitiş Saati
+                    </label>
+                    <input
+                      id="end_time_teo"
+                      type="time"
+                      name="end_time_teo"
+                      value={formData.end_time_teo}
+                      onChange={handleChange}
+                      className="form-control"
+                    />
                   </div>
-                </div>
-              </div>
-              <div className="row g-4">
-                {/* İkinci sütun */}
-                <div className="col-lg-6">
-                  {/* Teorik Sınav */}
-                  <div className="card shadow-sm border rounded-3 mb-4">
-                    <div className="card-body">
-                      <h5 className="card-title text-primary mb-3">
-                        <i className="bi bi-file-text-fill me-2"></i>
-                        Teorik Sınav
-                      </h5>
-
-                      <div className="row g-3">
-                        <div className="col-4">
-                          <label
-                            htmlFor="start_time_teo"
-                            className="form-label"
-                          >
-                            Başlangıç Saati
-                          </label>
-                          <input
-                            id="start_time_teo"
-                            type="time"
-                            name="start_time_teo"
-                            value={formData.start_time_teo}
-                            onChange={handleChange}
-                            className="form-control"
-                          />
-                        </div>
-                        <div className="col-4">
-                          <label htmlFor="end_time_teo" className="form-label">
-                            Bitiş Saati
-                          </label>
-                          <input
-                            id="end_time_teo"
-                            type="time"
-                            name="end_time_teo"
-                            value={formData.end_time_teo}
-                            onChange={handleChange}
-                            className="form-control"
-                          />
-                        </div>
-                        {/* Süre */}
-                        <div className="col-4">
-                          <label htmlFor="sure" className="form-label">
-                            Süre (dk)
-                          </label>
-                          <select
-                            id="sure"
-                            name="sure"
-                            value={formData.sure}
-                            onChange={handleChange}
-                            className="form-select"
-                          >
-                            {Array.from({ length: 11 }, (_, i) => 5 + i).map(
-                              (value) => (
-                                <option key={value} value={value}>
-                                  {value}
-                                </option>
-                              )
-                            )}
-                            {Array.from(
-                              { length: 17 },
-                              (_, i) => 20 + i * 5
-                            ).map((value) => (
-                              <option key={value} value={value}>
-                                {value}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="col-12">
-                          <label htmlFor="bookletId_teo" className="form-label">
-                            Teorik Kitapçık
-                          </label>
-                          <select
-                            id="bookletId_teo"
-                            name="bookletId_teo"
-                            value={formData.bookletId_teo}
-                            onChange={handleChange}
-                            className="form-select"
-                          >
-                            <option value="">Kitapçık Seçiniz</option>
-                            {teoBooklets.map((b) => (
-                              <option key={b.id} value={b.id}>
-                                {b.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        {selectedTeoBooklet && (
-                          <p className="col-12 mt-2">
-                            Soru Sayısı: {selectedTeoBooklet.question_count}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-lg-6">
-                  {/* Uygulamalı Sınav */}
-                  <div className="card shadow-sm border rounded-3 mb-4">
-                    <div className="card-body">
-                      <h5 className="card-title text-primary mb-3">
-                        <i className="bi bi-image me-2"></i>
-                        Uygulamalı Sınav
-                      </h5>
-
-                      <div className="row g-3">
-                        <div className="col-4">
-                          <label
-                            htmlFor="start_time_img"
-                            className="form-label"
-                          >
-                            Başlangıç Saati
-                          </label>
-                          <input
-                            id="start_time_img"
-                            type="time"
-                            name="start_time_img"
-                            value={formData.start_time_img}
-                            onChange={handleChange}
-                            className="form-control"
-                          />
-                        </div>
-                        <div className="col-4">
-                          <label htmlFor="end_time_img" className="form-label">
-                            Bitiş Saati
-                          </label>
-                          <input
-                            id="end_time_img"
-                            type="time"
-                            name="end_time_img"
-                            value={formData.end_time_img}
-                            onChange={handleChange}
-                            className="form-control"
-                          />
-                        </div>
-                        <div className="col-4">
-                          <label htmlFor="sure_img" className="form-label">
-                            Soru Başına Süre (sn)
-                          </label>
-                          <select
-                            id="sure_img"
-                            name="sure_img"
-                            value={formData.sure_img}
-                            onChange={handleChange}
-                            className="form-select"
-                          >
-                            {Array.from({ length: 11 }, (_, i) => 5 + i).map(
-                              (v) => (
-                                <option key={v} value={v}>
-                                  {v}
-                                </option>
-                              )
-                            )}
-                            {Array.from(
-                              { length: 17 },
-                              (_, i) => 20 + i * 5
-                            ).map((v) => (
-                              <option key={v} value={v}>
-                                {v}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="col-12">
-                          <label htmlFor="bookletId_img" className="form-label">
-                            Görüntü Kitapçık
-                          </label>
-                          <select
-                            id="bookletId_img"
-                            name="bookletId_img"
-                            value={formData.bookletId_img}
-                            onChange={handleChange}
-                            className="form-select"
-                          >
-                            <option value="">Kitapçık Seçiniz</option>
-                            {imgBooklets.map((b) => (
-                              <option key={b.id} value={b.id}>
-                                {b.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        {selectedImgBooklet && (
-                          <p className="col-12 mt-2">
-                            Soru Sayısı: {selectedImgBooklet.question_count}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Ortak Ayarlar */}
-              <div className="card shadow-sm border rounded-3 mt-4">
-                <div className="card-body">
-                  <h5 className="card-title text-primary mb-3">
-                    Ortak Ayarlar
-                  </h5>
-                  <div className="row g-3">
-                    <div className="col-4">
-                      <label htmlFor="attemp_limit" className="form-label">
-                        Sınav Hakkı
-                      </label>
-                      <select
-                        id="attemp_limit"
-                        name="attemp_limit"
-                        value={formData.attemp_limit}
-                        onChange={handleChange}
-                        className="form-select"
-                      >
-                        {[...Array(10)].map((_, i) => (
-                          <option key={i + 1} value={i + 1}>
-                            {i + 1}
+                  <div className="col-6">
+                    <label htmlFor="sure_teo" className="form-label">
+                      Süre (dk)
+                    </label>
+                    <select
+                      id="sure_teo"
+                      name="sure_teo"
+                      value={formData.sure_teo}
+                      onChange={handleChange}
+                      className="form-select"
+                    >
+                      {Array.from({ length: 11 }, (_, i) => 5 + i).map(
+                        (value) => (
+                          <option key={value} value={value}>
+                            {value}
                           </option>
-                        ))}
-                        {[...Array(9)].map((_, i) => {
-                          const val = 20 + i * 10;
-                          return (
-                            <option key={val} value={val}>
-                              {val}
-                            </option>
-                          );
-                        })}
-                      </select>
-                    </div>
-                    <div className="col-4">
-                      <label htmlFor="passing_score" className="form-label">
-                        Geçme Notu
-                      </label>
-                      <select
-                        id="passing_score"
-                        name="passing_score"
-                        value={formData.passing_score}
-                        onChange={handleChange}
-                        className="form-select"
-                      >
-                        {Array.from({ length: 11 }, (_, i) => 50 + i * 5).map(
-                          (v) => (
-                            <option key={v} value={v}>
-                              {v}
-                            </option>
-                          )
-                        )}
-                      </select>
-                    </div>
-                    <div className="col-4">
-                      <label htmlFor="method" className="form-label">
-                        Yöntem
-                      </label>
-                      <select
-                        id="method"
-                        name="method"
-                        value={formData.method}
-                        onChange={handleChange}
-                        className="form-select"
-                      >
-                        <option value="random">Rastgele</option>
-                        <option value="sequential">Sıralı</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Ek Ayarlar */}
-                  <div
-                    style={{
-                      marginTop: "20px",
-                      display: "flex",
-                      gap: "20px",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <div className="form-check">
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        name="mail"
-                        checked={formData.mail}
-                        onChange={handleChange}
-                        id="mail"
-                      />
-                      <label htmlFor="mail" className="form-check-label">
-                        Mail Gönder
-                      </label>
-                    </div>
-
-                    <div className="form-check">
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        name="timed"
-                        checked={formData.timed}
-                        onChange={handleChange}
-                        id="timed"
-                      />
-                      <label htmlFor="timed" className="form-check-label">
-                        Zamanlı
-                      </label>
-                    </div>
-
-                    <div className="form-check">
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        name="sonucu_gizle"
-                        checked={formData.sonucu_gizle}
-                        onChange={handleChange}
-                        id="sonucu_gizle"
-                      />
-                      <label
-                        htmlFor="sonucu_gizle"
-                        className="form-check-label"
-                      >
-                        Sonucu Gizle
-                      </label>
-                    </div>
-
-                    <div className="form-check">
-                      <input
-                        type="checkbox"
-                        className="form-check-input"
-                        name="orana_gore_ata"
-                        checked={formData.orana_gore_ata}
-                        onChange={handleChange}
-                        id="orana_gore_ata"
-                      />
-                      <label
-                        htmlFor="orana_gore_ata"
-                        className="form-check-label"
-                      >
-                        Orana Göre Ata
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Oranlı Ayarlar */}
-              {formData.orana_gore_ata && (
-                <div className="p-4 mt-4 border rounded shadow-sm bg-light">
-                  <div className="row g-4">
-                    <div className="col-md-6">
-                      <label className="form-label fw-semibold">
-                        Zorluk Seviyesi
-                      </label>
-                      <select
-                        name="zorluk_seviyesi"
-                        value={formData.zorluk_seviyesi}
-                        onChange={handleChange}
-                        className="form-select"
-                      >
-                        <option value="">Seçiniz</option>
-                        <option value="kolay">Kolay</option>
-                        <option value="orta">Orta</option>
-                        <option value="zor">Zor</option>
-                        <option value="karışık">Karışık</option>
-                      </select>
-                    </div>
-
-                    <div className="col-md-6">
-                      <label className="form-label fw-semibold">
-                        Toplam Soru
-                      </label>
-                      <input
-                        type="number"
-                        name="toplam_soru"
-                        value={formData.toplam_soru}
-                        onChange={handleChange}
-                        className="form-control"
-                        min="0"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="row g-4 mt-3">
-                    {ORAN_FIELDS.map(({ name, label }) => (
-                      <div key={name} className="col-md-4">
-                        <label className="form-label fw-semibold">
-                          {label} (%)
-                        </label>
-                        <input
-                          type="number"
-                          name={name}
-                          value={formData[name]}
-                          onChange={handleChange}
-                          className="form-control"
-                          min="0"
-                          max="100"
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-3">
-                    <p className="mb-0">
-                      <strong>Toplam Oran:</strong>{" "}
-                      <span
-                        className={`fw-bold ${
-                          oranToplam !== 100 ? "text-danger" : "text-success"
-                        }`}
-                      >
-                        {oranToplam.toFixed(2)}%
-                      </span>
-                      {oranToplam !== 100 && (
-                        <span className="ms-2 text-danger">
-                          (Toplam 100 olmalı!)
-                        </span>
+                        )
                       )}
-                    </p>
+                      {Array.from({ length: 17 }, (_, i) => 20 + i * 5).map(
+                        (value) => (
+                          <option key={value} value={value}>
+                            {value}
+                          </option>
+                        )
+                      )}
+                    </select>
                   </div>
+                  <div className="col-6">
+                    <label htmlFor="bookletId_teo" className="form-label">
+                      Teorik Kitapçık
+                    </label>
+                    <select
+                      id="bookletId_teo"
+                      name="bookletId_teo"
+                      value={formData.bookletId_teo}
+                      onChange={handleChange}
+                      className="form-select"
+                    >
+                      <option value="">Kitapçık Seçiniz</option>
+                      {teoBooklets.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {selectedTeoBooklet && (
+                    <p className="col-12 mt-2">
+                      Soru Sayısı: {selectedTeoBooklet.question_count}
+                    </p>
+                  )}
                 </div>
-              )}
-
-              {/* Kullanıcılar */}
-              <div
-                style={{
-                  backgroundColor: "#fff",
-                  borderRadius: "12px",
-                  padding: "20px",
-                  boxShadow: "0 6px 15px rgba(0, 27, 102, 0.1)",
-                  marginTop: "30px",
-                }}
-              >
-                <h5
-                  style={{
-                    color: "#001b66",
-                    marginBottom: "20px",
-                    fontWeight: "700",
-                    fontSize: "18px",
-                  }}
-                >
-                  <i
-                    className="bi bi-people-fill"
-                    style={{ marginRight: "8px" }}
-                  ></i>
-                  Kullanıcılar
-                </h5>
-                {isLoading ? (
-                  <p style={{ color: "#666" }}>Yükleniyor...</p>
-                ) : error ? (
-                  <p style={{ color: "red", fontWeight: "600" }}>
-                    Hata: {error}
-                  </p>
-                ) : (
-                  <UserList
-                    users={users}
-                    selectedUserIds={formData.userIds}
-                    onUserToggle={handleUserCheckbox}
-                    onToggleAll={(checked) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        userIds: checked ? users.map((u) => u.id) : [],
-                      }))
-                    }
-                  />
-                )}
-              </div>
-
-              <div className="d-flex justify-content-center">
-                <button type="submit" className="btn btn-primary px-4">
-                  Sınav Oluştur
-                </button>
               </div>
             </div>
-          </form>
-        </main>
+
+            {/*right column*/}
+            <div
+              style={{
+                flex: 1,
+                backgroundColor: "#fff",
+                borderRadius: "12px",
+                padding: "20px",
+                boxShadow: "0 8px 24px rgba(0,27,102,0.08)",
+                border: "1px solid #e0e6ed",
+              }}
+            >
+              <h5
+                style={{
+                  color: "#001b66",
+                  marginBottom: "15px",
+                  fontWeight: "600",
+                }}
+              >
+                <i
+                  className="bi bi-info-circle-fill"
+                  style={{ marginRight: "6px" }}
+                ></i>
+                Uygulamalı Sınav Ayarları
+              </h5>
+              <div className="card-body">
+                <div className="row g-3">
+                  <div className="col-6">
+                    <label htmlFor="start_time_img" className="form-label">
+                      Başlangıç Saati
+                    </label>
+                    <input
+                      id="start_time_img"
+                      type="time"
+                      name="start_time_img"
+                      value={formData.start_time_img}
+                      onChange={handleChange}
+                      className="form-control"
+                    />
+                  </div>
+                  <div className="col-6">
+                    <label htmlFor="end_time_img" className="form-label">
+                      Bitiş Saati
+                    </label>
+                    <input
+                      id="end_time_img"
+                      type="time"
+                      name="end_time_img"
+                      value={formData.end_time_img}
+                      onChange={handleChange}
+                      className="form-control"
+                    />
+                  </div>
+                  <div className="col-6">
+                    <label htmlFor="sure_img" className="form-label">
+                      Soru Başına Süre (sn)
+                    </label>
+                    <select
+                      id="sure_img"
+                      name="sure_img"
+                      value={formData.sure_img}
+                      onChange={handleChange}
+                      className="form-select"
+                    >
+                      {Array.from({ length: 11 }, (_, i) => 5 + i).map((v) => (
+                        <option key={v} value={v}>
+                          {v}
+                        </option>
+                      ))}
+                      {Array.from({ length: 17 }, (_, i) => 20 + i * 5).map(
+                        (v) => (
+                          <option key={v} value={v}>
+                            {v}
+                          </option>
+                        )
+                      )}
+                    </select>
+                  </div>
+                  <div className="col-6">
+                    <label htmlFor="bookletId_img" className="form-label">
+                      Görüntü Kitapçık
+                    </label>
+                    <select
+                      id="bookletId_img"
+                      name="bookletId_img"
+                      value={formData.bookletId_img}
+                      onChange={handleChange}
+                      className="form-select"
+                    >
+                      <option value="">Kitapçık Seçiniz</option>
+                      {imgBooklets.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {selectedImgBooklet && (
+                    <p className="col-12 mt-2">
+                      Soru Sayısı: {selectedImgBooklet.question_count}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Ortak Ayarlar */}
+          <div
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: "12px",
+              padding: "20px",
+              boxShadow: "0 6px 15px rgba(0, 27, 102, 0.1)",
+              marginTop: "30px",
+            }}
+          >
+            <h5
+              style={{
+                color: "#001b66",
+                marginBottom: "15px",
+                fontWeight: "600",
+              }}
+            >
+              <i
+                className="bi bi-people-fill"
+                style={{ marginRight: "8px" }}
+              ></i>
+              Ortak Ayarlar{" "}
+            </h5>{" "}
+            <div className="card-body">
+              <div className="row g-3">
+                <div className="col-12 col-md-4">
+                  <label htmlFor="attemp_limit" className="form-label">
+                    Sınav Hakkı
+                  </label>
+                  <select
+                    id="attemp_limit"
+                    name="attemp_limit"
+                    value={formData.attemp_limit}
+                    onChange={handleChange}
+                    className="form-select"
+                  >
+                    {[...Array(10)].map((_, i) => (
+                      <option key={i + 1} value={i + 1}>
+                        {i + 1}
+                      </option>
+                    ))}
+                    {[...Array(9)].map((_, i) => {
+                      const val = 20 + i * 10;
+                      return (
+                        <option key={val} value={val}>
+                          {val}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                <div className="col-12 col-md-4">
+                  <label htmlFor="passing_score" className="form-label">
+                    Geçme Notu
+                  </label>
+                  <select
+                    id="passing_score"
+                    name="passing_score"
+                    value={formData.passing_score}
+                    onChange={handleChange}
+                    className="form-select"
+                  >
+                    {Array.from({ length: 11 }, (_, i) => 50 + i * 5).map(
+                      (v) => (
+                        <option key={v} value={v}>
+                          {v}
+                        </option>
+                      )
+                    )}
+                  </select>
+                </div>
+
+                <div className="col-12 col-md-4">
+                  <label htmlFor="method" className="form-label">
+                    Yöntem
+                  </label>
+                  <select
+                    id="method"
+                    name="method"
+                    value={formData.method}
+                    onChange={handleChange}
+                    className="form-select"
+                  >
+                    <option value="random">Rastgele</option>
+                    <option value="sequential">Sıralı</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Ek Ayarlar */}
+              <div
+                style={{
+                  marginTop: "20px",
+                  display: "flex",
+                  gap: "20px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div className="form-check">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    name="mail"
+                    checked={formData.mail}
+                    onChange={handleChange}
+                    id="mail"
+                  />
+                  <label htmlFor="mail" className="form-check-label">
+                    Mail Gönder
+                  </label>
+                </div>
+
+                <div className="form-check">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    name="timed"
+                    checked={formData.timed}
+                    onChange={handleChange}
+                    id="timed"
+                  />
+                  <label htmlFor="timed" className="form-check-label">
+                    Zamanlı
+                  </label>
+                </div>
+
+                <div className="form-check">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    name="sonucu_gizle"
+                    checked={formData.sonucu_gizle}
+                    onChange={handleChange}
+                    id="sonucu_gizle"
+                  />
+                  <label htmlFor="sonucu_gizle" className="form-check-label">
+                    Sonucu Gizle
+                  </label>
+                </div>
+
+                <div className="form-check">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    name="orana_gore_ata"
+                    checked={formData.orana_gore_ata}
+                    onChange={handleChange}
+                    id="orana_gore_ata"
+                  />
+                  <label htmlFor="orana_gore_ata" className="form-check-label">
+                    Orana Göre Ata
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Oranlı Ayarlar */}
+          {formData.orana_gore_ata && (
+            <div className="p-4 mt-4 border rounded shadow-sm bg-light">
+              <div className="row g-4">
+                <div className="col-md-6">
+                  <label className="form-label fw-semibold">
+                    Zorluk Seviyesi
+                  </label>
+                  <select
+                    name="zorluk_seviyesi"
+                    value={formData.zorluk_seviyesi}
+                    onChange={handleChange}
+                    className="form-select"
+                  >
+                    <option value="">Seçiniz</option>
+                    <option value="kolay">Kolay</option>
+                    <option value="orta">Orta</option>
+                    <option value="zor">Zor</option>
+                    <option value="karışık">Karışık</option>
+                  </select>
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label fw-semibold">Toplam Soru</label>
+                  <input
+                    type="number"
+                    name="toplam_soru"
+                    value={formData.toplam_soru}
+                    onChange={handleChange}
+                    className="form-control"
+                    min="0"
+                  />
+                </div>
+              </div>
+
+              <div className="row g-4 mt-3">
+                {ORAN_FIELDS.map(({ name, label }) => (
+                  <div key={name} className="col-md-4">
+                    <label className="form-label fw-semibold">
+                      {label} (%)
+                    </label>
+                    <input
+                      type="number"
+                      name={name}
+                      value={formData[name]}
+                      onChange={handleChange}
+                      className="form-control"
+                      min="0"
+                      max="100"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-3">
+                <p className="mb-0">
+                  <strong>Toplam Oran:</strong>{" "}
+                  <span
+                    className={`fw-bold ${
+                      oranToplam !== 100 ? "text-danger" : "text-success"
+                    }`}
+                  >
+                    {oranToplam.toFixed(2)}%
+                  </span>
+                  {oranToplam !== 100 && (
+                    <span className="ms-2 text-danger">
+                      (Toplam 100 olmalı!)
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Kullanıcılar */}
+          <div
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: "12px",
+              padding: "20px",
+              boxShadow: "0 6px 15px rgba(0, 27, 102, 0.1)",
+              marginTop: "30px",
+            }}
+          >
+            <h5
+              style={{
+                color: "#001b66",
+                marginBottom: "20px",
+                fontWeight: "700",
+                fontSize: "18px",
+              }}
+            >
+              <i
+                className="bi bi-people-fill"
+                style={{ marginRight: "8px" }}
+              ></i>
+              Kullanıcılar
+            </h5>
+            {isLoading ? (
+              <p style={{ color: "#666" }}>Yükleniyor...</p>
+            ) : error ? (
+              <p style={{ color: "red", fontWeight: "600" }}>Hata: {error}</p>
+            ) : (
+              <UserList
+                isMobile={isMobile}
+                users={users}
+                selectedUserIds={formData.userIds}
+                onUserToggle={handleUserCheckbox}
+                onToggleAll={(checked) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    userIds: checked ? users.map((u) => u.id) : [],
+                  }))
+                }
+              />
+            )}
+          </div>
+
+          <div className="d-flex justify-content-center">
+            <button type="submit" className="btn btn-primary px-4">
+              Sınav Oluştur
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

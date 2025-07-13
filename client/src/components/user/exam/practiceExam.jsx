@@ -52,11 +52,28 @@ export default function PracticeExam() {
             <div key={examKey} className="col-12">
               <div className="practice-exam-card">
                 <ul className="practice-exam-info-list">
-                  <li>
-                    <i className="bi bi-clock" style={{ color: "#0056cc" }}></i>
-                    <strong>Sınav Süresi:</strong>{" "}
-                    {exam?.duration ?? "Belirtilmemiş"} dakika
-                  </li>
+                  <ul className="practice-exam-info-list">
+                    <li>
+                      <i
+                        className="bi bi-clock"
+                        style={{ color: "#0056cc" }}
+                      ></i>
+                      <strong>Sınav Süresi:</strong>{" "}
+                      {exam?.duration === 0
+                        ? "Süresiz"
+                        : exam?.duration ?? "Belirtilmemiş"}{" "}
+                      dakika
+                    </li>
+                    <li>
+                      <i
+                        className="bi bi-person"
+                        style={{ color: "#0056cc" }}
+                      ></i>
+                      <strong>Soru Sayısı:</strong>{" "}
+                      {exam?.question_count ?? "Belirtilmemiş"}
+                    </li>
+                  </ul>
+
                   <li>
                     <i
                       className="bi bi-person"

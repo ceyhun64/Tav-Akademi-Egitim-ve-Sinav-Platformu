@@ -12,6 +12,7 @@ const axios = require("axios");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const logActivity = require("../helpers/logActivity");
+const poppler = require("pdf-poppler");
 
 // Galeriyi getir
 exports.getAllEducations = async (req, res) => {
@@ -84,61 +85,69 @@ exports.uploadSingleFile = async (req, res) => {
       return res.status(400).json({ message: "Dosya yüklenmedi." });
     }
 
-    const fileUrl = file.secure_url || file.path; // Cloudinary URL'si veya yerel path
+    const fileUrl = file.secure_url || file.path;
     const ext = path.extname(file.originalname).toLowerCase();
     let numPages = 0;
     let pageImages = [];
 
     if (ext === ".pdf") {
-      // 1. Cloudinary URL üzerinden PDF dosyasını indir
+      // PDF dosyasını indir
       const response = await axios.get(fileUrl, {
         responseType: "arraybuffer",
       });
 
       const tmpDir = path.join(__dirname, "..", "tmp");
-      if (!fs.existsSync(tmpDir)) {
-        fs.mkdirSync(tmpDir);
-      }
+      if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
 
-      // 2. PDF dosyasını temp klasörüne kaydet
       const tempPdfPath = path.join(tmpDir, `${uuidv4()}.pdf`);
       fs.writeFileSync(tempPdfPath, response.data);
 
-      // 3. PDF sayfa sayısını öğrenmek için pdf-lib kullan
+      // Sayfa sayısını öğren
       const pdfBytes = fs.readFileSync(tempPdfPath);
       const pdfDoc = await PDFDocument.load(pdfBytes);
       numPages = pdfDoc.getPageCount();
 
-      // 4. Sayfaları JPEG'e çevir (pdf2pic kullanarak)
+      // JPEG çıktı klasörü oluştur
       const outputDir = path.join(tmpDir, uuidv4());
       fs.mkdirSync(outputDir, { recursive: true });
 
-      const options = {
-        density: 100,
-        saveFilename: "page",
-        savePath: outputDir,
-        format: "jpeg",
-        width: 800,
-        height: 1000,
-      };
-
-      const storeAsImage = fromPath(tempPdfPath, options);
-
+      // Sayfaları tek tek dönüştür
       for (let i = 1; i <= numPages; i++) {
-        const resImage = await storeAsImage(i);
-        // resImage.path = local temp dosya yolu, bunu cloudinary'e yükle
-        const uploadRes = await cloudinary.uploader.upload(resImage.path, {
+        const opts = {
+          format: "jpeg",
+          out_dir: outputDir,
+          out_prefix: "page",
+          dpi: 200, // daha net görüntü
+          page: i,
+        };
+
+        await poppler.convert(tempPdfPath, opts);
+      }
+
+      // Oluşan sayfa dosyalarını oku
+      const files = fs
+        .readdirSync(outputDir)
+        .filter(
+          (file) =>
+            file.startsWith("page") &&
+            (file.endsWith(".jpg") || file.endsWith(".jpeg"))
+        );
+
+      // Cloudinary’e yükle
+      for (const fileName of files) {
+        const imagePath = path.join(outputDir, fileName);
+        const uploadRes = await cloudinary.uploader.upload(imagePath, {
           folder: "education_pages",
         });
         pageImages.push(uploadRes.secure_url);
       }
 
-      // 5. Temizlik
+      // Temizlik
       fs.unlinkSync(tempPdfPath);
       fs.rmSync(outputDir, { recursive: true, force: true });
     }
 
-    // 6. Veritabanına kaydet
+    // Veritabanına kaydet
     const newEducation = await Education.create({
       name,
       duration,
@@ -153,7 +162,6 @@ exports.uploadSingleFile = async (req, res) => {
       category: "Education",
     });
 
-    // 7. Frontend'e görsel sayfalarla yanıt gönder
     res.status(201).json({ newEducation, pages: pageImages });
   } catch (error) {
     console.error("Tekli dosya yükleme hatası:", error);

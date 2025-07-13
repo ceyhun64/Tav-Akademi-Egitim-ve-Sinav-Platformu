@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 
-// CSS animasyonu eklemek için stil bloğu (isteğe bağlı başka yere de alınabilir)
 const blinkStyle = `
 @keyframes blink {
   0%, 100% { background-color: #fee2e2; }
@@ -16,14 +15,34 @@ export default function CircleCountdownTimer({
   resetKey,
   isPaused = false,
 }) {
-  const [remainingTime, setRemainingTime] = useState(duration);
+  // duration 0 ise süresiz, yani kalan süre sonsuz kabul ediliyor
+  const isTimeless = duration === 0;
+
+  // Başlangıçta duration veya sonsuz (süresiz) olarak ayarla
+  const [remainingTime, setRemainingTime] = useState(
+    isTimeless ? null : duration
+  );
   const intervalRef = useRef(null);
 
-  useEffect(() => {
-    setRemainingTime(duration);
-  }, [duration, resetKey]);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
 
   useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 600);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    setRemainingTime(isTimeless ? null : duration);
+  }, [duration, resetKey, isTimeless]);
+
+  useEffect(() => {
+    if (isTimeless) {
+      // Süresizse interval yok, fonksiyon çağrılmaz
+      clearInterval(intervalRef.current);
+      return;
+    }
+
     if (remainingTime <= 0) {
       clearInterval(intervalRef.current);
       onTimeUp?.();
@@ -40,48 +59,99 @@ export default function CircleCountdownTimer({
     }, 1000);
 
     return () => clearInterval(intervalRef.current);
-  }, [remainingTime, isPaused, onTimeUp]);
+  }, [remainingTime, isPaused, onTimeUp, isTimeless]);
 
-  const percentage = (remainingTime / duration) * 100;
+  const percentage = isTimeless ? 100 : (remainingTime / duration) * 100;
 
-  // Renk durumu: mavi > turuncu > kırmızı
-  let color = "#3b82f6"; // mavi
-  if (remainingTime <= 10) color = "#ef4444"; // kırmızı
-  else if (remainingTime <= duration / 2) color = "#f59e0b"; // turuncu
+  // Renk seçimi (süresiz için default renk)
+  let color = "#3b82f6";
+  if (!isTimeless) {
+    if (remainingTime <= 10) color = "#ef4444";
+    else if (remainingTime <= duration / 2) color = "#f59e0b";
+  }
 
-  const isDanger = remainingTime <= 10;
+  const isDanger = !isTimeless && remainingTime <= 10;
+
+  // Format zamanı MM:SS yapacak fonksiyon
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, "0");
+    const s = (seconds % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
+
+  // Mobil görünümde metinsel sayaç için stiller ve renkler
+  const mobileStyles = {
+    fontSize: "0.9rem",
+    fontWeight: "600",
+    color: isDanger ? "#ffebee" : "#c5cae9",
+    background: isDanger
+      ? "linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)"
+      : "linear-gradient(135deg, #283593 0%, #3949ab 100%)",
+    borderRadius: "10px",
+    marginBottom: "0.5rem",
+    boxShadow: isDanger
+      ? "0 4px 10px rgba(211, 47, 47, 0.6)"
+      : "0 4px 10px rgba(40, 53, 147, 0.6)",
+    transition: "all 0.3s ease",
+    userSelect: "none",
+    textAlign: "center",
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    letterSpacing: "0.03em",
+    display: "inline-block",
+    minWidth: "160px",
+    padding: "0.4rem 0.6rem",
+    boxSizing: "border-box",
+    border: isDanger ? "1px solid #b71c1c" : "1px solid #1a237e",
+    animation: isDanger ? "blink 1s infinite" : "none",
+  };
+
+  // Masaüstü boyutları
+  const size = isMobile ? 90 : 140;
+  const padding = isMobile ? 8 : 12;
+  const textSize = isMobile ? "16px" : "22px";
 
   return (
-    <div
-      style={{
-        width: 140,
-        height: 140,
-        padding: 12,
-        backgroundColor: isDanger ? "#fee2e2" : "#ffffff",
-        borderRadius: "50%",
-        boxShadow: "0 6px 20px rgba(30, 58, 138, 0.4)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        animation: isDanger ? "blink 1s infinite" : "none",
-        transition: "background-color 0.3s ease",
-      }}
-    >
-      {/* Inline stil olarak <style> bloğu ekle (bir defa DOM'a yerleştirilir) */}
+    <>
       <style>{blinkStyle}</style>
 
-      <CircularProgressbar
-        value={percentage}
-        text={`${remainingTime}s`}
-        styles={buildStyles({
-          pathColor: color,
-          textColor: color,
-          trailColor: "rgba(255, 255, 255, 0.15)",
-          textSize: "22px",
-          pathTransitionDuration: 0.3,
-          strokeLinecap: "round",
-        })}
-      />
-    </div>
+      {isMobile ? (
+        // Mobilde metinsel gösterim
+        <div style={mobileStyles} aria-live="polite" role="timer">
+          Kalan Süre: {isTimeless ? "Süresiz" : formatTime(remainingTime)}
+        </div>
+      ) : (
+        // Masaüstünde dairesel gösterim
+        <div
+          style={{
+            width: size,
+            height: size,
+            padding: padding,
+            backgroundColor: isDanger ? "#fee2e2" : "#ffffff",
+            borderRadius: "50%",
+            boxShadow: "0 6px 20px rgba(30, 58, 138, 0.4)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            animation: isDanger ? "blink 1s infinite" : "none",
+            transition: "background-color 0.3s ease",
+          }}
+        >
+          <CircularProgressbar
+            value={percentage}
+            text={isTimeless ? "Süresiz" : `${remainingTime}s`}
+            styles={buildStyles({
+              pathColor: color,
+              textColor: color,
+              trailColor: "rgba(255, 255, 255, 0.15)",
+              textSize: textSize,
+              pathTransitionDuration: 0.3,
+              strokeLinecap: "round",
+            })}
+          />
+        </div>
+      )}
+    </>
   );
 }

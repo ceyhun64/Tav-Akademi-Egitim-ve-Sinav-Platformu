@@ -9,13 +9,14 @@ export default function AnswerSummary({
       className="answer-summary-card half-width"
       style={{
         borderRadius: "12px",
+        height: "800px", // eskiden 600px idi, 800px yaptık
         padding: "2px",
         backgroundColor: "#f5f7fa",
         fontFamily: "Segoe UI, Roboto, sans-serif",
-        maxWidth: "100%", // Genişlik sınırı
-        width: "100%", // Duyarlı yapı
-        maxHeight: "300px", // Sabit yükseklik (istediğin gibi ayarla)
-        overflowY: "auto", // Taşarsa dikey scroll göster
+        maxWidth: "100%",
+        width: "100%",
+        maxHeight: "800px", // aynı şekilde maxHeight da 800px olmalı
+        overflowY: "auto",
       }}
     >
       <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>

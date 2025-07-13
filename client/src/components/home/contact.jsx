@@ -68,17 +68,22 @@ export default function Contact() {
             alignItems: "center",
             marginBottom: "2rem",
           }}
-        >
-        
-        </div>
+        ></div>
         <div
           className="form-sections"
-          style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}
+          style={{
+            display: "flex",
+            justifyContent: "center", // Ortala
+            alignItems: "flex-start",
+            gap: "30px",
+            flexWrap: "wrap",
+          }}
         >
-          {/* Left Column */}
+          {/* Left Column (Form) */}
           <div
             style={{
-              flex: 1,
+              flex: "1 1 380px",
+              maxWidth: "420px",
               backgroundColor: "#fff",
               borderRadius: "12px",
               padding: "20px",
@@ -300,11 +305,11 @@ export default function Contact() {
                   {errors.message}
                 </span>
               )}
-
               <button
                 type="submit"
                 style={{
-                  padding: "12px",
+                  alignSelf: "flex-start", // sola yaslanır
+                  padding: "12px 24px", // daha dengeli bir boyut
                   backgroundColor: "#001b66",
                   color: "#fff",
                   fontWeight: "700",
@@ -330,16 +335,15 @@ export default function Contact() {
             </form>
           </div>
 
-          {/* right Column */}
+          {/* Right Column (Contact Info) */}
           <div
             style={{
-              flex: 1,
-              maxWidth:"500px",
+              flex: "1 1 380px",
+              maxWidth: "420px",
               backgroundColor: "#ffffff",
               borderRadius: "16px",
-              padding: "30px 28px",
+              padding: "24px",
               boxShadow: "0 12px 32px rgba(0, 27, 102, 0.12)",
-              border: "none",
               fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
               color: "#001b66",
               display: "flex",

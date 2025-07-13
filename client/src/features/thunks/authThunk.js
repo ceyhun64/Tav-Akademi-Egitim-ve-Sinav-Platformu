@@ -14,13 +14,9 @@ import {
 
 export const loginThunk = createAsyncThunk(
   "auth/login",
-  async ({ kullanici_adi, sifre, token }, thunkAPI) => {
+  async ({ kullanici_adi, sifre }, thunkAPI) => {
     try {
-      const response = await login(kullanici_adi, sifre, token);
-      if (response.data.sessionId) {
-        localStorage.setItem("sessionId", response.data.sessionId);
-        localStorage.setItem("token", response.data.token);
-      }
+      const response = await login(kullanici_adi, sifre);
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);
@@ -29,13 +25,10 @@ export const loginThunk = createAsyncThunk(
 );
 export const adminLoginThunk = createAsyncThunk(
   "auth/adminLogin",
-  async ({ kullanici_adi, sifre, token }, thunkAPI) => {
+  async ({ kullanici_adi, sifre }, thunkAPI) => {
     try {
-      const response = await adminLogin(kullanici_adi, sifre, token);
-      if (response.data.sessionId) {
-        localStorage.setItem("sessionId", response.data.sessionId);
-        localStorage.setItem("token", response.data.token);
-      }
+      const response = await adminLogin(kullanici_adi, sifre);
+
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);
@@ -63,7 +56,10 @@ export const verify2FAThunk = createAsyncThunk(
   async ({ userId, token }, thunkAPI) => {
     try {
       const response = await verify2FA(userId, token);
-      console.log("verify2FA thunk:", response);
+      if (response.data.sessionId) {
+        localStorage.setItem("sessionId", response.data.sessionId);
+        localStorage.setItem("token", response.data.token);
+      }
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(

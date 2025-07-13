@@ -4,6 +4,7 @@ import {
   createAnnouncement,
   deleteAnnouncement,
   updateAnnouncement,
+  getAnnouncementByUser,
 } from "../services/announcementService";
 
 // Tüm duyuruları getir
@@ -12,6 +13,20 @@ export const fetchAnnouncements = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const data = await getAnnouncements();
+      return data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Duyurular alınamadı."
+      );
+    }
+  }
+);
+
+export const fetchAnnouncementByUser = createAsyncThunk(
+  "announcements/fetchByUser",
+  async (_, { rejectWithValue }) => {
+    try {
+      const data = await getAnnouncementByUser();
       return data;
     } catch (error) {
       return rejectWithValue(

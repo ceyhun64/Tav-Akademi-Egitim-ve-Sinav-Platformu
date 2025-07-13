@@ -74,36 +74,100 @@ export default function CreatePoolTeo() {
     dispatch(createPoolTeoThunk(formData));
   };
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
   return (
-    <div className="poolteo-container">
+    <div className="poolImg-container" style={{ overflowX: "hidden" }}>
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
           padding: "1rem",
           position: "fixed",
           left: 0,
           top: 0,
-          backgroundColor: "#001b66",
+          backgroundColor: "white",
           color: "#fff",
           boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
-          zIndex: 10,
+          zIndex: 99999,
         }}
       >
         <Sidebar />
       </div>
 
-      {/* İçerik */}
-      <div className="poolteo-content" style={{ marginLeft: "260px" }}>
+      {/* Ana İçerik */}
+      <div
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
+      >
+        <h2
+          className="mb-4 mt-4 ms-4 d-flex align-items-center"
+          style={{
+            fontWeight: "600",
+            fontSize: "1.5rem",
+            color: "#001b66",
+            gap: "10px",
+            justifyContent: "flex-start",
+          }}
+        >
+          <i
+            className="bi bi-pencil-square"
+            style={{ fontSize: "1.6rem", color: "#001b66" }}
+          ></i>
+          Teorik Soru Ekle
+          <button
+            onClick={() => window.history.back()}
+            style={{
+              marginLeft: isMobile ? "auto" : "50px", // sağa itmek için
+              backgroundColor: "#001b66",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              padding: "6px 12px",
+              cursor: "pointer",
+              fontSize: "1rem",
+            }}
+          >
+            Geri Dön
+          </button>
+        </h2>
 
-        <div className="content-columns">
+        {/* İçerik */}
+        <div
+          className="content-columns"
+          style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr",
+            gap: isMobile ? "10px" : "20px",
+          }}
+        >
+          {" "}
           {/* Sol sütun */}
           <div className="left-column">
-            <div className="mb-3">
+            {/* İçerik */}
+            <div
+              className="d-flex flex-wrap align-items-center gap-2"
+              style={{ marginTop: 10 }}
+            >
               <label htmlFor="imageInput" className="form-label">
-                Resim
+                Görsel
               </label>
               <input
                 type="file"
@@ -115,54 +179,119 @@ export default function CreatePoolTeo() {
             </div>
 
             {previewURL && (
-              <div className="mb-3">
+              <div className="mb-3 mt-3">
                 <img
                   src={previewURL}
                   alt="Seçilen görsel"
                   className="img-fluid rounded border"
-                  style={{ maxHeight: 300, objectFit: "contain" }}
+                  style={{ maxHeight: 500, objectFit: "contain" }}
                 />
               </div>
             )}
 
-            <div className="mb-3">
-              <label className="form-label">Soru</label>
+            <div className="mb-3 mt-3">
               <QuestionEditor
                 value={form.question}
                 onChange={handleQuestionChange}
               />
             </div>
           </div>
-
           {/* Sağ sütun */}
-          <div className="right-column">
-            {["a", "b", "c", "d", "e", "answer"].map((field) => (
-              <div className="mb-3" key={field}>
-                <label htmlFor={field} className="form-label">
+          <div
+            className="right-column"
+            style={{
+              display: isMobile ? "flex" : "block",
+              flexDirection: "column",
+              alignItems: isMobile ? "center" : "flex-start",
+              width: isMobile ? "100%" : "auto",
+            }}
+          >
+            {["a", "b", "c", "d", "e"].map((field) => (
+              <div
+                key={field}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: 12,
+                  width: isMobile ? "90%" : 300,
+                  justifyContent: isMobile ? "center" : "flex-start",
+                  cursor: "pointer",
+                }}
+              >
+                {/* Sol harf kutusu */}
+                <div
+                  onClick={() =>
+                    setForm((prev) => ({ ...prev, answer: field }))
+                  }
+                  style={{
+                    width: 40,
+                    backgroundColor:
+                      form.answer === field ? "#001b66" : "#e2e8f0",
+                    color: form.answer === field ? "#fff" : "#001b66",
+                    padding: "10px",
+                    textAlign: "center",
+                    marginBottom: 15,
+                    fontWeight: "bold",
+                    borderTopLeftRadius: 6,
+                    borderBottomLeftRadius: 6,
+                    transition: "all 0.2s ease-in-out",
+                    flexShrink: 0,
+                    userSelect: "none",
+                  }}
+                  title="Doğru cevabı seç"
+                >
                   {field.toUpperCase()}
-                </label>
+                </div>
+
+                {/* Sağ input alanı */}
                 <input
                   type="text"
-                  className="form-control"
-                  id={field}
                   name={field}
                   value={form[field]}
                   onChange={handleChange}
-                  placeholder={field === "answer" ? "Cevap" : ""}
+                  style={{
+                    width: selectWidth,
+                    padding: "10px",
+                    border: "1px solid #cbd5e1",
+                    borderLeft: "none",
+                    marginBottom: 15,
+                    borderTopRightRadius: 6,
+                    borderBottomRightRadius: 6,
+                    fontSize: 14,
+                    transition: "border-color 0.3s ease",
+                  }}
+                  onFocus={(e) =>
+                    (e.currentTarget.style.borderColor = "#001b66")
+                  }
+                  onBlur={(e) =>
+                    (e.currentTarget.style.borderColor = "#cbd5e1")
+                  }
+                  placeholder="Seçenek Giriniz"
                 />
               </div>
             ))}
 
-            <div className="mb-3">
-              <label htmlFor="bookletId" className="form-label">
+            {/* Kitapçık seçimi */}
+            <div style={{ marginBottom: 8 }}>
+              <label style={{ display: "inline-block", width: 120 }}>
                 Kitapçık
               </label>
               <select
                 id="bookletId"
                 name="bookletId"
-                className="form-select"
                 value={form.bookletId}
                 onChange={handleChange}
+                required
+                style={{
+                  padding: 10,
+                  width: selectWidth,
+                  borderRadius: 6,
+                  border: "1px solid #cbd5e1",
+                  fontSize: 14,
+                  transition: "border-color 0.3s ease",
+                }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "#001b66")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "#cbd5e1")}
               >
                 <option value="">Seçiniz</option>
                 {teoBooklets.map((booklet) => (
@@ -173,16 +302,26 @@ export default function CreatePoolTeo() {
               </select>
             </div>
 
-            <div className="mb-4">
-              <label htmlFor="difLevelId" className="form-label">
+            {/* Zorluk Seviyesi */}
+            <div style={{ marginBottom: 8 }}>
+              <label style={{ display: "inline-block", width: 120 }}>
                 Zorluk Seviyesi
               </label>
               <select
                 id="difLevelId"
                 name="difLevelId"
-                className="form-select"
                 value={form.difLevelId}
                 onChange={handleChange}
+                style={{
+                  padding: 10,
+                  width: selectWidth,
+                  borderRadius: 6,
+                  border: "1px solid #cbd5e1",
+                  fontSize: 14,
+                  transition: "border-color 0.3s ease",
+                }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "#001b66")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "#cbd5e1")}
               >
                 <option value="">Seçiniz</option>
                 {difLevels.map((level) => (
@@ -192,12 +331,32 @@ export default function CreatePoolTeo() {
                 ))}
               </select>
             </div>
+            <button
+              onClick={handleSubmit}
+              style={{
+                marginTop: 10,
+                backgroundColor: "#001b66",
+                color: "#fff",
+                border: "none",
+                padding: "12px 30px",
+                borderRadius: "12px",
+                fontWeight: "700",
+                fontSize: "1rem",
+                cursor: "pointer",
+                boxShadow: "0 5px 15px #001b66cc",
+                transition: "background-color 0.3s ease",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor = "#003399")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = "#001b66")
+              }
+            >
+              Kaydet
+            </button>
           </div>
         </div>
-
-        <button className="btn btn-primary w-100" onClick={handleSubmit}>
-          Kaydet
-        </button>
       </div>
     </div>
   );

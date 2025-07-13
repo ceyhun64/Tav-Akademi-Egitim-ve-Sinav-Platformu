@@ -9,8 +9,9 @@ import {
   logoutThunk,
   bulkRegisterThunk,
   uploadUserImagesThunk,
-  adminLoginThunk, // Admin girişi için thunk
-} from "../thunks/authThunk"; // Hem login hem de register thunk'larını import ediyoruz
+  adminLoginThunk,
+  verifyCodeThunk,
+} from "../thunks/authThunk";
 
 const initialState = {
   users: [],
@@ -19,7 +20,7 @@ const initialState = {
   isAuthenticated: false,
   error: "",
   loading: false,
-  alert: { message: "", type: "" }, // Alert state'ini ekliyoruz
+  alert: { message: "", type: "" },
   qrCode: "",
   is2FAEnabled: false,
   secret: "",
@@ -33,7 +34,6 @@ const authSlice = createSlice({
       state.alert = { message: "", type: "" };
     },
     setAlert: (state, action) => {
-      // action.payload: { message: string, type: string }
       state.alert = {
         message: action.payload.message,
         type: action.payload.type,
@@ -42,132 +42,110 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Login işlemleri
+      // Kullanıcı login
       .addCase(loginThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(loginThunk.fulfilled, (state, action) => {
-        console.log("Login payload:", action.payload);
         state.loading = false;
-        state.ad = action.payload.ad; // Kullanıcı adı
-        state.token = action.payload.token; // Token
-        state.isAuthenticated = true; // Kullanıcı giriş yaptı
-        state.is2FAEnabled = action.payload.is2FAEnabled; // 2FA durumu
-        state.alert = {
-          message: "Giriş yapıldı anasayfaya yönlendiriliyorsunuz",
-          type: "success",
-        }; // Giriş yapılıyor mesajı
-        localStorage.setItem("token", action.payload.token); // Token'ı localStorage'a kaydediyoruz
-        localStorage.setItem("ad", action.payload.ad); // Kullanıcı adını da localStorage'a kaydediyoruz
+        state.is2FAEnabled = action.payload.is2FAEnabled;
+
       })
       .addCase(loginThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Bir hata oluştu!";
         state.alert = {
-          message:
-          action.payload.error ,
+          message: action.payload?.error || "Giriş başarısız",
           type: "danger",
-        }; // Hata mesajı
+        };
       })
-      // admin login işlemleri
+
+      // Admin login
       .addCase(adminLoginThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(adminLoginThunk.fulfilled, (state, action) => {
-        console.log("Login payload:", action.payload);
         state.loading = false;
-        state.ad = action.payload.ad; // Kullanıcı adı
-        state.token = action.payload.token; // Token
-        state.isAuthenticated = true; // Kullanıcı giriş yaptı
-        state.is2FAEnabled = action.payload.is2FAEnabled; // 2FA durumu
+        state.is2FAEnabled = action.payload.is2FAEnabled;
         state.alert = {
-          message: "Giriş yapıldı anasayfaya yönlendiriliyorsunuz",
+          message: "Admin girişi başarılı",
           type: "success",
-        }; // Giriş yapılıyor mesajı
-        localStorage.setItem("token", action.payload.token); // Token'ı localStorage'a kaydediyoruz
-        localStorage.setItem("ad", action.payload.ad); // Kullanıcı adını da localStorage'a kaydediyoruz
+        };
       })
       .addCase(adminLoginThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Bir hata oluştu!";
         state.alert = {
-          message:
-          action.payload.message ,
+          message: action.payload?.message || "Admin girişi başarısız",
           type: "danger",
-        }; // Hata mesajı
+        };
       })
-      // Register işlemleri
+
+      // Register
       .addCase(registerThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(registerThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.ad = action.payload.user?.ad || "";
-        state.token = action.payload.token || null;
-        state.isAuthenticated = false; // Gerekirse true yap
         state.alert = {
-          message: "Kayıt yapıldı giriş sayfasına yönlendiriliyorsunuz",
+          message: "Kayıt başarılı, giriş yapabilirsiniz",
           type: "success",
         };
       })
       .addCase(registerThunk.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload?.message || "Bir hata oluştu!";
+        state.error = action.payload?.message || "Kayıt hatası!";
         state.alert = { message: state.error, type: "danger" };
       })
 
-      // Şifre değiştirme maili işlemleri
+      // Şifre sıfırlama mail
       .addCase(passwordEmailThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(passwordEmailThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.ad = action.payload.ad; // Kullanıcı adı
-        state.token = action.payload.token; // Token
-        state.isAuthenticated = false; // Kullanıcı giriş yaptı
         state.alert = {
-          message: "Sıfırlama maili gönderildi e-postanızı kontrol ediniz",
+          message: "Sıfırlama e-postası gönderildi",
           type: "success",
-        }; // Giriş yapılıyor mesajı
+        };
       })
       .addCase(passwordEmailThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Bir hata oluştu!";
-        state.alert = { message: state.error, type: "danger" }; // Hata mesajı
+        state.alert = { message: state.error, type: "danger" };
       })
 
-      // Şifre güncelleme işlemleri
+      // Şifre güncelleme
       .addCase(updatePasswordThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(updatePasswordThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.ad = action.payload.ad; // Kullanıcı adı
-        state.token = action.payload.token; // Token
-        state.isAuthenticated = false; // Kullanıcı giriş yaptı
         state.alert = {
-          message: "Güncelleme tamamlandı giriş yapabilirsiniz",
+          message: "Şifre başarıyla güncellendi",
           type: "success",
-        }; // Giriş yapılıyor mesajı
+        };
       })
       .addCase(updatePasswordThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Bir hata oluştu!";
-        state.alert = { message: state.error, type: "danger" }; // Hata mesajı
+        state.alert = { message: state.error, type: "danger" };
       })
+
+      // Logout
       .addCase(logoutThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(logoutThunk.fulfilled, (state, action) => {
+      .addCase(logoutThunk.fulfilled, (state) => {
         state.loading = false;
-        state.ad = null;
-        state.token = null;
+        state.ad = "";
+        state.token = "";
         state.isAuthenticated = false;
         state.alert = {
           message: "Çıkış yapıldı",
@@ -179,6 +157,8 @@ const authSlice = createSlice({
         state.error = action.payload || "Bir hata oluştu!";
         state.alert = { message: state.error, type: "danger" };
       })
+
+      // Toplu kayıt
       .addCase(bulkRegisterThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -187,7 +167,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.users = action.payload;
         state.alert = {
-          message: "Bulk kaydedildi",
+          message: "Toplu kullanıcı kaydı başarılı",
           type: "success",
         };
       })
@@ -196,6 +176,8 @@ const authSlice = createSlice({
         state.error = action.payload || "Bir hata oluştu!";
         state.alert = { message: state.error, type: "danger" };
       })
+
+      // Görsel yükleme
       .addCase(uploadUserImagesThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -204,7 +186,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.users = action.payload;
         state.alert = {
-          message: "Bulk kaydedildi",
+          message: "Kullanıcı görselleri başarıyla yüklendi",
           type: "success",
         };
       })
@@ -213,11 +195,14 @@ const authSlice = createSlice({
         state.error = action.payload || "Bir hata oluştu!";
         state.alert = { message: state.error, type: "danger" };
       })
+
+      // 2FA kurulumu
       .addCase(setup2FAThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(setup2FAThunk.fulfilled, (state, action) => {
+        state.loading = false;
         state.qrCode = action.payload.qrCodeDataURL;
         state.secret = action.payload.secret;
       })
@@ -226,6 +211,8 @@ const authSlice = createSlice({
         state.error = action.payload || "Bir hata oluştu!";
         state.alert = { message: state.error, type: "danger" };
       })
+
+      // 2FA doğrulama
       .addCase(verify2FAThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -234,9 +221,9 @@ const authSlice = createSlice({
         state.loading = false;
         state.ad = action.payload.ad;
         state.token = action.payload.token;
-        state.isAuthenticated = false;
+        state.isAuthenticated = true;
         state.alert = {
-          message: "2FA doğrulandı giriş yapabilirsiniz",
+          message: "2FA doğrulandı, giriş başarılı",
           type: "success",
         };
       })
@@ -244,9 +231,27 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload || "Bir hata oluştu!";
         state.alert = { message: state.error, type: "danger" };
+      })
+
+      // Kod doğrulama (verifyCodeThunk)
+      .addCase(verifyCodeThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(verifyCodeThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.alert = {
+          message: "Kod doğrulandı",
+          type: "success",
+        };
+      })
+      .addCase(verifyCodeThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Kod doğrulanamadı";
+        state.alert = { message: state.error, type: "danger" };
       });
   },
 });
 
-export const { logout, clearAlert, setAlert } = authSlice.actions;
+export const { clearAlert, setAlert } = authSlice.actions;
 export default authSlice.reducer;

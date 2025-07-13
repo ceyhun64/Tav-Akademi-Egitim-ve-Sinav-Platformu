@@ -66,7 +66,7 @@ export const uploadUserImages = async (formData) => {
   }
 };
 
-export const setup2FA = async ({userId}) => {
+export const setup2FA = async ({ userId }) => {
   try {
     const res = await axios.post(`${API_URL}/setup-2fa`, { userId });
     return res;
@@ -96,7 +96,7 @@ export const verify2FA = async (userId, token) => {
 // register api isteği
 export const register = async (formData) => {
   try {
-    const res = await axios.post(`${API_URL}/register`, formData, {
+    const res = await axiosInstance.post("/auth/register", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

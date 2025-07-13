@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { getCertificatesThunk } from "../../../features/thunks/certificateThunk";
 import Sidebar from "../adminPanel/sidebar";
+import { Document, Packer, Paragraph, TextRun, PageBreak } from "docx";
+import { saveAs } from "file-saver";
 
 function Modal({ visible, onClose, children }) {
   if (!visible) return null;
@@ -125,44 +127,97 @@ export default function CertificateResult() {
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300;
   return (
     <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
-        backgroundColor: "#f8f9fc",
-      }}
+      className="poolImg-container"
+      style={{ overflowX: "hidden", padding: "1rem" }}
     >
-      <aside className="sidebar">
-        <Sidebar />
-      </aside>
-
-      <main
+      {/* Sidebar */}
+      <div
         style={{
-          marginLeft: 260,
-          padding: "2rem",
-          flexGrow: 1,
-          overflowX: "auto",
+          padding: "1rem",
+          position: "fixed",
+          left: 0,
+          top: 0,
+          backgroundColor: "white",
+          color: "#fff",
+          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
+          overflowY: "auto",
+          zIndex: 99999,
         }}
       >
-        <header>
+        <Sidebar />
+      </div>
+
+      {/* Ana İçerik */}
+      <div
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "2.5rem",
+          }}
+        >
           <h1
+            className=" mt-2 ms-5"
             style={{
-              color: "#001b66",
-              fontWeight: 700,
-              fontSize: 28,
+              color: "#003399",
+              fontSize: "28px",
+              fontWeight: "700",
               display: "flex",
               alignItems: "center",
-              gap: "0.5rem",
-              marginBottom: "2rem",
+              gap: "0.6rem",
+              userSelect: "none",
             }}
           >
-            <i className="bi bi-file-earmark-text-fill" />
+            {!isMobile && (
+              <i
+                className="bi bi-journal-bookmark-fill"
+                style={{ fontSize: "1.6rem" }}
+              ></i>
+            )}
             Sertifikalar
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                marginLeft: isMobile ? "auto" : "50px", // sağa itmek için
+                backgroundColor: "#001b66",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "6px 12px",
+                cursor: "pointer",
+                fontSize: "1rem",
+              }}
+            >
+              Geri Dön
+            </button>
           </h1>
-        </header>
-
+        </div>
         {loading && (
           <div
             style={{
@@ -229,43 +284,51 @@ export default function CertificateResult() {
                 {[
                   { key: "name", label: "Ad" },
                   { key: "surname", label: "Soyad" },
-                  { key: "education_name", label: "Kurs" },
-                  { key: "education_date", label: "Eğitim Tarihi" },
                   { key: "certificate_number", label: "Sertifika No" },
-                  { key: "educatorName", label: "Eğitmen" },
-                  { key: "institution", label: "Kurum" },
-                ].map(({ key, label }) => (
-                  <th key={key}>
-                    <input
-                      type="text"
-                      name={key}
-                      placeholder={label}
-                      value={filters[key]}
-                      onChange={handleFilterChange}
-                      style={{
-                        border: "none",
-                        backgroundColor: "#f5f7fa",
-                        fontSize: "0.85rem",
-                        padding: "5px 8px",
-                        borderRadius: 6,
-                        border: "1px solid #ccc",
-                        width: "100%",
-                        boxSizing: "border-box",
-                        color: "#001b66",
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.outline = "none";
-                        e.currentTarget.style.borderColor = "#001b66";
-                        e.currentTarget.style.boxShadow =
-                          "0 0 5px rgba(0, 27, 102, 0.5)";
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.borderColor = "#ccc";
-                        e.currentTarget.style.boxShadow = "none";
-                      }}
-                    />
-                  </th>
-                ))}
+                  !isMobile && { key: "education_name", label: "Kurs" },
+                  !isMobile && {
+                    key: "education_date",
+                    label: "Eğitim Tarihi",
+                  },
+                  !isMobile && { key: "educatorName", label: "Eğitmen" },
+                  !isMobile && { key: "institution", label: "Kurum" },
+                ]
+                  .filter(Boolean)
+                  .map(({ key, label }) => (
+                    <th key={key}>
+                      {!isMobile && (
+                        <input
+                          type="text"
+                          name={key}
+                          placeholder={label}
+                          value={filters[key]}
+                          onChange={handleFilterChange}
+                          style={{
+                            border: "none",
+                            backgroundColor: "#f5f7fa",
+                            fontSize: "0.85rem",
+                            padding: "5px 8px",
+                            borderRadius: 6,
+                            border: "1px solid #ccc",
+                            width: "100%",
+                            boxSizing: "border-box",
+                            color: "#001b66",
+                          }}
+                          onFocus={(e) => {
+                            e.currentTarget.style.outline = "none";
+                            e.currentTarget.style.borderColor = "#001b66";
+                            e.currentTarget.style.boxShadow =
+                              "0 0 5px rgba(0, 27, 102, 0.5)";
+                          }}
+                          onBlur={(e) => {
+                            e.currentTarget.style.borderColor = "#ccc";
+                            e.currentTarget.style.boxShadow = "none";
+                          }}
+                        />
+                      )}
+                      {isMobile && label}
+                    </th>
+                  ))}
               </tr>
             </thead>
             <tbody>
@@ -298,17 +361,17 @@ export default function CertificateResult() {
                     </td>
                     <td>{cert.name}</td>
                     <td>{cert.surname}</td>
-                    <td>{cert.education_name}</td>
-                    <td>{cert.education_date}</td>
                     <td>{cert.certificate_number}</td>
-                    <td>{cert.educatorName}</td>
-                    <td>{cert.institution}</td>
+                    {!isMobile && <td>{cert.education_name}</td>}
+                    {!isMobile && <td>{cert.education_date}</td>}
+                    {!isMobile && <td>{cert.educatorName}</td>}
+                    {!isMobile && <td>{cert.institution}</td>}
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={isMobile ? 4 : 8}
                     style={{ textAlign: "center", padding: "1rem" }}
                   >
                     Sertifika bulunamadı.
@@ -318,7 +381,6 @@ export default function CertificateResult() {
             </tbody>
           </table>
         </div>
-
         <Modal
           visible={!!selectedCertificate}
           onClose={() => setSelectedCertificate(null)}
@@ -384,7 +446,7 @@ export default function CertificateResult() {
             </>
           )}
         </Modal>
-      </main>
+      </div>
     </div>
   );
 }

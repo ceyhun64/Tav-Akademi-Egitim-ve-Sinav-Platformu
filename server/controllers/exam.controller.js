@@ -394,6 +394,7 @@ exports.create_unified_exam = async (req, res, next) => {
       tehlikeli_maddeler_oran,
       educationExam,
     } = req.body;
+    console.log("sure_teo", sure_teo);
 
     let examTeo = null;
     let examImg = null;

@@ -121,10 +121,11 @@ export default function BothExams() {
                     <strong>Sınav Türü:</strong> Karma (Teorik + Uygulama)
                   </li>
                   <li>
-                    <strong>Başlangıç Tarihi:</strong> {examStartDate}
+                    <strong>Başlangıç Tarihi:</strong> {examStartDate}-{" "}
+                    {teo.start_time}
                   </li>
                   <li>
-                    <strong>Bitiş Tarihi:</strong> {examEndDate}
+                    <strong>Bitiş Tarihi:</strong> {examEndDate}- {img.end_time}
                   </li>
                   <li>
                     <strong>Sınav Süresi Toplam:</strong> {totalDuration} dk

@@ -4,12 +4,15 @@ const announcementController = require("../controllers/announcement.controller")
 const verifyToken = require("../middlewares/verifyToken");
 const authorize = require("../middlewares/authorize");
 
+router.get("/user", verifyToken, announcementController.getUserAnnouncements);
+
 router.get(
   "/",
   verifyToken,
   authorize(19),
   announcementController.getAnnouncements
 );
+
 router.post(
   "/",
   verifyToken,

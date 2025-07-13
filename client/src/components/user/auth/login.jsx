@@ -5,7 +5,6 @@ import { loginThunk } from "../../../features/thunks/authThunk";
 import { clearAlert } from "../../../features/slices/authSlice";
 import logo from "../../../../public/logo/logo.png";
 import login1 from "../../../../public/login/login1.png";
-import { useEffect } from "react";
 
 export default function Login() {
   const [kullanici_adi, setKullaniciAdi] = useState("");
@@ -14,7 +13,7 @@ export default function Login() {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { alert, loading, is2FAEnabled } = useSelector((state) => state.auth);
+  const { alert, is2FAEnabled, userId } = useSelector((state) => state.auth);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,31 +21,24 @@ export default function Login() {
       const response = await dispatch(
         loginThunk({ kullanici_adi, sifre })
       ).unwrap();
-
-      if (response && response.userId) {
-        if (response.is2FAEnabled === false) {
-          // 2FA etkin değilse setup sayfasına yönlendir
-          navigate("/setup-2fa", { state: { userId: response.userId } });
-        } else {
-          // 2FA aktifse doğrulama kodu ekranına yönlendir
-          navigate("/verify-2fa", { state: { userId: response.userId } });
-        }
-      } else {
-        navigate("/");
-      }
-      dispatch(clearAlert());
+      console.log(response);
+      if (response.is2FAEnabled !== true) {
+        navigate("/setup-2fa", { state: { userId: response.userId } });
+      } else navigate("/verify-2fa", { state: { userId: response.userId } });
     } catch (error) {
-      console.error("Giriş hatası:", error);
-      setTimeout(() => {
-        dispatch(clearAlert());
-      }, 2000);
+      console.log(error);
     }
+    setTimeout(() => dispatch(clearAlert()), 3000);
   };
 
   return (
     <div
-      className="min-vh-100 d-flex align-items-center justify-content-center bg-light"
-      style={{ padding: "2rem" }}
+      className="d-flex align-items-center justify-content-center bg-light"
+      style={{
+        padding: "2rem",
+        height: "89vh", // Sabit yükseklik verdik
+        overflowY: "auto", // Gerektiğinde dikey scroll
+      }}
     >
       <div
         className="d-flex flex-column flex-md-row align-items-center justify-content-center bg-white rounded-4 shadow-lg"
@@ -54,15 +46,20 @@ export default function Login() {
       >
         {/* Form alanı */}
         <div
-          className="p-5"
+          className="p-4"
           style={{
             flex: "1 1 0",
             minWidth: 0,
-            maxWidth: "450px",
+            maxWidth: "360px",
           }}
         >
           <div className="text-center mb-4">
-            <img src={logo} alt="Logo" width="110" className="mb-3" />
+            <img
+              src={logo}
+              alt="Logo"
+              style={{ width: "160px", maxWidth: "100%", height: "auto" }}
+              className="mb-3"
+            />
             <h2 className="fw-bold" style={{ color: "#001b66" }}>
               Kullanıcı Girişi
             </h2>
@@ -91,7 +88,7 @@ export default function Login() {
                 value={kullanici_adi}
                 onChange={(e) => setKullaniciAdi(e.target.value)}
                 required
-                style={{ height: "45px", fontSize: "1rem" }}
+                style={{ height: "40px", fontSize: "0.95rem" }}
               />
             </div>
 
@@ -108,8 +105,8 @@ export default function Login() {
                 onChange={(e) => setSifre(e.target.value)}
                 required
                 style={{
-                  height: "45px",
-                  fontSize: "1rem",
+                  height: "40px",
+                  fontSize: "0.95rem",
                   paddingRight: "3rem",
                 }}
               />
@@ -151,31 +148,16 @@ export default function Login() {
 
             <button
               type="submit"
-              className="w-100 py-3 rounded-3 fw-semibold text-white border-0"
+              className="w-100 rounded-3 fw-semibold text-white border-0"
               style={{
                 backgroundColor: "#001b66",
-                cursor: loading ? "not-allowed" : "pointer",
-                opacity: loading ? 0.8 : 1,
-                fontSize: "1.1rem",
+                fontSize: "0.9rem",
                 transition: "background-color 0.3s ease",
-              }}
-              disabled={loading}
-              onMouseEnter={(e) => {
-                if (!loading) e.currentTarget.style.backgroundColor = "#0042a6";
-              }}
-              onMouseLeave={(e) => {
-                if (!loading) e.currentTarget.style.backgroundColor = "#001b66";
+                height: "40px",
+                padding: "0 1rem",
               }}
             >
-              {loading ? (
-                <span
-                  className="spinner-border spinner-border-sm"
-                  role="status"
-                  aria-hidden="true"
-                />
-              ) : (
-                "Giriş Yap"
-              )}
+              Giriş Yap
             </button>
           </form>
         </div>

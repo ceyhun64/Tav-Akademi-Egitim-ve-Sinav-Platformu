@@ -8,9 +8,11 @@ import {
   getImageGalleryCategoryThunk,
   getImageGallerySubCategoryByCategoryThunk,
 } from "../../../features/thunks/imageGalleryCatThunk";
+import { useNavigate } from "react-router-dom";
 
 export default function CreateGallery() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const imageGalleryCategory = useSelector(
     (state) => state.imageGalleryCat.imageGalleryCategory
@@ -79,93 +81,136 @@ export default function CreateGallery() {
 
   return (
     <div
-      className="container rounded shadow-sm"
+      style={{
+        backgroundColor: "#fff",
+        borderRadius: "12px",
+        padding: "20px",
+        boxShadow: "0 6px 15px rgba(0, 27, 102, 0.1)",
+        marginTop: "30px",
+      }}
     >
-      <h2 className="mb-4 text-center">Dosya Ekle</h2>
+      <h5
+        style={{
+          color: "#001b66",
+          marginBottom: "15px",
+          fontWeight: "600",
+        }}
+      >
+        <i className="bi bi-cloud-upload" style={{ marginRight: "8px" }}></i>
+        Dosya Yükle
+      </h5>
 
-      <form onSubmit={handleSingleUpload}>
-        <div className="mb-3">
-          <label htmlFor="category-select" className="form-label">
-            Kategori
-          </label>
-          <select
-            id="category-select"
-            className="form-select"
-            onChange={handleCategoryChange}
-            value={selectedCategoryId}
-            required
-          >
-            <option value="" disabled>
-              Kategori Seçin
-            </option>
-            {imageGalleryCategory.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+      {/* Sınav Bilgileri */}
+      <div className="card-body">
+        <div className="row">
+          {/* Sol Sütun: Kategori Seçimi */}
+          <div className="col-12 col-md-6 mb-4">
+            <div className="mb-3">
+              <label htmlFor="category-select" className="form-label">
+                Kategori
+              </label>
+              <select
+                id="category-select"
+                className="form-select"
+                onChange={handleCategoryChange}
+                value={selectedCategoryId}
+                required
+              >
+                <option value="" disabled>
+                  Kategori Seçin
+                </option>
+                {imageGalleryCategory.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mb-3">
+              <label htmlFor="subcategory-select" className="form-label">
+                Alt Kategori
+              </label>
+              <select
+                id="subcategory-select"
+                className="form-select"
+                onChange={handleSubCategoryChange}
+                value={selectedSubCategoryId}
+                required
+                disabled={!selectedCategoryId}
+              >
+                <option value="" disabled>
+                  Alt Kategori Seçin
+                </option>
+                {imageGallerySubCategory.map((sub) => (
+                  <option key={sub.id} value={sub.id}>
+                    {sub.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mt-4">
+              <button
+                className="btn btn-primary"
+                type="button"
+                onClick={() => navigate("/admin/gallery-cat")}
+              >
+                Kategorileri Düzenle
+              </button>
+            </div>
+          </div>
+
+          {/* Sağ Sütun: Tekli ve Çoklu Dosya Yükleme */}
+          <div className="col-12 col-md-6 mb-4">
+            <form onSubmit={handleSingleUpload} className="mb-4">
+              <h5
+                className="mb-3"
+                style={{ color: "#001b66", fontWeight: "600" }}
+              >
+                Tekli Dosya Yükle
+              </h5>
+              <div className="mb-3">
+                <input
+                  id="single-file"
+                  type="file"
+                  className="form-control"
+                  accept=".jpg,.jpeg,.png,.webp,.pdf,.ppt,.pptx,.mp4,.mov,.avi,.docx,.xlsx"
+                  onChange={handleSingleFileChange}
+                  required
+                  disabled={!selectedCategoryId || !selectedSubCategoryId}
+                />
+              </div>
+              <button type="submit" className="btn btn-primary ">
+                Yükle
+              </button>
+            </form>
+
+            <form onSubmit={handleMultipleUpload}>
+              <h5
+                className="mb-3"
+                style={{ color: "#001b66", fontWeight: "600" }}
+              >
+                Çoklu Dosya Yükle
+              </h5>
+              <div className="mb-3">
+                <input
+                  type="file"
+                  multiple
+                  className="form-control"
+                  accept=".jpg,.jpeg,.png,.webp,.pdf,.ppt,.pptx,.mp4,.mov,.avi,.docx,.xlsx"
+                  onChange={handleMultipleFileChange}
+                  required
+                  disabled={!selectedCategoryId || !selectedSubCategoryId}
+                />
+              </div>
+              <button type="submit" className="btn btn-primary ">
+                Yükle
+              </button>
+            </form>
+          </div>
         </div>
-
-        <div className="mb-3">
-          <label htmlFor="subcategory-select" className="form-label">
-            Alt Kategori
-          </label>
-          <select
-            id="subcategory-select"
-            className="form-select"
-            onChange={handleSubCategoryChange}
-            value={selectedSubCategoryId}
-            required
-            disabled={!selectedCategoryId}
-          >
-            <option value="" disabled>
-              Alt Kategori Seçin
-            </option>
-            {imageGallerySubCategory.map((sub) => (
-              <option key={sub.id} value={sub.id}>
-                {sub.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="mb-3">
-          <label htmlFor="single-file" className="form-label">
-            Tekli Dosya Yükle
-          </label>
-          <input
-            id="single-file"
-            type="file"
-            className="form-control"
-            accept=".jpg,.jpeg,.png,.webp,.pdf,.ppt,.pptx,.mp4,.mov,.avi,.docx,.xlsx"
-            onChange={handleSingleFileChange}
-            required
-          />
-        </div>
-        <button type="submit" className="btn btn-primary w-100">
-          Yükle
-        </button>
-      </form>
-
-      <hr className="my-4" />
-
-      <form onSubmit={handleMultipleUpload}>
-        <h3 className="mb-3">Çoklu Dosya Yükle</h3>
-        <div className="mb-3">
-          <input
-            type="file"
-            multiple
-            className="form-control"
-            accept=".jpg,.jpeg,.png,.webp,.pdf,.ppt,.pptx,.mp4,.mov,.avi,.docx,.xlsx"
-            onChange={handleMultipleFileChange}
-            required
-            disabled={!selectedCategoryId || !selectedSubCategoryId}
-          />
-        </div>
-        <button type="submit" className="btn btn-success w-100">
-          Yükle
-        </button>
-      </form>
+      </div>
     </div>
   );
 }

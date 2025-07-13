@@ -18,6 +18,25 @@ exports.getAnnouncements = async (req, res) => {
   }
 };
 
+exports.getUserAnnouncements = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findByPk(userId);
+    const institutionId = user.lokasyonId;
+    const groupId = user.grupId;
+    const announcements = await Announcement.findAll({
+      where: {
+        institutionId: institutionId,
+        groupId: groupId,
+      },
+    });
+    res.json(announcements);
+  } catch (error) {
+    console.error("Sunucu hatası:", error);
+    res.status(500).json({ message: "Sunucu hatası oluştu." });
+  }
+};
+
 // Duyuru oluştur
 exports.createAnnouncement = async (req, res) => {
   try {

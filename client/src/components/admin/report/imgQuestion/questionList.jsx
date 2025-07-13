@@ -1,4 +1,12 @@
-export default function QuestionList({ data, currentIndex, setCurrentIndex }) {
+export default function QuestionList({
+  data,
+  currentIndex,
+  setCurrentIndex,
+  isMobile,
+}) {
+  // Mobilde gösterme
+  if (isMobile) return null;
+
   return (
     <div className="card shadow border-0">
       <div

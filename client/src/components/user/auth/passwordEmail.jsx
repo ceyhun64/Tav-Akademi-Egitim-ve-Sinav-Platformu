@@ -1,68 +1,89 @@
-import React, { useState } from 'react'// reactı dahil ediyoruz
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { clearAlert } from '../../../features/slices/authSlice';
-import { passwordEmailThunk } from '../../../features/thunks/authThunk';
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { clearAlert } from "../../../features/slices/authSlice";
+import { passwordEmailThunk } from "../../../features/thunks/authThunk";
 
 export default function PasswordEmail() {
-    const [email, setEmail] = useState('');
-    const dispatch = useDispatch();
-    const { alert, loading } = useSelector((state) => state.auth);
-    const handlePasswordEmail = async (e) => {
-        e.preventDefault();
-        try {
-            const action = await dispatch(passwordEmailThunk({ email })).unwrap();
-            console.log("Şifre maili gönderme başarılı:", action);
-            setTimeout(() => {
-                dispatch(clearAlert()); // Alerti temizle
-            }, 1000);
-        } catch (error) {
-            console.error("Mail gönderme hatası:", error);
-            setTimeout(() => {
-                dispatch(clearAlert()); // Alerti temizle
-            }, 1000);
-        }
+  const [email, setEmail] = useState("");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { alert } = useSelector((state) => state.auth);
+
+  const handlePasswordEmail = async (e) => {
+    e.preventDefault();
+    try {
+      const action = await dispatch(passwordEmailThunk({ email })).unwrap();
+      setTimeout(() => dispatch(clearAlert()), 1000);
+    } catch (error) {
+      setTimeout(() => dispatch(clearAlert()), 1000);
     }
+  };
 
-    return (
-        <div className="container mt-5">
-            <div className="row justify-content-center">
-                {alert.message && (//alertin mesajı varsa
-                    <div className={`alert alert-${alert.type}`} role="alert">{/* alertin türüne göre yukarıda atadığımız alertin classını ayarlıyoruz */}
-                        {alert.message}{/* alertin mesajını gösteriyoruz */}
-                    </div>
-                )}
-                <div className="col-md-6">
-                    <div className="card p-4 shadow-lg">
-                        <h3 className="text-center mb-4">Şifre Yenileme</h3>
-                        <form onSubmit={handlePasswordEmail}>{/* formun kullanıcı tarafından doldurulup gönderilmesi durumunda handlePasswordEmail fonksiyonunu çalıştırıyoruz */}
-                            <div className="form-group mb-3">
-                                <label htmlFor="email" className="form-label">Email</label>
-                                <input
-                                    id="email"
-                                    type="email"
-                                    className="form-control"
-                                    placeholder="Email"
-                                    value={email}//email stateini inputun value'sine eşitliyoruz
-                                    onChange={(e) => setEmail(e.target.value)}//kullanıcı değer girdiğinde setEmail fonksiyonunu çağırıyoruz email değerine girilen değeri atıyoruz
-                                />
-                            </div>
-                            <div className="text-center">
-                                <button type="submit" className="btn btn-dark w-100">
-                                    {loading ? (
-                                        <div className="spinner-border text-light" role="status">
-                                            <span className="visually-hidden">Loading...</span>
-                                        </div>
-                                    ) : (
-                                        "Şifre Yenileme Maili Gönder"
-                                    )}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+  const handleCancel = () => navigate("/login/user");
 
+  return (
+    <div
+      className="d-flex justify-content-center align-items-center"
+      style={{ minHeight: "80vh" }}
+    >
+      <div
+        style={{
+          maxWidth: "400px",
+          width: "100%",
+          padding: "20px",
+          borderRadius: "5px",
+          border: "1px solid #ccc",
+          boxShadow: "0 0 8px rgba(0,0,0,0.1)",
+          backgroundColor: "#fff",
+        }}
+      >
+        {alert.message && (
+          <div
+            className={`alert alert-${alert.type} py-1 text-center`}
+            role="alert"
+            style={{ fontSize: "0.9rem" }}
+          >
+            {alert.message}
+          </div>
+        )}
+        <h3
+          style={{
+            fontWeight: "500",
+            fontSize: "18px",
+            textAlign: "left",
+            borderBottom: "1px solid #ccc",
+            paddingBottom: "8px",
+            marginBottom: "20px",
+          }}
+        >
+          Şifre Yenileme
+        </h3>
+        <form onSubmit={handlePasswordEmail}>
+          <input
+            id="email"
+            type="email"
+            className="form-control mb-3"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={{ height: "38px", fontSize: "0.9rem" }}
+            required
+          />
+          <div className="d-flex justify-content-end gap-2">
+            <button type="submit" className="btn btn-dark btn-sm px-3">
+              Gönder
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline-secondary btn-sm px-3"
+              onClick={handleCancel}
+            >
+              İptal
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }

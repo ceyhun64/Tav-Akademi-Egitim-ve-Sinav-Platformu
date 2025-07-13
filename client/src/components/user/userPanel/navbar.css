@@ -52,6 +52,20 @@
   align-items: flex-start;
   justify-content: stretch;
 }
+.dropdown-menu.show {
+  font-size: 0.85rem !important;
+  top: calc(100%) !important; /* Dropdown biraz daha aşağıda */
+}
+.dropdown-menu.show .dropdown-item {
+  font-size: 0.85rem;
+}
+.dropdown-item {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
 
 /* Sol sütun - beyaz kutu ve gölge */
 .left-column {
@@ -64,8 +78,6 @@
   transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
-
-
 /* Sağ sütun - beyaz kutu ve gölge */
 .right-column {
   flex: 2 1 60% !important;
@@ -76,7 +88,6 @@
   box-shadow: 0 10px 25px rgba(0, 27, 102, 0.08);
   transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
-
 
 /* Form elemanları modern ve tutarlı */
 .form-label {
@@ -230,6 +241,39 @@
 .btn-close:hover {
   opacity: 1;
 }
+/* Navbar li ve linklerin font boyutunu küçült */
+.navbar-nav > .nav-item > .nav-link,
+.navbar-nav > .nav-item > span.nav-link {
+  font-size: 0.9rem; /* Orijinal 1rem yerine biraz daha küçük */
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 6px; /* İkon ve yazı arası boşluk */
+}
+
+/* Dropdown menü öğeleri biraz daha küçük */
+.dropdown-menu .dropdown-item {
+  font-size: 0.8rem;
+  padding: 6px 15px;
+}
+
+/* İkonların boyutunu da biraz küçült */
+.navbar-nav .nav-link i,
+.navbar-nav .dropdown-item i {
+  font-size: 1rem; /* Orijinal 1.25rem yerine */
+}
+
+/* Profil kısmındaki kullanıcı adı ve ikon küçült */
+.navbar-nav .nav-item.d-flex.align-items-center.me-3 span.nav-link {
+  font-size: 0.9rem;
+}
+
+.navbar-nav .nav-item.d-flex.align-items-center.me-3 i {
+  font-size: 1rem;
+}
 
 /* Responsive */
 @media (max-width: 992px) {
@@ -248,6 +292,9 @@
   }
   .card-img-top {
     height: 180px;
+  }
+  .navbar-nav {
+    margin-right: 200px;
   }
 }
 
@@ -278,5 +325,8 @@
   }
   .card-img-top {
     height: 200px;
+  }
+  .navbar-nav {
+    margin-right: 200px;
   }
 }

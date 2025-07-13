@@ -63,49 +63,99 @@ export default function ImgBooklets() {
     setEditingBookletId(booklet.id);
     setName(booklet.name);
   };
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
 
   return (
     <div
-      className="poolteo-container d-flex"
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "#f4f6fc",
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        overflowX: "hidden",
-      }}
+      className="poolImg-container"
+      style={{ overflowX: "hidden", padding: "1rem" }}
     >
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
-          padding: "1.5rem 1.2rem",
+          padding: "1rem",
           position: "fixed",
           left: 0,
           top: 0,
-          backgroundColor: "#003399",
+          backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 12px rgba(0, 0, 0, 0.25)",
+          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
-          zIndex: 10,
-          borderRadius: "0 12px 12px 0",
+          zIndex: 99999,
         }}
       >
         <Sidebar />
       </div>
 
-      {/* İçerik */}
+      {/* Ana İçerik */}
       <div
-        style={{
-          marginLeft: "260px",
-          padding: "2.5rem 3rem",
-          width: "100%",
-          minHeight: "100vh",
-          backgroundColor: "#f4f6fc",
-          color: "#222",
-          transition: "margin-left 0.3s ease",
-        }}
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
       >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "2.5rem",
+          }}
+        >
+          <h1
+            className="mb-4 mt-2 ms-5"
+            style={{
+              color: "#003399",
+              fontSize: "28px",
+              fontWeight: "700",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.6rem",
+              userSelect: "none",
+            }}
+          >
+            {!isMobile && (
+              <i
+                className="bi bi-journal-bookmark-fill"
+                style={{ fontSize: "1.6rem" }}
+              ></i>
+            )}
+            Uygulamalı Kitapçıklar
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                marginLeft: isMobile ? "auto" : "30px",
+                backgroundColor: "#001b66",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "6px 16px", // padding yatay biraz artırıldı
+                cursor: "pointer",
+                fontSize: "1rem",
+                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+              }}
+            >
+              Geri Dön
+            </button>
+          </h1>
+        </div>
         <div className="row gx-4">
           {/* Sol taraf: Kitapçık oluşturma/güncelleme formu */}
           <div className="col-md-5">
@@ -128,7 +178,7 @@ export default function ImgBooklets() {
               >
                 {editingBookletId
                   ? "Kitapçığı Güncelle"
-                  : "Görsel Kitapçık Oluştur"}
+                  : "Uygulamalı Kitapçık Oluştur"}
               </h4>
 
               <div className="mb-4">
@@ -224,7 +274,7 @@ export default function ImgBooklets() {
                   letterSpacing: "0.05em",
                 }}
               >
-                Görsel Kitapçıklar
+                Uygulamalı Kitapçıklar
               </h4>
               {imgBooklets?.length === 0 ? (
                 <p style={{ color: "#4a5568", fontStyle: "italic" }}>

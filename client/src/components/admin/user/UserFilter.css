@@ -1,0 +1,8 @@
+/* Tüm input, select ve textarea'lar için yazı boyutunu küçült */
+@media (max-width: 768px) {
+  .user-filter-row input,
+  .user-filter-row select {
+    font-size: 0.85rem;
+    padding: 0.3rem 0.5rem;
+  }
+}

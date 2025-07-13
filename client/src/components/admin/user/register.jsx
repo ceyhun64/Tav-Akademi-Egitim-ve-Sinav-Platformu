@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { registerThunk } from "../../../features/thunks/authThunk";
-import { clearAlert } from "../../../features/slices/authSlice";
 import {
   getAllUsersThunk,
   getUserDetailsThunk,
@@ -10,6 +9,7 @@ import {
   deleteUsersThunk,
   aktifPasifUserThunk,
 } from "../../../features/thunks/userThunk";
+import provinces from "../../../data/provinces.json";
 import {
   getGroupsThunk,
   getInstitutionsThunk,
@@ -18,12 +18,19 @@ import UserList from "./userList";
 import UserFilter from "./userFilter";
 import BulkRegister from "./bulkRegister";
 import Sidebar from "../adminPanel/sidebar";
+import exampleUser from "../../../../public/example/exampleUser.jpg";
+import "./register.css";
+import {
+  getRolesThunk,
+  assignRoleToUserThunk,
+} from "../../../features/thunks/roleThunk";
 
 export default function Register() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
+    roleId: "",
     tcno: "",
     sicil: "",
     ad: "",
@@ -40,18 +47,65 @@ export default function Register() {
     grupId: "",
     lokasyonId: "",
     image: null,
+    imagePreview: null, // <--- burası eklendi
   });
 
   useEffect(() => {
     dispatch(getGroupsThunk());
     dispatch(getInstitutionsThunk());
   }, [dispatch]);
+  const { roles } = useSelector((state) => state.role);
 
   const { groups, institutions } = useSelector((state) => state.grpInst);
   const { alert, loading } = useSelector((state) => state.auth);
   const { users, selectedUser } = useSelector((state) => state.user);
   const [selectedUserIds, setSelectedUserIds] = useState([]); // 1. Seçilen kullanıcılar
   const [selectedPers, setSelectedPers] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  const [districts, setDistricts] = useState([]); // seçilen ilin ilçeleri
+
+  //il seçimi
+  const handleProvinceChange = (e) => {
+    const selectedProvinceValue = Number(e.target.value);
+    const selectedProvince = provinces.find(
+      (p) => p.value === selectedProvinceValue
+    );
+
+    setFormData((prev) => ({
+      ...prev,
+      il: selectedProvinceValue,
+      ilce: "", // ilçe sıfırlanıyor
+    }));
+
+    setDistricts(selectedProvince ? selectedProvince.districts : []);
+  };
+
+  //ilçe seçimi
+  const handleDistrictChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      ilce: Number(e.target.value),
+    }));
+  };
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
 
   useEffect(() => {
     dispatch(getAllUsersThunk());
@@ -111,67 +165,84 @@ export default function Register() {
     if (selectedUserIds.length !== 1) return;
 
     const userId = selectedUserIds[0];
-    const userToEdit = filteredUsers.find((user) => user.id === userId);
+    const userToEdit = users.find((user) => user.id === userId);
 
     if (userToEdit) {
+      dispatch(getUserDetailsThunk(userId));
       setSelectedPers(userToEdit);
-
       setFormData({
         tcno: userToEdit.tcno || "",
         sicil: userToEdit.sicil || "",
         ad: userToEdit.ad || "",
         soyad: userToEdit.soyad || "",
         kullanici_adi: userToEdit.kullanici_adi || "",
-        sifre: "", // şifre güvenlik için boş
+        sifre: "",
         telefon: userToEdit.telefon || "",
         email: userToEdit.email || "",
         il: userToEdit.il || "",
         ilce: userToEdit.ilce || "",
         adres: userToEdit.adres || "",
-        ise_giris_tarihi: userToEdit.ise_giris_tarihi || "",
+        ise_giris_tarihi: userToEdit.ise_giris_tarihi?.split("T")[0] || "",
         cinsiyet: userToEdit.cinsiyet || "",
         grupId: userToEdit.grupId || "",
         lokasyonId: userToEdit.lokasyonId || "",
-        image: userToEdit.image || null,
+        image: null,
+        imagePreview: userToEdit.image || null,
+        roleId: userToEdit.roleId || "",
       });
 
-      // Sayfanın en üstüne kaydır
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth", // yumuşak kaydırma efekti için
-      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   const handleFileChange = (e) => {
-    setFormData({
-      ...formData,
-      image: e.target.files[0],
-    });
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({
+          ...prev,
+          image: file,
+          imagePreview: reader.result,
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (selectedUser) {
-      // Güncelleme işlemi
-      updateUser(selectedUser.id, formData)
+    const data = new FormData();
+
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key !== "imagePreview") {
+        if (key === "image" && value) {
+          data.append("file", value);
+        } else {
+          data.append(key, value);
+        }
+      }
+    });
+
+    if (selectedPers) {
+      dispatch(updateUserDetailsThunk({ id: selectedPers.id, formData: data }))
+        .unwrap()
         .then(() => {
-          alert("Kullanıcı güncellendi");
-          setSelectedUser(null);
-          setFormData(initialFormData); // formu resetle
-          // Listeyi güncelle veya yeniden yükle
-        })
-        .catch((err) => alert("Güncelleme başarısız: " + err.message));
-    } else {
-      // Yeni kayıt işlemi
-      createUser(formData)
-        .then(() => {
-          alert("Kullanıcı eklendi");
+          window.alert("Kullanıcı güncellendi");
+          dispatch(getAllUsersThunk()); // Listeyi yenile
           setFormData(initialFormData);
-          // Listeyi güncelle veya yeniden yükle
         })
-        .catch((err) => alert("Kayıt başarısız: " + err.message));
+        .catch((err) => window.alert("Güncelleme başarısız: " + err.message));
+    } else {
+      dispatch(registerThunk(data))
+        .unwrap()
+        .then(() => {
+          window.alert("Kullanıcı eklendi");
+          dispatch(getAllUsersThunk()); // Listeyi yenile
+          setFormData(initialFormData); // resetle
+        })
+        .catch((err) => window.alert("Kayıt başarısız: " + err.message));
     }
   };
 
@@ -187,6 +258,7 @@ export default function Register() {
   const labels = {
     tcno: "T.C. Kimlik No",
     sicil: "Sicil No",
+    telefon: "Telefon No",
     ad: "Ad",
     soyad: "Soyad",
     kullanici_adi: "Kullanıcı Adı",
@@ -198,8 +270,10 @@ export default function Register() {
     adres: "Adres",
     ise_giris_tarihi: "İşe Giriş Tarihi",
     cinsiyet: "Cinsiyet",
-    grup: "Grup",
-    lokasyon: "Lokasyon",
+    grupId: "Grup",
+    lokasyonId: "Lokasyon",
+    imagePreview: "Resim Url",
+    roleId: "Rol",
   };
 
   const handleCheckboxChange = (userId) => {
@@ -264,6 +338,15 @@ export default function Register() {
       (!filters.ilce || user.ilce === filters.ilce)
     );
   });
+  const itemsPerPage = 50;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const limitedUsers = filteredUsers.slice(0, 50);
+  const totalPages = Math.ceil(limitedUsers.length / itemsPerPage);
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentUsers = limitedUsers.slice(indexOfFirstItem, indexOfLastItem);
 
   // Lokasyon ve grup için unique değerler
   const uniqueValues = {
@@ -397,7 +480,18 @@ export default function Register() {
     }
   };
   return (
-    <div className="register-container">
+    <div
+      className="register-container"
+      style={{
+        padding: isMobile ? "2rem 1rem" : "2rem 2rem 2rem 2rem",
+        backgroundColor: "#f8f9fc",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        width: "100%",
+      }}
+    >
       {/* Sidebar */}
       <div
         style={{
@@ -405,18 +499,18 @@ export default function Register() {
           minHeight: "100vh",
           padding: "1rem",
           position: "fixed",
-          left: 0,
+          left: sidebarOpen ? "0" : "-300px", // 👈 kontrol burada
           top: 0,
           backgroundColor: "#001b66",
           color: "#fff",
           boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 10,
+          transition: "left 0.3s ease", // 👈 geçiş efekti
         }}
       >
         <Sidebar />
       </div>
-
       {/* Main content */}
       <div
         style={{
@@ -425,290 +519,589 @@ export default function Register() {
           minHeight: "100vh",
           display: "flex",
           gap: "20px",
-          flexDirection: "column", // burayı row'dan column'a değiştirdik
+          flexDirection: "column",
           flexWrap: "nowrap",
         }}
       >
-        {/* Left column - Form */}
+        {/* top column - Form */}
         <section
           style={{
             backgroundColor: "#fff",
-            borderRadius: "12px",
-            padding: "20px",
-            boxShadow: "0 8px 24px rgba(0,27,102,0.08)",
-            border: "1px solid #e0e6ed",
+            borderRadius: "16px",
+            padding: "24px",
+            boxShadow: "0 4px 12px rgba(0, 27, 102, 0.1)",
             minWidth: "320px",
-            display: "flex",
-            flexDirection: "column",
+            maxWidth: "1200px",
+            margin: "0 auto",
+            fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+            color: "#222",
           }}
         >
           <h1
             style={{
               color: "#001b66",
-              fontSize: "24px",
-              fontWeight: "600",
-              marginBottom: "20px",
+              fontWeight: "700",
+              fontSize: "28px",
+              marginBottom: "24px",
               display: "flex",
               alignItems: "center",
-              gap: "8px",
+              gap: "12px",
             }}
           >
-            <i className="bi bi-file-earmark-text-fill"></i> Kullanıcı Kayıt
+            <i
+              className="bi bi-person-fill-add"
+              style={{ fontSize: "1.5rem" }}
+            ></i>
+            Kullanıcı Kayıt
           </h1>
 
-          <form onSubmit={handleSubmit} style={{ display: "grid" }}>
-            <div className="row g-3">
-              {Object.keys(formData).map((field) => {
-                if (field === "image") return null;
+          <section
+            style={{
+              marginBottom: "30px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "14px",
+            }}
+          >
+            <img
+              src={formData.imagePreview || exampleUser}
+              alt="Kullanıcı"
+              style={{
+                width: "150px",
+                height: "150px",
+                objectFit: "contain",
+                borderRadius: "12px",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.12)",
+                border: "none",
+                backgroundColor: "#f5f5f5",
+              }}
+            />
 
-                if (field === "cinsiyet") {
-                  return (
-                    <div
-                      className="col-6 d-flex align-items-center"
-                      key={field}
-                    >
-                      <label
-                        htmlFor={field}
-                        className="form-label me-2"
-                        style={{ minWidth: "110px" }}
-                      >
-                        {labels[field]}
-                      </label>
-                      <select
-                        id={field}
-                        name={field}
-                        className="form-select form-select-sm flex-grow-1"
-                        value={formData[field]}
-                        onChange={handleChange}
-                        required
-                      >
-                        <option value="">Seçiniz</option>
-                        <option value="Erkek">Erkek</option>
-                        <option value="Kadın">Kadın</option>
-                        <option value="Diğer">Diğer</option>
-                      </select>
-                    </div>
-                  );
-                }
+            {/* Butonları yan yana hizalamak için container */}
+            <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+              {/* Dosya seçimi butonu */}
+              <label
+                htmlFor="image"
+                style={{
+                  padding: "8px 16px",
+                  fontSize: "14px",
+                  color: "#fff",
+                  backgroundColor: "#001b66",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  userSelect: "none",
+                  display: "inline-block",
+                }}
+              >
+                Resim Ekle
+              </label>
 
-                if (field === "sifre") {
-                  return (
-                    <div
-                      className="col-12 d-flex align-items-start"
-                      key={field}
-                      style={{ gap: "8px" }}
-                    >
-                      <label
-                        htmlFor={field}
-                        className="form-label pt-2"
-                        style={{ minWidth: "110px" }}
-                      >
-                        {labels[field]}
-                      </label>
-                      <div className="flex-grow-1 d-flex gap-2 flex-column">
-                        <div className="input-group input-group-sm">
-                          <input
-                            id={field}
-                            name={field}
-                            type={showPassword ? "text" : "password"}
-                            className="form-control"
-                            value={formData[field] || ""}
-                            onChange={handleChange}
-                            placeholder={labels[field]}
-                            required={!selectedUser}
-                            disabled={!!selectedUser}
-                          />
-                          <button
-                            type="button"
-                            className="btn btn-outline-secondary btn-sm"
-                            onClick={() => setShowPassword((prev) => !prev)}
-                            tabIndex={-1}
-                          >
-                            {showPassword ? "Gizle" : "Göster"}
-                          </button>
-                          {!selectedUser && (
-                            <button
-                              type="button"
-                              className="btn btn-outline-primary btn-sm"
-                              onClick={() => {
-                                const newPassword = generatePassword();
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  sifre: newPassword,
-                                }));
-                              }}
-                              tabIndex={-1}
-                            >
-                              Şifre Oluştur
-                            </button>
-                          )}
-                        </div>
-                        {formData.sifre &&
-                          !validatePassword(formData.sifre) && (
-                            <small className="text-danger">
-                              Şifre en az 8 karakter, 1 büyük harf, 1 küçük
-                              harf, 1 rakam ve 1 özel karakter içermelidir.
-                            </small>
-                          )}
-                      </div>
-                    </div>
-                  );
-                }
+              {/* Dosya seçme inputunu gizliyoruz */}
+              <input
+                type="file"
+                id="image"
+                name="image"
+                onChange={handleFileChange}
+                style={{ display: "none" }}
+              />
 
-                if (field === "grupId") {
-                  return (
-                    <div
-                      className="col-6 d-flex align-items-center"
-                      key={field}
-                    >
-                      <label
-                        htmlFor={field}
-                        className="form-label me-2"
-                        style={{ minWidth: "110px" }}
-                      >
-                        {labels[field] || "Grup"}
-                      </label>
-                      <select
-                        id={field}
-                        name={field}
-                        className="form-select form-select-sm flex-grow-1"
-                        value={formData[field]}
-                        onChange={handleChange}
-                        required
-                      >
-                        <option value="">Seçiniz</option>
-                        {groups.map((group) => (
-                          <option key={group.id} value={group.id}>
-                            {group.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  );
-                }
+              {/* Resmi Sil butonu */}
+              {formData.imagePreview && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData((prev) => ({ ...prev, imagePreview: "" }))
+                  }
+                  style={{
+                    padding: "8px 16px",
+                    fontSize: "14px",
+                    color: "#d32f2f",
+                    backgroundColor: "transparent",
+                    border: "1px solid #d32f2f",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Resmi Sil
+                </button>
+              )}
+            </div>
+          </section>
 
-                if (field === "lokasyonId") {
-                  return (
-                    <div
-                      className="col-6 d-flex align-items-center"
-                      key={field}
-                    >
-                      <label
-                        htmlFor={field}
-                        className="form-label me-2"
-                        style={{ minWidth: "110px" }}
-                      >
-                        {labels[field] || "Lokasyon"}
-                      </label>
-                      <select
-                        id={field}
-                        name={field}
-                        className="form-select form-select-sm flex-grow-1"
-                        value={formData[field]}
-                        onChange={handleChange}
-                        required
-                      >
-                        <option value="">Seçiniz</option>
-                        {institutions.map((inst) => (
-                          <option key={inst.id} value={inst.id}>
-                            {inst.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  );
-                }
+          <form
+            onSubmit={handleSubmit}
+            style={{
+              display: isMobile ? "block" : "grid",
+              gap: "20px",
+              gridTemplateColumns: isMobile ? undefined : "repeat(4, 1fr)",
+              fontSize: "14px",
+            }}
+          >
+            {[
+              "durum",
+              "roleId",
+              "lokasyonId",
+              "grupId",
+              "cinsiyet",
+              "sicil",
+              "tcno",
+              "ad",
+              "soyad",
+              "kullanici_adi",
+              "sifre",
+              "telefon",
+              "email",
+              "ise_giris_tarihi",
+              "il",
+              "ilce",
+              "adres",
+            ].map((field) => {
+              if (field === "image") return null;
 
+              if (!(field in formData)) return null; // formData içinde olmayan alanları atla
+
+              const requiredFields = [
+                "tcno",
+                "sicil",
+                "ad",
+                "soyad",
+                "kullanici_adi",
+                "email",
+              ];
+              const isRequired = requiredFields.includes(field);
+
+              const labelText = (
+                <>
+                  {labels[field]}{" "}
+                  {isRequired && (
+                    <span style={{ color: "#d32f2f" }} title="Zorunlu">
+                      *
+                    </span>
+                  )}
+                </>
+              );
+
+              if (field === "roleId") {
                 return (
                   <div
-                    className="col-6 d-flex align-items-center"
                     key={field}
-                    style={{ gap: "8px" }}
+                    style={{ display: "flex", flexDirection: "column" }}
                   >
                     <label
                       htmlFor={field}
-                      className="form-label me-2"
-                      style={{ minWidth: "110px" }}
+                      style={{
+                        fontWeight: "600",
+                        marginBottom: "6px",
+                        color: "#444",
+                      }}
                     >
-                      {labels[field]}
+                      {labelText}
+                    </label>
+                    <select
+                      id={field}
+                      name={field}
+                      value={formData[field]}
+                      onChange={handleChange}
+                      required
+                      style={{
+                        padding: "10px 12px",
+                        borderRadius: "10px",
+                        border: "1px solid #ccc",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                        transition: "border-color 0.3s",
+                      }}
+                      onFocus={(e) => (e.target.style.borderColor = "#001b66")}
+                      onBlur={(e) => (e.target.style.borderColor = "#ccc")}
+                    >
+                      <option value="">Rol seçiniz</option>
+                      {roles.map((role) => (
+                        <option key={role.id} value={role.id}>
+                          {role.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              }
+
+              if (field === "sifre") {
+                return (
+                  <div
+                    key={field}
+                    style={{ display: "flex", flexDirection: "column" }}
+                  >
+                    <label
+                      htmlFor={field}
+                      style={{
+                        fontWeight: "600",
+                        marginBottom: "6px",
+                        color: "#444",
+                      }}
+                    >
+                      {labelText}
+                    </label>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <input
+                        id={field}
+                        name={field}
+                        type={showPassword ? "text" : "password"}
+                        value={formData[field] || ""}
+                        onChange={handleChange}
+                        placeholder={labels[field]}
+                        required={!selectedUser}
+                        disabled={!!selectedUser}
+                        style={{
+                          flexGrow: 1,
+                          padding: "10px 12px",
+                          borderRadius: "10px",
+                          border: "1px solid #ccc",
+                          fontSize: "14px",
+                          transition: "border-color 0.3s",
+                        }}
+                        onFocus={(e) =>
+                          (e.target.style.borderColor = "#001b66")
+                        }
+                        onBlur={(e) => (e.target.style.borderColor = "#ccc")}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        style={{
+                          fontSize: "13px",
+                          padding: "8px 14px",
+                          borderRadius: "10px",
+                          border: "1px solid #001b66",
+                          backgroundColor: showPassword
+                            ? "#001b66"
+                            : "transparent",
+                          color: showPassword ? "#fff" : "#001b66",
+                          cursor: "pointer",
+                          transition: "all 0.3s ease",
+                        }}
+                      >
+                        {showPassword ? "Gizle" : "Göster"}
+                      </button>
+                      {!selectedUser && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newPassword = generatePassword();
+                            setFormData((prev) => ({
+                              ...prev,
+                              sifre: newPassword,
+                            }));
+                          }}
+                          style={{
+                            fontSize: "13px",
+                            padding: "8px 14px",
+                            borderRadius: "10px",
+                            border: "1px solid #0d6efd",
+                            backgroundColor: "#0d6efd",
+                            color: "#fff",
+                            cursor: "pointer",
+                            transition: "background-color 0.3s",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.target.style.backgroundColor = "#084298")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.target.style.backgroundColor = "#0d6efd")
+                          }
+                        >
+                          Oluştur
+                        </button>
+                      )}
+                    </div>
+                    {formData.sifre && !validatePassword(formData.sifre) && (
+                      <small
+                        style={{
+                          color: "#d32f2f",
+                          marginTop: "6px",
+                          fontSize: "12px",
+                        }}
+                      >
+                        Şifre en az 8 karakter, 1 büyük harf, 1 küçük harf, 1
+                        rakam ve 1 özel karakter içermelidir.
+                      </small>
+                    )}
+                  </div>
+                );
+              }
+
+              if (["cinsiyet", "grupId", "lokasyonId"].includes(field)) {
+                const options =
+                  field === "cinsiyet"
+                    ? [
+                        { value: "", label: "Seçiniz" },
+                        { value: "Erkek", label: "Erkek" },
+                        { value: "Kadın", label: "Kadın" },
+                        { value: "Diğer", label: "Diğer" },
+                      ]
+                    : field === "grupId"
+                    ? [
+                        { value: "", label: "Seçiniz" },
+                        ...groups.map((g) => ({ value: g.id, label: g.name })),
+                      ]
+                    : [
+                        { value: "", label: "Seçiniz" },
+                        ...institutions.map((i) => ({
+                          value: i.id,
+                          label: i.name,
+                        })),
+                      ];
+
+                return (
+                  <div
+                    key={field}
+                    style={{ display: "flex", flexDirection: "column" }}
+                  >
+                    <label
+                      htmlFor={field}
+                      style={{
+                        fontWeight: "600",
+                        marginBottom: "6px",
+                        color: "#444",
+                      }}
+                    >
+                      {labelText}
+                    </label>
+                    <select
+                      id={field}
+                      name={field}
+                      value={formData[field]}
+                      onChange={handleChange}
+                      required
+                      style={{
+                        padding: "10px 12px",
+                        borderRadius: "10px",
+                        border: "1px solid #ccc",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                        transition: "border-color 0.3s",
+                      }}
+                      onFocus={(e) => (e.target.style.borderColor = "#001b66")}
+                      onBlur={(e) => (e.target.style.borderColor = "#ccc")}
+                    >
+                      {options.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              }
+
+              if (field === "il") {
+                return (
+                  <div
+                    key={field}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <label
+                      htmlFor={field}
+                      style={{
+                        fontWeight: "600",
+                        marginBottom: "6px",
+                        color: "#444",
+                      }}
+                    >
+                      {labelText}
+                    </label>
+                    <select
+                      id={field}
+                      name="il"
+                      value={formData.il || ""}
+                      onChange={handleProvinceChange}
+                      required
+                      style={{
+                        padding: "10px 12px",
+                        borderRadius: "10px",
+                        border: "1px solid #ccc",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                        transition: "border-color 0.3s",
+                      }}
+                      onFocus={(e) => (e.target.style.borderColor = "#001b66")}
+                      onBlur={(e) => (e.target.style.borderColor = "#ccc")}
+                    >
+                      <option value="" disabled>
+                        İl seçiniz
+                      </option>
+                      {provinces.map((province) => (
+                        <option key={province.value} value={province.value}>
+                          {province.text}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              }
+
+              if (field === "ilce") {
+                return (
+                  <div
+                    key={field}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <label
+                      htmlFor={field}
+                      style={{
+                        fontWeight: "600",
+                        marginBottom: "6px",
+                        color: "#444",
+                      }}
+                    >
+                      {labelText}
+                    </label>
+                    <select
+                      id={field}
+                      name="ilce"
+                      value={formData.ilce || ""}
+                      onChange={handleDistrictChange}
+                      required
+                      disabled={!formData.il}
+                      style={{
+                        padding: "10px 12px",
+                        borderRadius: "10px",
+                        border: "1px solid #ccc",
+                        fontSize: "14px",
+                        cursor: formData.il ? "pointer" : "not-allowed",
+                        transition: "border-color 0.3s",
+                      }}
+                      onFocus={(e) => (e.target.style.borderColor = "#001b66")}
+                      onBlur={(e) => (e.target.style.borderColor = "#ccc")}
+                    >
+                      <option value="" disabled>
+                        İlçe seçiniz
+                      </option>
+                      {districts.map((district) => (
+                        <option key={district.value} value={district.value}>
+                          {district.text}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              }
+
+              if (field === "adres") {
+                return (
+                  <div
+                    key={field}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <label
+                      htmlFor={field}
+                      style={{
+                        fontWeight: "600",
+                        marginBottom: "6px",
+                        color: "#444",
+                      }}
+                    >
+                      {labelText}
                     </label>
                     <input
                       id={field}
                       name={field}
-                      type={field === "ise_giris_tarihi" ? "date" : "text"}
-                      className="form-control form-control-sm flex-grow-1"
                       value={formData[field] || ""}
                       onChange={handleChange}
                       placeholder={labels[field]}
-                      required={[
-                        "tcno",
-                        "sicil",
-                        "ad",
-                        "soyad",
-                        "kullanici_adi",
-                        "email",
-                      ].includes(field)}
+                      style={{
+                        padding: "10px 12px",
+                        borderRadius: "10px",
+                        border: "1px solid #ccc",
+                        fontSize: "14px",
+                        transition: "border-color 0.3s",
+                        width: "100%", // kapsadığı grid alanına göre genişlik
+                        boxSizing: "border-box",
+                      }}
+                      onFocus={(e) => (e.target.style.borderColor = "#001b66")}
+                      onBlur={(e) => (e.target.style.borderColor = "#ccc")}
                     />
                   </div>
                 );
-              })}
+              }
 
-              {/* Dosya Yükleme full width */}
-              <div
-                className="col-12 d-flex align-items-center"
-                style={{ gap: "8px" }}
-              >
-                <label
-                  htmlFor="image"
-                  className="form-label"
-                  style={{ minWidth: "110px" }}
+              // Text/date inputs
+              return (
+                <div
+                  key={field}
+                  style={{ display: "flex", flexDirection: "column" }}
                 >
-                  Resim
-                </label>
-                <input
-                  type="file"
-                  id="image"
-                  name="image"
-                  className="form-control form-control-sm flex-grow-1"
-                  onChange={handleFileChange}
-                />
-              </div>
-            </div>
+                  <label
+                    htmlFor={field}
+                    style={{
+                      fontWeight: "600",
+                      marginBottom: "6px",
+                      color: "#444",
+                    }}
+                  >
+                    {labelText}
+                  </label>
+                  <input
+                    id={field}
+                    name={field}
+                    type={field === "ise_giris_tarihi" ? "date" : "text"}
+                    value={formData[field] || ""}
+                    onChange={handleChange}
+                    placeholder={labels[field]}
+                    required={isRequired}
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: "10px",
+                      border: "1px solid #ccc",
+                      fontSize: "14px",
+                      transition: "border-color 0.3s",
+                    }}
+                    onFocus={(e) => (e.target.style.borderColor = "#001b66")}
+                    onBlur={(e) => (e.target.style.borderColor = "#ccc")}
+                  />
+                </div>
+              );
+            })}
 
-            {/* Submit Butonu */}
             <button
               type="submit"
-              className="btn btn-primary w-100 mt-4"
-              disabled={loading}
+              className="btn btn-primary mt-3"
+              style={{
+                gridColumn: isMobile ? undefined : "1 / -1",
+                justifySelf: "center", // Ortalamak için start yerine center
+                width: isMobile ? "100%" : "150px", // Masaüstünde sabit, küçük genişlik
+              }}
             >
-              {loading ? (
-                <span
-                  className="spinner-border spinner-border-sm"
-                  role="status"
-                />
-              ) : selectedUser ? (
-                "Güncelle"
-              ) : (
-                "Kayıt Et"
-              )}
+              {selectedPers ? "Güncelle" : "Kaydet"}
             </button>
           </form>
         </section>
 
-        {/* Right column - User list */}
+        {/* bottom column - User list */}
         <section
           style={{
             backgroundColor: "#fff",
             borderRadius: "12px",
-            padding: "20px",
+            padding: isMobile ? "0 12px" : "20px", // mobilde sadece yatay padding
             boxShadow: "0 8px 24px rgba(0,27,102,0.08)",
             border: "1px solid #e0e6ed",
-            minWidth: "320px",
             display: "flex",
             flexDirection: "column",
             gap: "15px",
-            maxHeight: "90vh",
-            overflowY: "auto",
+            height: "100%",
+            maxHeight: "none",
+            maxWidth: isMobile ? "400px" : "100%",
+            overflowY: "visible",
+            overflowX: "hidden", // taşmayı tamamen engelle
           }}
         >
           <h5
@@ -720,68 +1113,103 @@ export default function Register() {
               alignItems: "center",
               gap: "8px",
               fontSize: "1.25rem",
+              marginTop: isMobile ? "10px" : "0",
             }}
           >
             <i className="bi bi-people-fill"></i> Kullanıcı Listesi
           </h5>
 
-          <UserFilter
-            filters={filters}
-            onChange={handleFilterChange}
-            uniqueValues={uniqueValues}
-          />
-
-          <div className="d-flex align-items-center gap-3 my-3">
-            <button
-              className="btn btn-success flex-grow-1"
-              disabled={selectedUserIds.length === 0}
-              onClick={() => handleAktifPasif(true)}
-              style={{ minWidth: "150px" }}
-            >
-              Seçilenleri Aktif Yap
-            </button>
-            <button
-              className="btn btn-secondary flex-grow-1"
-              disabled={selectedUserIds.length === 0}
-              onClick={() => handleAktifPasif(false)}
-              style={{ minWidth: "150px" }}
-            >
-              Seçilenleri Pasif Yap
-            </button>
-
-            <button
-              className="btn btn-warning flex-grow-1"
-              disabled={selectedUserIds.length !== 1}
-              onClick={handleGuncelleClick}
-              style={{ minWidth: "150px" }}
-            >
-              Seçileni Güncelle
-            </button>
-
-            <button
-              className="btn btn-danger flex-grow-1"
-              disabled={selectedUserIds.length === 0}
-              onClick={() => handleDeleteSelected()}
-              style={{ minWidth: "150px" }}
-            >
-              Seçilenleri Sil
-            </button>
-
-            <div style={{ flexShrink: 0 }}>
+          <div style={{ flexGrow: 1, overflowY: "auto" }}>
+            <UserFilter
+              filters={filters}
+              onChange={handleFilterChange}
+              uniqueValues={uniqueValues}
+            />
+          </div>
+          <div className="row g-2 mt-3">
+            <div className="col-12 col-md-3">
+              <button
+                className="btn btn-success w-100"
+                disabled={selectedUserIds.length === 0}
+                onClick={() => handleAktifPasif(true)}
+              >
+                Seçilenleri Aktif Yap
+              </button>
+            </div>
+            <div className="col-12 col-md-3">
+              <button
+                className="btn btn-secondary w-100"
+                disabled={selectedUserIds.length === 0}
+                onClick={() => handleAktifPasif(false)}
+              >
+                Seçilenleri Pasif Yap
+              </button>
+            </div>
+            <div className="col-12 col-md-3">
+              <button
+                className="btn btn-warning w-100"
+                disabled={selectedUserIds.length !== 1}
+                onClick={handleGuncelleClick}
+              >
+                Seçileni Güncelle
+              </button>
+            </div>
+            <div className="col-12 col-md-3">
+              <button
+                className="btn btn-danger w-100"
+                disabled={selectedUserIds.length === 0}
+                onClick={() => handleDeleteSelected()}
+              >
+                Seçilenleri Sil
+              </button>
+            </div>
+            <div className="col-12 col-md-3">
               <BulkRegister />
             </div>
           </div>
 
           <UserList
-            users={filteredUsers}
+            users={currentUsers}
             selectedUser={selectedUser}
             selectedUserIds={selectedUserIds}
-            setSelectedUserIds={setSelectedUserIds} // 🔧 EKLENDİ
+            setSelectedUserIds={setSelectedUserIds}
             onUserClick={handleUserClick}
             onCheckboxChange={handleCheckboxChange}
             onDeleteSelected={handleDeleteSelected}
+            isMobile={isMobile} // sütun gizlemek için prop
             style={{ flex: 1 }}
           />
+
+          {/* Pagination */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: "8px",
+              marginTop: "10px",
+              marginBottom: isMobile ? "10px" : "0",
+            }}
+          >
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i + 1}
+                onClick={() => setCurrentPage(i + 1)}
+                disabled={currentPage === i + 1}
+                style={{
+                  padding: "6px 12px",
+                  cursor: currentPage === i + 1 ? "default" : "pointer",
+                  backgroundColor: currentPage === i + 1 ? "#001b66" : "#fff",
+                  color: currentPage === i + 1 ? "#fff" : "#001b66",
+                  border: "1px solid #001b66",
+                  borderRadius: "4px",
+                }}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+
+          {/* Butonlar */}
         </section>
       </div>
     </div>

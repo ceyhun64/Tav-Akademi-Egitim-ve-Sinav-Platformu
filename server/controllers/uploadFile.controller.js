@@ -17,6 +17,7 @@ exports.uploadSingleFile = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "Kullanıcı bulunamadı." });
     }
+
     const lokasyonId = user.lokasyonId;
     const grupId = user.grupId;
 

@@ -20,7 +20,7 @@ const Certificate = sequelize.define("certificates", {
   },
   education_name: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   institution: {
     type: DataTypes.STRING,

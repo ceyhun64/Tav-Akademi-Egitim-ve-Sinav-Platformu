@@ -96,11 +96,12 @@ export default function Navbar() {
               </Link>
             </li>
 
-            {/* Dropdown: Sınavlarım */}
             <li
               className="nav-item dropdown"
               ref={examsDropdownRef}
               style={{ position: "relative" }}
+              onMouseEnter={() => setDropdownOpen("exams")}
+              onMouseLeave={() => setDropdownOpen(null)}
             >
               <span
                 className={`nav-link fw-medium custom-nav-link dropdown-toggle ${
@@ -124,69 +125,49 @@ export default function Navbar() {
                   className="dropdown-menu show"
                   style={{
                     position: "absolute",
-                    top: "100%",
+                    top: "calc(100% + 2px)", // Dropdown tam altında biraz boşluk ile
                     left: 0,
                     backgroundColor: "white",
-                    boxShadow: "0 0.5rem 1rem rgba(0,0,0,.15)",
                     borderRadius: "0.25rem",
                     padding: "0.5rem 0",
                     minWidth: "200px",
-                    zIndex: 1100,
+                    zIndex: 9999,
+                    fontSize: "0.85rem", // Yazı boyutu küçültüldü
+                    marginLeft: "30px",
+                    border: "1px solid #ced4da",
                   }}
                 >
                   <li>
-                    <Link
-                      className={`dropdown-item ${
-                        location.pathname === "/teo-exams" ? "active-link" : ""
-                      }`}
-                      to="/teo-exams"
-                      onClick={() => setDropdownOpen(null)}
-                    >
-                      Teorik Sınavlarım
+                    <Link className="dropdown-item" to="/teo-exams">
+                      Teorik Sınavlar
                     </Link>
                   </li>
                   <li>
-                    <Link
-                      className={`dropdown-item ${
-                        location.pathname === "/img-exams" ? "active-link" : ""
-                      }`}
-                      to="/img-exams"
-                      onClick={() => setDropdownOpen(null)}
-                    >
-                      Uygulama Sınavlarım
+                    <Link className="dropdown-item" to="/img-exams">
+                      Görsel Sınavlar
                     </Link>
                   </li>
                   <li>
-                    <Link
-                      className={`dropdown-item ${
-                        location.pathname === "/both-exams" ? "active-link" : ""
-                      }`}
-                      to="/both-exams"
-                      onClick={() => setDropdownOpen(null)}
-                    >
-                      Karma Sınavlarım
+                    <Link className="dropdown-item" to="/both-exams">
+                      Karma Sınavlar
                     </Link>
                   </li>
                   <li>
-                    <Link
-                      className={`dropdown-item ${
-                        location.pathname === "/practice-exams" ? "active-link" : ""
-                      }`}
-                      to="/practice-exams"
-                      onClick={() => setDropdownOpen(null)}
-                    >
-                      Pratik Sınavlarım
+                    <Link className="dropdown-item" to="/practice-exams">
+                      Pratik Sınavlar
                     </Link>
                   </li>
                 </ul>
               )}
             </li>
 
-            {/* Dropdown: Sonuçlarım */}
+            {/* Sonuçlarım dropdown */}
             <li
               className="nav-item dropdown"
               ref={resultsDropdownRef}
               style={{ position: "relative" }}
+              onMouseEnter={() => setDropdownOpen("results")}
+              onMouseLeave={() => setDropdownOpen(null)}
             >
               <span
                 className={`nav-link fw-medium custom-nav-link dropdown-toggle ${
@@ -211,37 +192,21 @@ export default function Navbar() {
                     top: "100%",
                     left: 0,
                     backgroundColor: "white",
-                    boxShadow: "0 0.5rem 1rem rgba(0,0,0,.15)",
                     borderRadius: "0.25rem",
                     padding: "0.5rem 0",
                     minWidth: "200px",
-                    zIndex: 1100,
+                    zIndex: 9999,
+                    marginLeft: "30px",
                   }}
                 >
                   <li>
-                    <Link
-                      className={`dropdown-item ${
-                        location.pathname === "/teo-exam-report"
-                          ? "active-link"
-                          : ""
-                      }`}
-                      to="/teo-exam-report"
-                      onClick={() => setDropdownOpen(null)}
-                    >
-                      Teorik Sınav Sonuçlarım
+                    <Link className="dropdown-item" to="/teo-exam-report">
+                      Teorik Sonuçlar
                     </Link>
                   </li>
                   <li>
-                    <Link
-                      className={`dropdown-item ${
-                        location.pathname === "/img-exam-report"
-                          ? "active-link"
-                          : ""
-                      }`}
-                      to="/img-exam-report"
-                      onClick={() => setDropdownOpen(null)}
-                    >
-                      Uygulamalı Sınav Sonuçlarım
+                    <Link className="dropdown-item" to="/img-exam-report">
+                      Görsel Sonuçlar
                     </Link>
                   </li>
                 </ul>
@@ -268,6 +233,17 @@ export default function Navbar() {
               >
                 <i className="bi bi-download me-2"></i>
                 İndirmeler
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                className={`nav-link fw-medium custom-nav-link ${
+                  location.pathname === "/announcements" ? "active-link" : ""
+                }`}
+                to="/announcements"
+              >
+                <i className="bi bi-megaphone me-2"></i> {/* duyuru simgesi */}
+                Duyurularım
               </Link>
             </li>
           </ul>
@@ -298,7 +274,7 @@ export default function Navbar() {
                   alignItems: "center",
                   gap: "8px",
                   cursor: "pointer",
-                  fontSize: "1rem",
+                  fontSize: "0.6rem",
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = "#dc3545";
@@ -315,7 +291,7 @@ export default function Navbar() {
               >
                 <i
                   className="bi bi-box-arrow-right"
-                  style={{ fontSize: "1.2rem" }}
+                  style={{ fontSize: "1rem" }}
                 ></i>
                 Çıkış Yap
               </button>

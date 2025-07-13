@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect,useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { getUserEducationResultDetailThunk } from "../../../features/thunks/reportThunk";
@@ -27,6 +27,9 @@ const Card = ({ title, color, children }) => (
 export default function EducationReportDetail() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const { userId, educationSetId } = useParams();
   const { userEducationResultDetail } = useSelector((state) => state.report);
   const { groups, institutions } = useSelector((state) => state.grpInst);
@@ -41,9 +44,7 @@ export default function EducationReportDetail() {
     dispatch(getInstitutionsThunk());
   }, [dispatch]);
 
-  if (!userEducationResultDetail?.data) {
-    return <p className="text-center mt-5">Yükleniyor veya veri yok...</p>;
-  }
+ 
 
   const data = userEducationResultDetail.data;
 
@@ -62,76 +63,111 @@ export default function EducationReportDetail() {
   };
   const InfoRow = ({ label, value }) => (
     <tr>
-      <th scope="row" className="w-50">
+      <td
+        className="fw-semibold"
+        style={{
+          whiteSpace: "nowrap",
+          width: "120px", // Etiket hücresi için sabit genişlik
+          verticalAlign: "top",
+          padding: "4px 8px",
+        }}
+      >
         {label}
-      </th>
-      <td>{value ?? "-"}</td>
+      </td>
+      <td style={{ padding: "4px 8px" }}>{value}</td>
     </tr>
   );
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
 
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300;
   return (
     <div
-      className="poolteo-container"
-      style={{
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        overflowX: "hidden",
-        backgroundColor: "#f4f6fc",
-        minHeight: "100vh",
-      }}
+      className="poolImg-container"
+      style={{ overflowX: "hidden", padding: "1rem" }}
     >
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
-          padding: "2rem 1.5rem",
+          padding: "1rem",
           position: "fixed",
           left: 0,
           top: 0,
-          backgroundColor: "#001b66",
+          backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 12px rgba(0, 0, 0, 0.2)",
+          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
-          zIndex: 10,
-          borderRadius: "0 16px 16px 0",
+          zIndex: 99999,
         }}
       >
         <Sidebar />
       </div>
 
-      {/* Main Content */}
+      {/* Ana İçerik */}
       <div
-        style={{
-          marginLeft: "260px",
-          width: "calc(100% - 260px)", // 👈 bu kritik
-
-          padding: "3rem 3.5rem",
-          transition: "margin-left 0.3s ease",
-          color: "#222",
-        }}
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
       >
-        {/* Başlık */}
-        <div className="d-flex justify-content-between align-items-center mb-5">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "2.5rem",
+          }}
+        >
           <h1
+            className="mb-4 mt-2 ms-5"
             style={{
-              color: "#001b66",
-              fontSize: "30px",
-              fontWeight: "bold",
+              color: "#003399",
+              fontSize: "28px",
+              fontWeight: "700",
               display: "flex",
               alignItems: "center",
-              gap: "0.7rem",
+              gap: "0.6rem",
+              userSelect: "none",
             }}
           >
-            <i
-              className="bi bi-clipboard-check-fill"
-              style={{ fontSize: "1.8rem" }}
-            ></i>
+            {!isMobile && (
+              <i
+                className="bi bi-journal-bookmark-fill"
+                style={{ fontSize: "1.6rem" }}
+              ></i>
+            )}
             Eğitim Seti Sonuçları
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                marginLeft: isMobile ? "auto" : "30px",
+                backgroundColor: "#001b66",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "6px 16px", // padding yatay biraz artırıldı
+                cursor: "pointer",
+                fontSize: "1rem",
+                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+              }}
+            >
+              Geri Dön
+            </button>
           </h1>
         </div>
-
         <div className="row">
-          <div className="col-lg-8">
+          <div className="col-lg-6">
             <Card title="Kullanıcı Bilgileri" color="#001b66">
               <div
                 style={{ display: "flex", alignItems: "center", gap: "2rem" }}
@@ -182,7 +218,7 @@ export default function EducationReportDetail() {
           </div>
 
           {/* Sağ Panel - Puanlar */}
-          <div className="col-lg-4">
+          <div className="col-lg-6">
             <Card title="Puan Bilgileri" color="#0033cc">
               <InfoRow
                 label="Teorik Sınav Puanı"
@@ -199,19 +235,7 @@ export default function EducationReportDetail() {
             </Card>
           </div>
 
-          {/* Geri Dön */}
-          <div className="text-center mt-5">
-            <button
-              className="btn btn-primary d-flex align-items-center gap-2 shadow-sm px-4 py-2"
-              onClick={() => navigate(-1)}
-            >
-              <i
-                className="bi bi-arrow-left-circle"
-                style={{ color: "white" }}
-              ></i>
-              Geri Dön
-            </button>
-          </div>
+         
         </div>
       </div>
     </div>

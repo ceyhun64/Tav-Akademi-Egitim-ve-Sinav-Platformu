@@ -33,7 +33,7 @@ export const getAllUsersThunk = createAsyncThunk(
 
 export const updateUserDetailsThunk = createAsyncThunk(
   "user/updateUserDetails",
-  async (id, formData) => {
+  async ({ id, formData }) => {
     try {
       const response = await updateUserDetails(id, formData);
       return response.data;

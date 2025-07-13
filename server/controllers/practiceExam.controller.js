@@ -17,6 +17,7 @@ exports.createPracticeExam = async (req, res) => {
     const { duration, question_count } = req.body;
 
     // 1. Pratik sınav kaydı oluştur
+  
     const practiceExam = await PracticeExam.create({
       duration,
       question_count,

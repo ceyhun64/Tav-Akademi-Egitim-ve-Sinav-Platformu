@@ -1,4 +1,8 @@
-export default function makeWhiteTransparent(imageSrc, tolerance = 250, callback) {
+export default function makeWhiteTransparent(
+  imageSrc,
+  tolerance = 250,
+  callback
+) {
   const img = new Image();
   img.crossOrigin = "anonymous";
   img.src = imageSrc;

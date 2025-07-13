@@ -60,46 +60,52 @@ export default function PoolTeo() {
     const booklet = teoBooklets.find((b) => b.id === id);
     return booklet?.name || "-";
   };
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
   return (
     <div
-      className="poolteo-container"
-      style={{
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        overflowX: "hidden", // yatay kaymayı engeller
-      }}
+      className="poolImg-container"
+      style={{ overflowX: "hidden", padding: "1rem" }}
     >
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
-          padding: "1.5rem 1.2rem",
+          padding: "1rem",
           position: "fixed",
           left: 0,
           top: 0,
-          backgroundColor: "#003399", // biraz daha canlı mavi
+          backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 12px rgba(0, 0, 0, 0.25)",
+          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
-          zIndex: 10,
-          borderRadius: "0 12px 12px 0",
+          zIndex: 99999,
         }}
       >
         <Sidebar />
       </div>
 
-      {/* Main Content */}
+      {/* Ana İçerik */}
       <div
-        style={{
-          marginLeft: "260px",
-
-          padding: "2.5rem 3rem",
-          backgroundColor: "#f4f6fc",
-          minHeight: "100vh",
-          transition: "margin-left 0.3s ease",
-          color: "#222",
-        }}
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
       >
         <div
           style={{
@@ -110,6 +116,7 @@ export default function PoolTeo() {
           }}
         >
           <h1
+            className="mb-4 mt-2 ms-5"
             style={{
               color: "#003399",
               fontSize: "28px",
@@ -120,8 +127,29 @@ export default function PoolTeo() {
               userSelect: "none",
             }}
           >
-            <i className="bi bi-book-half" style={{ fontSize: "1.6rem" }}></i>{" "}
+            {!isMobile && (
+              <i
+                className="bi bi-journal-bookmark-fill"
+                style={{ fontSize: "1.6rem" }}
+              ></i>
+            )}
             Teorik Soru Kitapçıkları
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                marginLeft: isMobile ? "auto" : "30px",
+                backgroundColor: "#001b66",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "6px 16px", // padding yatay biraz artırıldı
+                cursor: "pointer",
+                fontSize: "1rem",
+                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+              }}
+            >
+              Geri Dön
+            </button>
           </h1>
         </div>
 
@@ -129,133 +157,162 @@ export default function PoolTeo() {
           className="filters"
           style={{
             display: "flex",
-            flexWrap: "nowrap",
+            flexWrap: "wrap",
             alignItems: "center",
             gap: "1.25rem",
             marginBottom: "2rem",
-            overflowX: "auto", // Ekrana sığmazsa taşmasın diye
+            overflowX: "auto",
             paddingBottom: "0.5rem",
           }}
         >
-          {/* Kitapçık Seçme Alanı */}
           <div
             style={{
               display: "flex",
-              alignItems: "center",
+              flexDirection: isMobile ? "column" : "row",
               gap: "0.75rem",
-              flexShrink: 0,
+              flexWrap: "wrap",
+              width: "100%",
             }}
           >
-            <select
-              id="bookletSelect"
-              value={selectedBooklet}
-              onChange={handleBookletChange}
-              className="form-select"
+            {/* Kitapçık Seçme Alanı */}
+            <div
               style={{
-                maxWidth: 280,
-                minWidth: 200,
-                borderRadius: 8,
-                border: "2px solid #001b66",
-                padding: "10px 14px",
-                fontSize: "1.05rem",
-                fontWeight: 500,
-                color: "#001b66",
-                backgroundColor: "#fff",
-                boxShadow: "inset 0 2px 6px rgba(0, 27, 102, 0.1)",
-                transition: "border-color 0.3s ease, box-shadow 0.3s ease",
-                outline: "none",
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = "#556cd6";
-                e.target.style.boxShadow = "0 0 8px #556cd6";
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = "#001b66";
-                e.target.style.boxShadow =
-                  "inset 0 2px 6px rgba(0, 27, 102, 0.1)";
+                flex: isMobile ? "0 0 100%" : "0 0 20%",
+                minWidth: 0,
               }}
             >
-              <option value="" style={{ color: "#001b66" }}>
-                Bir kitapçık seçiniz
-              </option>
-
-              {teoBooklets.map((booklet) => (
-                <option key={booklet.id} value={booklet.id}>
-                  {booklet.name}
+              <select
+                id="bookletSelect"
+                value={selectedBooklet}
+                onChange={handleBookletChange}
+                style={{
+                  width: "100%",
+                  borderRadius: 8,
+                  border: "2px solid #001b66",
+                  padding: "10px 14px",
+                  fontSize: "1.05rem",
+                  fontWeight: 500,
+                  color: "#001b66",
+                  backgroundColor: "#fff",
+                  boxShadow: "inset 0 2px 6px rgba(0, 27, 102, 0.1)",
+                  transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+                  outline: "none",
+                  cursor: "pointer",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "#556cd6";
+                  e.target.style.boxShadow = "0 0 8px #556cd6";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = "#001b66";
+                  e.target.style.boxShadow =
+                    "inset 0 2px 6px rgba(0, 27, 102, 0.1)";
+                }}
+              >
+                <option value="" style={{ color: "#001b66" }}>
+                  Bir kitapçık seçiniz
                 </option>
-              ))}
-            </select>
-          </div>
 
-          {/* Kitapçıkları Düzenle Butonu */}
-          <div style={{ flexShrink: 0 }}>
-            <Link
-              to="/admin/teo-booklets"
-              className="btn btn-success d-flex align-items-center gap-2"
+                {teoBooklets.map((booklet) => (
+                  <option key={booklet.id} value={booklet.id}>
+                    {booklet.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Kitapçıkları Düzenle Butonu */}
+            <div
               style={{
-                height: "48px",
-                fontWeight: 600,
-                borderRadius: 10,
-                backgroundColor: "#004aad",
-                color: "#fff",
-                boxShadow: "0 3px 8px rgba(0, 74, 173, 0.4)",
-                transition:
-                  "background-color 0.25s ease, box-shadow 0.25s ease",
-                whiteSpace: "nowrap",
-                padding: "0 16px",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#001b66";
-                e.currentTarget.style.boxShadow =
-                  "0 5px 15px rgba(0, 27, 102, 0.6)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#004aad";
-                e.currentTarget.style.boxShadow =
-                  "0 3px 8px rgba(0, 74, 173, 0.4)";
+                flex: isMobile ? "0 0 100%" : "0 0 20%",
+                minWidth: 0,
               }}
             >
-              <i className="bi bi-pencil-square" style={{ color: "#fff" }}></i>
-              Kitapçıkları Düzenle
-            </Link>
-          </div>
+              <Link
+                to="/admin/teo-booklets"
+                className="btn btn-success d-flex align-items-center gap-2 justify-content-center"
+                style={{
+                  width: "100%",
+                  height: "48px",
+                  fontWeight: 600,
+                  borderRadius: 10,
+                  backgroundColor: "#004aad",
+                  color: "#fff",
+                  boxShadow: "0 3px 8px rgba(0, 74, 173, 0.4)",
+                  transition:
+                    "background-color 0.25s ease, box-shadow 0.25s ease",
+                  whiteSpace: "nowrap",
+                  padding: "0 16px",
+                  textAlign: "center",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#001b66";
+                  e.currentTarget.style.boxShadow =
+                    "0 5px 15px rgba(0, 27, 102, 0.6)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#004aad";
+                  e.currentTarget.style.boxShadow =
+                    "0 3px 8px rgba(0, 74, 173, 0.4)";
+                }}
+              >
+                <i
+                  className="bi bi-pencil-square"
+                  style={{ color: "#fff" }}
+                ></i>
+                Kitapçıkları Düzenle
+              </Link>
+            </div>
 
-          {/* Kitapçığa Soru Ekle Butonu */}
-          <div style={{ flexShrink: 0 }}>
-            <Link
-              to="/admin/create-pool-teo"
-              className="btn btn-primary d-flex align-items-center gap-2"
+            {/* Kitapçığa Soru Ekle Butonu */}
+            <div
               style={{
-                height: "48px",
-                fontWeight: 600,
-                padding: "0 18px",
-                borderRadius: 10,
-                backgroundColor: "#001b66",
-                color: "#fff",
-                boxShadow: "0 3px 10px rgba(0, 27, 102, 0.6)",
-                transition:
-                  "background-color 0.25s ease, box-shadow 0.25s ease",
-                whiteSpace: "nowrap",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#003366";
-                e.currentTarget.style.boxShadow =
-                  "0 5px 15px rgba(0, 27, 102, 0.8)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#001b66";
-                e.currentTarget.style.boxShadow =
-                  "0 3px 10px rgba(0, 27, 102, 0.6)";
+                flex: isMobile ? "0 0 100%" : "0 0 20%",
+                minWidth: 0,
               }}
             >
-              <i className="bi bi-plus-circle" style={{ color: "#fff" }}></i>
-              Kitapçığa Soru Ekle
-            </Link>
-          </div>
+              <Link
+                to="/admin/create-pool-teo"
+                className="btn btn-primary d-flex align-items-center gap-2 justify-content-center"
+                style={{
+                  width: "100%",
+                  height: "48px",
+                  fontWeight: 600,
+                  padding: "0 18px",
+                  borderRadius: 10,
+                  backgroundColor: "#001b66",
+                  color: "#fff",
+                  boxShadow: "0 3px 10px rgba(0, 27, 102, 0.6)",
+                  transition:
+                    "background-color 0.25s ease, box-shadow 0.25s ease",
+                  whiteSpace: "nowrap",
+                  textAlign: "center",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#003366";
+                  e.currentTarget.style.boxShadow =
+                    "0 5px 15px rgba(0, 27, 102, 0.8)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#001b66";
+                  e.currentTarget.style.boxShadow =
+                    "0 3px 10px rgba(0, 27, 102, 0.6)";
+                }}
+              >
+                <i className="bi bi-plus-circle" style={{ color: "#fff" }}></i>
+                Kitapçığa Soru Ekle
+              </Link>
+            </div>
 
-          {/* Toplu Ekleme Bileşeni */}
-          <div style={{ flexShrink: 0 }}>
-            <BulkPoolTeo selectedBookletId={selectedBooklet} />
+            {/* Toplu Ekleme Bileşeni */}
+            <div
+              style={{
+                flex: isMobile ? "0 0 100%" : "0 0 30%",
+                minWidth: 0,
+              }}
+            >
+              <BulkPoolTeo selectedBookletId={selectedBooklet} />
+            </div>
           </div>
         </div>
 
@@ -292,7 +349,10 @@ export default function PoolTeo() {
                     style={{ width: 50, textAlign: "center", padding: "12px" }}
                   ></th>
                   <th style={{ width: 70, padding: "12px" }}>ID</th>
-                  <th style={{ width: 130, padding: "12px" }}>Görüntü</th>
+                  {/* Görüntü sütunu, sadece masaüstü */}
+                  {!isMobile && (
+                    <th style={{ width: 130, padding: "12px" }}>Görüntü</th>
+                  )}
                   <th style={{ padding: "12px" }}>Soru</th>
                   <th
                     style={{
@@ -361,23 +421,26 @@ export default function PoolTeo() {
                         </button>
                       </td>
                       <td>{item.id}</td>
-                      <td>
-                        {item.image ? (
-                          <img
-                            src={item.image}
-                            alt="Soru resmi"
-                            style={{
-                              maxWidth: 100,
-                              maxHeight: 60,
-                              borderRadius: 6,
-                              objectFit: "cover",
-                              boxShadow: "0 1px 6px rgba(0,0,0,0.1)",
-                            }}
-                          />
-                        ) : (
-                          <span style={{ color: "#999" }}>-</span>
-                        )}
-                      </td>
+                      {/* Görüntü hücresi, sadece masaüstü */}
+                      {!isMobile && (
+                        <td>
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt="Soru resmi"
+                              style={{
+                                maxWidth: 100,
+                                maxHeight: 60,
+                                borderRadius: 6,
+                                objectFit: "cover",
+                                boxShadow: "0 1px 6px rgba(0,0,0,0.1)",
+                              }}
+                            />
+                          ) : (
+                            <span style={{ color: "#999" }}>-</span>
+                          )}
+                        </td>
+                      )}
                       <td
                         style={{
                           fontSize: "0.95rem",
@@ -457,7 +520,7 @@ export default function PoolTeo() {
                     {expandedRow === item.id && (
                       <tr>
                         <td
-                          colSpan={5}
+                          colSpan={isMobile ? 4 : 5}
                           style={{
                             backgroundColor: "#f7faff",
                             fontSize: "0.95rem",

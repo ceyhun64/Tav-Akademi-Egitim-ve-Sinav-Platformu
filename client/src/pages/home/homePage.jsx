@@ -8,7 +8,10 @@ import Footer from "../../layout/footer";
 
 export default function HomePage() {
   return (
-    <div className="d-flex flex-column min-vh-100">
+    <div
+      className="d-flex flex-column min-vh-100"
+      style={{ overflowX: "hidden" }}
+    >
       <div>
         <Navbar />
         <Banner />

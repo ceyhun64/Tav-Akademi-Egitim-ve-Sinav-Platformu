@@ -67,46 +67,53 @@ export default function PoolImg() {
     const cat = questionCats.find((cat) => cat.id === id);
     return cat ? cat.name : "-";
   };
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
 
   return (
     <div
-      className="poolteo-container"
-      style={{
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        overflowX: "hidden", // yatay kaymayı engeller
-      }}
+      className="poolImg-container"
+      style={{ overflowX: "hidden", padding: "1rem" }}
     >
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
-          padding: "1.5rem 1.2rem",
+          padding: "1rem",
           position: "fixed",
           left: 0,
           top: 0,
-          backgroundColor: "#003399", // biraz daha canlı mavi
+          backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 12px rgba(0, 0, 0, 0.25)",
+          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
-          zIndex: 10,
-          borderRadius: "0 12px 12px 0",
+          zIndex: 99999,
         }}
       >
         <Sidebar />
       </div>
 
-      {/* Main Content */}
+      {/* Ana İçerik */}
       <div
-        style={{
-          marginLeft: "260px",
-
-          padding: "2.5rem 3rem",
-          backgroundColor: "#f4f6fc",
-          minHeight: "100vh",
-          transition: "margin-left 0.3s ease",
-          color: "#222",
-        }}
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
       >
         <div
           style={{
@@ -117,6 +124,7 @@ export default function PoolImg() {
           }}
         >
           <h1
+            className="mb-4 mt-2 ms-5"
             style={{
               color: "#003399",
               fontSize: "28px",
@@ -127,19 +135,36 @@ export default function PoolImg() {
               userSelect: "none",
             }}
           >
-            <i
-              className="bi bi-journal-bookmark-fill"
-              style={{ fontSize: "1.6rem" }}
-            ></i>{" "}
+            {!isMobile && (
+              <i
+                className="bi bi-journal-bookmark-fill"
+                style={{ fontSize: "1.6rem" }}
+              ></i>
+            )}
             Uygulamalı Soru Kitapçıkları
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                marginLeft: isMobile ? "auto" : "30px",
+                backgroundColor: "#001b66",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "6px 16px", // padding yatay biraz artırıldı
+                cursor: "pointer",
+                fontSize: "1rem",
+                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+              }}
+            >
+              Geri Dön
+            </button>
           </h1>
         </div>
-
         <div
           className="filters"
           style={{
             display: "flex",
-            flexWrap: "nowrap",
+            flexWrap: "wrap", // burada nowrap değil wrap yapıyoruz
             alignItems: "center",
             gap: "1.25rem",
             marginBottom: "2rem",
@@ -149,118 +174,140 @@ export default function PoolImg() {
         >
           <div
             style={{
-              flex: 1,
               display: "flex",
-              alignItems: "center",
+              flexDirection: isMobile ? "column" : "row",
               gap: "0.75rem",
-              flexShrink: 0,
+              flexWrap: "wrap", // çocukların sarılmasına izin veriyoruz
+              width: "100%", // satırı kaplasın
             }}
           >
-            <select
-              id="bookletSelect"
-              value={selectedBooklet}
-              onChange={handleBookletChange}
+            <div
+              className="ms-2 me-2"
               style={{
-                width: "100%",
-                borderRadius: 8,
-                border: "2px solid #001b66",
-                padding: "10px 14px",
-                fontSize: "1.05rem",
-                fontWeight: 500,
-                color: "#001b66",
-                backgroundColor: "#fff",
-                boxShadow: "inset 0 2px 6px rgba(0, 27, 102, 0.1)",
-                transition: "border-color 0.3s ease, box-shadow 0.3s ease",
-                outline: "none",
-                cursor: "pointer",
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = "#556cd6";
-                e.target.style.boxShadow = "0 0 8px #556cd6";
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = "#001b66";
-                e.target.style.boxShadow =
-                  "inset 0 2px 6px rgba(0, 27, 102, 0.1)";
+                flex: isMobile ? "0 0 100%" : "1 1 30%", // mobilde tam satır, masaüstünde yaklaşık 1/3
+                minWidth: 0,
               }}
             >
-              <option value="" style={{ color: "#001b66" }}>
-                Bir Kitapçık Seçiniz
-              </option>
-              {imgBooklets.map((booklet) => (
-                <option key={booklet.id} value={booklet.id}>
-                  {booklet.name}
+              <select
+                id="bookletSelect"
+                value={selectedBooklet}
+                onChange={handleBookletChange}
+                style={{
+                  width: "100%",
+                  borderRadius: 8,
+                  border: "2px solid #001b66",
+                  padding: "10px 14px",
+                  fontSize: "1.05rem",
+                  fontWeight: 500,
+                  color: "#001b66",
+                  backgroundColor: "#fff",
+                  boxShadow: "inset 0 2px 6px rgba(0, 27, 102, 0.1)",
+                  transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+                  outline: "none",
+                  cursor: "pointer",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "#556cd6";
+                  e.target.style.boxShadow = "0 0 8px #556cd6";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = "#001b66";
+                  e.target.style.boxShadow =
+                    "inset 0 2px 6px rgba(0, 27, 102, 0.1)";
+                }}
+              >
+                <option value="" style={{ color: "#001b66" }}>
+                  Bir Kitapçık Seçiniz
                 </option>
-              ))}
-            </select>
-          </div>
-
-          <div style={{ flex: 1, flexShrink: 0 }}>
-            <Link
-              to="/admin/img-booklets"
-              className="btn btn-success d-flex align-items-center gap-2 justify-content-center"
+                {imgBooklets.map((booklet) => (
+                  <option key={booklet.id} value={booklet.id}>
+                    {booklet.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div
+              className="ms-2 me-2"
               style={{
-                width: "100%",
-                height: "48px",
-                fontWeight: 600,
-                borderRadius: 10,
-                backgroundColor: "#004aad",
-                color: "#fff",
-                boxShadow: "0 3px 8px rgba(0, 74, 173, 0.4)",
-                transition:
-                  "background-color 0.25s ease, box-shadow 0.25s ease",
-                whiteSpace: "nowrap",
-                padding: "0 16px",
-                textAlign: "center",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#001b66";
-                e.currentTarget.style.boxShadow =
-                  "0 5px 15px rgba(0, 27, 102, 0.6)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#004aad";
-                e.currentTarget.style.boxShadow =
-                  "0 3px 8px rgba(0, 74, 173, 0.4)";
+                flex: isMobile ? "0 0 100%" : "1 1 30%",
+                minWidth: 0,
               }}
             >
-              <i className="bi bi-pencil-square" style={{ color: "#fff" }}></i>
-              Kitapçıkları Düzenle
-            </Link>
-          </div>
+              <Link
+                to="/admin/img-booklets"
+                className="btn btn-success d-flex align-items-center gap-2 justify-content-center"
+                style={{
+                  width: "100%",
+                  height: "48px",
+                  fontWeight: 600,
+                  borderRadius: 10,
+                  backgroundColor: "#004aad",
+                  color: "#fff",
+                  boxShadow: "0 3px 8px rgba(0, 74, 173, 0.4)",
+                  transition:
+                    "background-color 0.25s ease, box-shadow 0.25s ease",
+                  whiteSpace: "nowrap",
+                  padding: "0 16px",
+                  textAlign: "center",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#001b66";
+                  e.currentTarget.style.boxShadow =
+                    "0 5px 15px rgba(0, 27, 102, 0.6)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#004aad";
+                  e.currentTarget.style.boxShadow =
+                    "0 3px 8px rgba(0, 74, 173, 0.4)";
+                }}
+              >
+                <i
+                  className="bi bi-pencil-square"
+                  style={{ color: "#fff" }}
+                ></i>
+                Kitapçıkları Düzenle
+              </Link>
+            </div>
 
-          <div style={{ flex: 1, flexShrink: 0 }}>
-            <Link
-              to="/admin/create-pool-img"
-              className="btn btn-primary d-flex align-items-center gap-2 justify-content-center"
+            <div
+              className="ms-2 me-2"
               style={{
-                width: "100%",
-                height: "48px",
-                fontWeight: 600,
-                padding: "0 18px",
-                borderRadius: 10,
-                backgroundColor: "#001b66",
-                color: "#fff",
-                boxShadow: "0 3px 10px rgba(0, 27, 102, 0.6)",
-                transition:
-                  "background-color 0.25s ease, box-shadow 0.25s ease",
-                whiteSpace: "nowrap",
-                textAlign: "center",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#003366";
-                e.currentTarget.style.boxShadow =
-                  "0 5px 15px rgba(0, 27, 102, 0.8)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#001b66";
-                e.currentTarget.style.boxShadow =
-                  "0 3px 10px rgba(0, 27, 102, 0.6)";
+                flex: isMobile ? "0 0 100%" : "1 1 30%",
+                minWidth: 0,
               }}
             >
-              <i className="bi bi-plus-circle" style={{ color: "#fff" }}></i>
-              Kitapçığa Soru Ekle
-            </Link>
+              <Link
+                to="/admin/create-pool-img"
+                className="btn btn-primary d-flex align-items-center gap-2 justify-content-center"
+                style={{
+                  width: "100%",
+                  height: "48px",
+                  fontWeight: 600,
+                  padding: "0 18px",
+                  borderRadius: 10,
+                  backgroundColor: "#001b66",
+                  color: "#fff",
+                  boxShadow: "0 3px 10px rgba(0, 27, 102, 0.6)",
+                  transition:
+                    "background-color 0.25s ease, box-shadow 0.25s ease",
+                  whiteSpace: "nowrap",
+                  textAlign: "center",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#003366";
+                  e.currentTarget.style.boxShadow =
+                    "0 5px 15px rgba(0, 27, 102, 0.8)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#001b66";
+                  e.currentTarget.style.boxShadow =
+                    "0 3px 10px rgba(0, 27, 102, 0.6)";
+                }}
+              >
+                <i className="bi bi-plus-circle" style={{ color: "#fff" }}></i>
+                Kitapçığa Soru Ekle
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -273,7 +320,7 @@ export default function PoolImg() {
             className="table-responsive"
             style={{
               borderRadius: "12px",
-              overflow: "hidden",
+              overflow: "auto",
               backgroundColor: "#fff",
             }}
           >
@@ -285,15 +332,34 @@ export default function PoolImg() {
                 width: "100%",
                 color: "#001b66",
                 fontSize: "1rem",
+                minWidth: isMobile ? "100%" : "600px", // mobilde yatay scroll kapatıp full width yapabilirsin
               }}
             >
               <thead style={{ backgroundColor: "#f5f7fa" }}>
                 <tr>
                   <th style={{ width: 50 }}></th>
-                  <th style={{ width: 70 }}>ID</th>
-                  <th style={{ width: 130 }}>Görüntü</th>
+
+                  {!isMobile && (
+                    <>
+                      <th className="col-id" style={{ width: 70 }}>
+                        ID
+                      </th>
+                      <th className="col-image" style={{ width: 130 }}>
+                        Görüntü
+                      </th>
+                    </>
+                  )}
+
                   <th>Soru</th>
-                  <th style={{ width: 180, minWidth: 180 }}>İşlemler</th>
+
+                  {!isMobile && (
+                    <th
+                      className="col-actions"
+                      style={{ width: 180, minWidth: 180 }}
+                    >
+                      İşlemler
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -348,24 +414,29 @@ export default function PoolImg() {
                           )}
                         </button>
                       </td>
-                      <td>{item.id}</td>
-                      <td>
-                        {item.image ? (
-                          <img
-                            src={item.image}
-                            alt="Soru resmi"
-                            style={{
-                              maxWidth: 110,
-                              maxHeight: 70,
-                              borderRadius: 6,
-                              objectFit: "cover",
-                              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                            }}
-                          />
-                        ) : (
-                          <span style={{ color: "#718096" }}>-</span>
-                        )}
-                      </td>
+
+                      {!isMobile && <td className="col-id">{item.id}</td>}
+
+                      {!isMobile && (
+                        <td className="col-image">
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt="Soru resmi"
+                              style={{
+                                maxWidth: 110,
+                                maxHeight: 70,
+                                borderRadius: 6,
+                                objectFit: "cover",
+                                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                              }}
+                            />
+                          ) : (
+                            <span style={{ color: "#718096" }}>-</span>
+                          )}
+                        </td>
+                      )}
+
                       <td
                         style={{
                           verticalAlign: "middle",
@@ -375,69 +446,72 @@ export default function PoolImg() {
                         className="mb-4 p-3 border rounded bg-white"
                         dangerouslySetInnerHTML={{ __html: item?.question }}
                       />
-                      <td>
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: "12px",
-                            alignItems: "center",
-                          }}
-                        >
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            title="Sil"
+
+                      {!isMobile && (
+                        <td className="col-actions">
+                          <div
                             style={{
-                              border: "none",
-                              background: "none",
-                              cursor: "pointer",
-                              color: "#001b66",
-                              fontSize: "1.35rem",
-                              padding: 8,
-                              borderRadius: 8,
-                              transition: "background-color 0.3s ease",
+                              display: "flex",
+                              gap: "12px",
+                              alignItems: "center",
                             }}
-                            onMouseEnter={(e) =>
-                              (e.currentTarget.style.backgroundColor =
-                                "#c6d0ff")
-                            }
-                            onMouseLeave={(e) =>
-                              (e.currentTarget.style.backgroundColor =
-                                "transparent")
-                            }
                           >
-                            <i className="bi bi-trash"></i>
-                          </button>
-                          <Link
-                            to={`/admin/update-pool-img/${item.id}`}
-                            title="Düzenle"
-                            style={{
-                              color: "#001b66",
-                              fontSize: "1.35rem",
-                              padding: 8,
-                              borderRadius: 8,
-                              transition: "background-color 0.3s ease",
-                              textDecoration: "none",
-                              cursor: "pointer",
-                            }}
-                            onMouseEnter={(e) =>
-                              (e.currentTarget.style.backgroundColor =
-                                "#c6d0ff")
-                            }
-                            onMouseLeave={(e) =>
-                              (e.currentTarget.style.backgroundColor =
-                                "transparent")
-                            }
-                          >
-                            <i className="bi bi-pencil"></i>
-                          </Link>
-                        </div>
-                      </td>
+                            <button
+                              onClick={() => handleDelete(item.id)}
+                              title="Sil"
+                              style={{
+                                border: "none",
+                                background: "none",
+                                cursor: "pointer",
+                                color: "#001b66",
+                                fontSize: "1.35rem",
+                                padding: 8,
+                                borderRadius: 8,
+                                transition: "background-color 0.3s ease",
+                              }}
+                              onMouseEnter={(e) =>
+                                (e.currentTarget.style.backgroundColor =
+                                  "#c6d0ff")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.currentTarget.style.backgroundColor =
+                                  "transparent")
+                              }
+                            >
+                              <i className="bi bi-trash"></i>
+                            </button>
+                            <Link
+                              to={`/admin/update-pool-img/${item.id}`}
+                              title="Düzenle"
+                              style={{
+                                color: "#001b66",
+                                fontSize: "1.35rem",
+                                padding: 8,
+                                borderRadius: 8,
+                                transition: "background-color 0.3s ease",
+                                textDecoration: "none",
+                                cursor: "pointer",
+                              }}
+                              onMouseEnter={(e) =>
+                                (e.currentTarget.style.backgroundColor =
+                                  "#c6d0ff")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.currentTarget.style.backgroundColor =
+                                  "transparent")
+                              }
+                            >
+                              <i className="bi bi-pencil"></i>
+                            </Link>
+                          </div>
+                        </td>
+                      )}
                     </tr>
 
                     {expandedRow === item.id && (
                       <tr>
                         <td
-                          colSpan={5}
+                          colSpan={isMobile ? 2 : 5}
                           style={{
                             backgroundColor: "#e6efff",
                             fontSize: "0.95rem",

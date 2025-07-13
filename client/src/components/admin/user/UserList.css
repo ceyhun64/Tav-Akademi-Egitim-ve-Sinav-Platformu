@@ -1,0 +1,28 @@
+/* Mobilde gizlenecek sütunlar */
+@media (max-width: 768px) {
+  /* Gizlemek istediğin sütunları burada belirtiyoruz */
+
+  .sicil-col,
+  .tcno-col,
+  .phone-col,
+  .il-col,
+  .ilce-col,
+  .adres-col,
+  .ise-giris-col,
+  .cinsiyet-col,
+  .grup-col,
+  .lokasyon-col {
+    display: none;
+  }
+
+  /* Opsiyonel: checkbox ve durum sütunlarını küçült */
+  .checkbox-col,
+  .durum-col {
+    width: 30px !important;
+  }
+
+  /* İsim sütununa biraz daha genişlik ver */
+  .name-col {
+    min-width: 150px;
+  }
+}

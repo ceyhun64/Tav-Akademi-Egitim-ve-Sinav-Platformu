@@ -63,57 +63,118 @@ export default function TeoBooklets() {
     setEditingBookletId(booklet.id);
     setName(booklet.name);
   };
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
   return (
     <div
-      className="d-flex"
-      style={{ minHeight: "100vh", backgroundColor: "#f0f4fa" }}
+      className="poolImg-container"
+      style={{ overflowX: "hidden", padding: "1rem" }}
     >
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
-          padding: "1.5rem",
+          padding: "1rem",
           position: "fixed",
           left: 0,
           top: 0,
-          backgroundColor: "#001b66",
-          boxShadow: "2px 0 8px rgba(0,0,0,0.15)",
-          borderRadius: "0 12px 12px 0",
+          backgroundColor: "white",
           color: "#fff",
-          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
+          overflowY: "auto",
+          zIndex: 99999,
         }}
       >
         <Sidebar />
       </div>
 
-      {/* İçerik */}
+      {/* Ana İçerik */}
       <div
-        style={{
-          marginLeft: "260px",
-          backgroundColor: "#f0f4fa",
-          minHeight: "100vh",
-          padding: "2rem 3rem",
-          width: "100%",
-          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        }}
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
       >
-        <div className="row gy-4">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "2.5rem",
+          }}
+        >
+          <h1
+            className="mb-4 mt-2 ms-5"
+            style={{
+              color: "#003399",
+              fontSize: "28px",
+              fontWeight: "700",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.6rem",
+              userSelect: "none",
+            }}
+          >
+            {!isMobile && (
+              <i
+                className="bi bi-journal-bookmark-fill"
+                style={{ fontSize: "1.6rem" }}
+              ></i>
+            )}
+            Teorik Kitapçıklar
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                marginLeft: isMobile ? "auto" : "30px",
+                backgroundColor: "#001b66",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "6px 16px", // padding yatay biraz artırıldı
+                cursor: "pointer",
+                fontSize: "1rem",
+                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+              }}
+            >
+              Geri Dön
+            </button>
+          </h1>
+        </div>
+
+        <div className="row gx-4">
           {/* Sol taraf: Kitapçık oluşturma/güncelleme formu */}
           <div className="col-md-5">
             <div
-              className="card p-4"
               style={{
-                borderRadius: "12px",
-                boxShadow: "0 6px 20px rgba(0, 27, 102, 0.15)",
-                border: "none",
                 backgroundColor: "#fff",
+                borderRadius: "16px",
+                padding: "2rem",
+                boxShadow: "0 8px 20px rgba(0, 51, 153, 0.15)",
+                border: "1px solid #e0e6ed",
               }}
             >
               <h4
                 className="mb-4 fw-bold"
-                style={{ color: "#001b66", letterSpacing: "0.05em" }}
+                style={{
+                  color: "#003399",
+                  letterSpacing: "0.05em",
+                  fontWeight: "700",
+                }}
               >
                 {editingBookletId
                   ? "Kitapçığı Güncelle"
@@ -124,7 +185,7 @@ export default function TeoBooklets() {
                 <label
                   htmlFor="bookletName"
                   className="form-label fw-semibold"
-                  style={{ color: "#001b66" }}
+                  style={{ color: "#003399", fontWeight: "600" }}
                 >
                   Adı:
                 </label>
@@ -136,17 +197,17 @@ export default function TeoBooklets() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Kitapçık adını girin"
                   style={{
-                    borderColor: "#001b66",
-                    boxShadow: "inset 0 1px 3px rgba(0,27,102,0.2)",
+                    borderColor: "#003399",
+                    boxShadow: "inset 0 1px 3px rgba(0,51,153,0.1)",
                     borderRadius: "8px",
                     fontSize: "1.1rem",
                     transition: "border-color 0.3s ease",
                   }}
                   onFocus={(e) =>
-                    (e.currentTarget.style.borderColor = "#003399")
+                    (e.currentTarget.style.borderColor = "#001b66")
                   }
                   onBlur={(e) =>
-                    (e.currentTarget.style.borderColor = "#001b66")
+                    (e.currentTarget.style.borderColor = "#003399")
                   }
                 />
               </div>
@@ -156,7 +217,7 @@ export default function TeoBooklets() {
                   onClick={handleSubmit}
                   className="btn btn-lg me-3"
                   style={{
-                    backgroundColor: "#001b66",
+                    backgroundColor: "#003399",
                     color: "#fff",
                     fontWeight: "600",
                     minWidth: "130px",
@@ -164,10 +225,10 @@ export default function TeoBooklets() {
                     transition: "background-color 0.3s ease",
                   }}
                   onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#003399")
+                    (e.currentTarget.style.backgroundColor = "#001b66")
                   }
                   onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#001b66")
+                    (e.currentTarget.style.backgroundColor = "#003399")
                   }
                 >
                   {editingBookletId ? "Güncelle" : "Oluştur"}
@@ -181,19 +242,19 @@ export default function TeoBooklets() {
                     }}
                     className="btn btn-lg"
                     style={{
-                      backgroundColor: "#e0e7ff",
-                      color: "#001b66",
+                      backgroundColor: "#e0e6ed",
+                      color: "#003399",
                       fontWeight: "600",
                       minWidth: "130px",
                       borderRadius: "8px",
-                      border: "1.5px solid #001b66",
+                      border: "1px solid #003399",
                       transition: "background-color 0.3s ease",
                     }}
                     onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor = "#c7d2fe")
+                      (e.currentTarget.style.backgroundColor = "#c5d1ff")
                     }
                     onMouseLeave={(e) =>
-                      (e.currentTarget.style.backgroundColor = "#e0e7ff")
+                      (e.currentTarget.style.backgroundColor = "#e0e6ed")
                     }
                   >
                     İptal
@@ -204,26 +265,30 @@ export default function TeoBooklets() {
           </div>
 
           {/* Sağ taraf: Kitapçık listesi */}
-          <div className="col-md-7">
+          <div className="col-md-7 mt-4 mt-md-0">
             <div
-              className="card p-4"
               style={{
-                borderRadius: "12px",
-                boxShadow: "0 6px 20px rgba(0, 27, 102, 0.15)",
-                border: "none",
                 backgroundColor: "#fff",
+                borderRadius: "16px",
+                padding: "2rem",
+                boxShadow: "0 8px 20px rgba(0, 51, 153, 0.15)",
+                border: "1px solid #e0e6ed",
               }}
             >
               <h4
-                className="mb-4 fw-bold"
-                style={{ color: "#001b66", letterSpacing: "0.05em" }}
+                className="mb-4"
+                style={{
+                  color: "#003399",
+                  fontWeight: "700",
+                  letterSpacing: "0.05em",
+                }}
               >
                 Teorik Kitapçıklar
               </h4>
               {teoBooklets?.length === 0 ? (
                 <p
                   className="fst-italic"
-                  style={{ color: "#64748b", fontSize: "1rem" }}
+                  style={{ color: "#4a5568", fontSize: "1rem" }}
                 >
                   Henüz kitapçık eklenmemiş.
                 </p>
@@ -232,46 +297,41 @@ export default function TeoBooklets() {
                   {teoBooklets.map((item) => (
                     <li
                       key={item.id}
-                      className="list-group-item d-flex justify-content-between align-items-center"
+                      className="list-group-item d-flex justify-content-between align-items-start flex-column flex-md-row"
                       style={{
-                        borderRadius: "10px",
+                        border: "none",
+                        padding: "1rem 1.5rem",
+                        borderBottom: "1px solid #e0e6ed",
+                        backgroundColor: "#f9fafb",
+                        borderRadius: "8px",
                         marginBottom: "0.75rem",
                         cursor: "pointer",
                         transition: "background-color 0.25s ease",
-                        padding: "1rem 1.5rem",
-                        backgroundColor: "#f9fafb",
-                        border: "1px solid #dbeafe",
                       }}
                       onMouseEnter={(e) =>
-                        (e.currentTarget.style.backgroundColor = "#e0e7ff")
+                        (e.currentTarget.style.backgroundColor = "#e0e6ed")
                       }
                       onMouseLeave={(e) =>
                         (e.currentTarget.style.backgroundColor = "#f9fafb")
                       }
                     >
-                      <div>
-                        <h6
-                          className="mb-1 fw-semibold"
-                          style={{ color: "#001b66" }}
-                        >
+                      <div className="me-3" style={{ color: "#003399" }}>
+                        <h6 className="mb-1" style={{ fontWeight: "600" }}>
                           {item.name}
                         </h6>
-                        <small
-                          className="text-secondary"
-                          style={{ fontSize: "0.9rem" }}
-                        >
+                        <p className="mb-0" style={{ fontSize: "0.9rem" }}>
                           Türü: {item.type}
-                        </small>
+                        </p>
                       </div>
-                      <div>
+                      <div className="mt-3 mt-md-0">
                         <button
                           onClick={() => handleEdit(item)}
                           className="btn btn-sm me-2"
                           style={{
-                            backgroundColor: "#003399",
+                            backgroundColor: "#0041a3",
                             color: "#fff",
                             fontWeight: "600",
-                            minWidth: "85px",
+                            padding: "0.35rem 0.9rem",
                             borderRadius: "6px",
                             border: "none",
                             transition: "background-color 0.3s ease",
@@ -280,7 +340,7 @@ export default function TeoBooklets() {
                             (e.currentTarget.style.backgroundColor = "#001b66")
                           }
                           onMouseLeave={(e) =>
-                            (e.currentTarget.style.backgroundColor = "#003399")
+                            (e.currentTarget.style.backgroundColor = "#0041a3")
                           }
                         >
                           Düzenle
@@ -289,19 +349,19 @@ export default function TeoBooklets() {
                           onClick={() => handleDelete(item.id)}
                           className="btn btn-sm"
                           style={{
-                            backgroundColor: "#b91c1c",
+                            backgroundColor: "#c53030",
                             color: "#fff",
                             fontWeight: "600",
-                            minWidth: "85px",
+                            padding: "0.35rem 0.9rem",
                             borderRadius: "6px",
                             border: "none",
                             transition: "background-color 0.3s ease",
                           }}
                           onMouseEnter={(e) =>
-                            (e.currentTarget.style.backgroundColor = "#7f1d1d")
+                            (e.currentTarget.style.backgroundColor = "#9b2c2c")
                           }
                           onMouseLeave={(e) =>
-                            (e.currentTarget.style.backgroundColor = "#b91c1c")
+                            (e.currentTarget.style.backgroundColor = "#c53030")
                           }
                         >
                           Sil

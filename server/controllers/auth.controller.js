@@ -33,6 +33,7 @@ exports.register = async (req, res) => {
       cinsiyet,
       grupId,
       lokasyonId,
+      roleId,
     } = req.body;
 
     // Resim kaydetme
@@ -86,7 +87,7 @@ exports.register = async (req, res) => {
       lokasyonId,
       image: image, // Resim yolu kaydediliyor
       durum: 1,
-      roleId: 0,
+      roleId,
       is2FAEnabled: false,
     });
     // Token oluştur (createAuthToken fonksiyonu varsa)
@@ -374,46 +375,40 @@ exports.syncUserImages = async (req, res) => {
   }
 };
 
-//2 adımda doğrulama kaydı qr code ile setup yapıyoruz kuruyoruz
 exports.setup2FA = async (req, res) => {
   const { userId } = req.body;
-  console.log("userId:", userId);
+
   try {
     const user = await User.findByPk(userId);
     if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı" });
 
-    // Eğer zaten secret varsa, aynı QR kodu tekrar gönder
-    if (user.twoFactorSecret) {
-      const otpauthUrl = speakeasy.otpauthURL({
-        secret: user.twoFactorSecret,
-        label: `Tav Akademi (${user.kullanici_adi})`,
-        encoding: "base32",
-      });
-      const qrCodeDataURL = await qrcode.toDataURL(otpauthUrl);
-      return res.json({ qrCodeDataURL });
+    const secret =
+      user.twoFactorSecret ||
+      speakeasy.generateSecret({ name: `Tav Akademi (${user.kullanici_adi})` })
+        .base32;
+
+    if (!user.twoFactorSecret) {
+      user.twoFactorSecret = secret;
+      await user.save();
     }
 
-    // Secret yoksa oluştur ve kaydet
-    const secret = speakeasy.generateSecret({
-      name: `Tav Akademi (${user.kullanici_adi})`,
+    const otpauthUrl = speakeasy.otpauthURL({
+      secret,
+      label: `Tav Akademi (${user.kullanici_adi})`,
+      encoding: "base32",
     });
-    user.twoFactorSecret = secret.base32;
-    await user.save();
 
-    const qrCodeDataURL = await qrcode.toDataURL(secret.otpauth_url);
+    const qrCodeDataURL = await qrcode.toDataURL(otpauthUrl);
 
-    res.json({ qrCodeDataURL, secret: secret.base32 });
+    res.json({ qrCodeDataURL });
   } catch (err) {
     console.error("2FA setup hatası:", err);
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
 
-//kullancının göndereceği 6 haneli kod (uygulamadan aldığı)
 exports.verify2FA = async (req, res) => {
   const { userId, token } = req.body;
-  console.log("userId:", userId);
-  console.log("token:", token);
   try {
     const user = await User.findByPk(userId);
     if (!user || !user.twoFactorSecret)
@@ -422,9 +417,9 @@ exports.verify2FA = async (req, res) => {
         .json({ message: "2FA kurulmamış veya kullanıcı bulunamadı." });
 
     const verified = speakeasy.totp.verify({
-      secret: user.twoFactorSecret, // doğru alan adı neyse onu yaz
+      secret: user.twoFactorSecret,
       encoding: "base32",
-      token: String(token), // token string olmalı
+      token: String(token),
       window: 1,
     });
 
@@ -434,12 +429,39 @@ exports.verify2FA = async (req, res) => {
     user.is2FAEnabled = true;
     await user.save();
 
-    res.json({ message: "2FA başarıyla etkinleştirildi" });
+    // Mevcut oturumu sil
+    await Session.destroy({ where: { userId: user.id, isActive: true } });
+
+    // Yeni session oluştur
+    const sessionId = uuidv4();
+    await Session.create({
+      userId: user.id,
+      sessionId,
+      isActive: true,
+    });
+
+    await logActivity({
+      userId: user.id,
+      action: `${user.ad} ${user.soyad} adlı kullanıcı 2FA ile giriş yaptı`,
+      category: "User",
+    });
+
+    const authToken = user.createAuthToken();
+
+    res.status(200).json({
+      message: "2FA doğrulandı, giriş başarılı.",
+      userId: user.id,
+      sessionId,
+      ad: user.ad,
+      is2FAEnabled: user.is2FAEnabled,
+      token: authToken,
+    });
   } catch (err) {
     console.error("2FA doğrulama hatası:", err);
     res.status(500).json({ message: "Sunucu hatası" });
   }
 };
+
 // Kullanıcı girişi
 exports.login = async (req, res) => {
   const { kullanici_adi, sifre } = req.body;
@@ -454,46 +476,12 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(sifre, user.sifre);
     if (!isMatch) return res.status(400).json({ message: "Hatalı şifre." });
 
-    if (user.is2FAEnabled) {
-      // 2FA açık, frontend'e 2FA kodu isteniyor diye bilgi ver
-      return res.status(200).json({
-        twoFARequired: true,
-        message: "Lütfen 2FA kodunuzu girin.",
-        userId: user.id,
-      });
-    } else {
-      // 2FA kapalı ise direkt login yap
-
-      // Var olan aktif oturumu kapat
-      const existingSession = await Session.findOne({
-        where: { userId: user.id, isActive: true },
-      });
-      if (existingSession) await existingSession.destroy();
-
-      // Yeni session oluştur
-      const sessionId = uuidv4();
-      await Session.create({
-        userId: user.id,
-        sessionId,
-        isActive: true,
-      });
-
-      await logActivity({
-        userId: user.id,
-        action: `${user.ad} ${user.soyad} adlı kullanıcı sisteme giriş yaptı`,
-        category: "User",
-      });
-
-      const token = user.createAuthToken();
-      return res.status(200).json({
-        message: "Giriş başarılı.",
-        userId: user.id,
-        sessionId,
-        ad: user.ad,
-        is2FAEnabled: user.is2FAEnabled,
-        token,
-      });
-    }
+    // 2FA ZORUNLU olduğu için diğer her şey verify2FA'ya bırakılıyor
+    return res.status(200).json({
+      message: "Şifre doğru. Lütfen 2FA kodunuzu girin.",
+      userId: user.id,
+      is2FAEnabled: user.is2FAEnabled,
+    });
   } catch (err) {
     console.error("Login hatası:", err);
     res.status(500).json({ message: "Sunucu hatası" });
@@ -506,12 +494,10 @@ exports.adminLogin = async (req, res) => {
 
   try {
     const user = await User.findOne({ where: { kullanici_adi } });
-
-    if (!user) {
+    if (!user)
       return res
         .status(400)
         .json({ message: "Bu kullanıcı adı kayıtlı değil." });
-    }
 
     if (user.roleId == 0 || user.roleId == null) {
       return res.status(403).json({
@@ -521,49 +507,14 @@ exports.adminLogin = async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(sifre, user.sifre);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Hatalı şifre." });
-    }
+    if (!isMatch) return res.status(400).json({ message: "Hatalı şifre." });
 
-    if (user.is2FAEnabled) {
-      // 2FA aktif, frontend'e 2FA kodu isteniyor diye bilgi ver
-      return res.status(200).json({
-        twoFARequired: true,
-        message: "Lütfen 2FA kodunuzu girin.",
-        userId: user.id,
-      });
-    } else {
-      // 2FA yoksa direkt login
-
-      // Aktif oturumu sonlandır
-      const existingSession = await Session.findOne({
-        where: { userId: user.id, isActive: true },
-      });
-      if (existingSession) await existingSession.destroy();
-
-      // Yeni session oluştur
-      const sessionId = uuidv4();
-      await Session.create({
-        userId: user.id,
-        sessionId,
-        isActive: true,
-      });
-
-      await logActivity({
-        userId: user.id,
-        action: `${user.ad} ${user.soyad} adlı yönetici sisteme giriş yaptı`,
-        category: "Yönetici",
-      });
-
-      const token = user.createAuthToken();
-      return res.status(200).json({
-        message: "Giriş başarılı.",
-        userId: user.id,
-        sessionId,
-        ad: user.ad,
-        token,
-      });
-    }
+    // 2FA ZORUNLU olduğu için diğer her şey verify2FA'ya bırakılıyor
+    return res.status(200).json({
+      message: "Şifre doğru. Lütfen 2FA kodunuzu girin.",
+      userId: user.id,
+      is2FAEnabled: user.is2FAEnabled,
+    });
   } catch (err) {
     console.error("Login hatası:", err);
     res.status(500).json({ message: "Sunucu hatası" });

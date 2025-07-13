@@ -163,7 +163,7 @@ export default function RoleLevel() {
   return (
     <div>
       <div className="row">
-        <div className="col-md-6 mb-4">
+        <div className="col-12 col-md-6 mb-4">
           <div className="card shadow-sm">
             <div className="card-body">
               <h4 className="card-title mb-3">Rol Derecesi Oluştur</h4>
@@ -208,7 +208,7 @@ export default function RoleLevel() {
                 </div>
 
                 <div className="d-flex gap-2">
-                  <button type="submit" className="btn btn-primary shadow-sm">
+                  <button type="submit" className="btn btn-primary shadow-sm ">
                     <i
                       className={`bi ${
                         id ? "bi-pencil" : "bi-plus-circle"
@@ -236,7 +236,7 @@ export default function RoleLevel() {
           </div>
         </div>
 
-        <div className="col-md-6 mb-4">
+        <div className="col-12 col-md-6 mb-4">
           <div className="card shadow-sm">
             <div className="card-body">
               <h4 className="card-title mb-3">Rol Dereceleri</h4>

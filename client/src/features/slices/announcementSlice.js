@@ -4,10 +4,12 @@ import {
   addAnnouncement,
   removeAnnouncement,
   editAnnouncement,
+  fetchAnnouncementByUser,
 } from "../thunks/announcementThunk";
 
 const initialState = {
   announcements: [],
+  userAnnouncements: [],
   loading: false,
   error: null,
 };
@@ -32,6 +34,20 @@ const announcementSlice = createSlice({
         state.announcements = action.payload;
       })
       .addCase(fetchAnnouncements.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Kullanıcının duyuruları
+      .addCase(fetchAnnouncementByUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAnnouncementByUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.userAnnouncements = action.payload;
+      })
+      .addCase(fetchAnnouncementByUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

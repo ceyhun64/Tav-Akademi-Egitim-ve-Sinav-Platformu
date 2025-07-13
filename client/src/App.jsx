@@ -1,6 +1,6 @@
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import React,{useState,useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import emitter from "./features/services/eventEmitter";
 import UnauthorizedModal from "./pages/unAuthorizedModal";
 
@@ -28,6 +28,7 @@ import UserTeoExamReport from "./pages/user/teoExamReport";
 import UserImgExamReport from "./pages/user/imgExamReport";
 import UserPracticeExam from "./pages/user/practiceExam";
 import UserPracticeQuestions from "./pages/user/practiceQuestions";
+import UserAnnouncement from "./pages/user/announcement";
 
 import AdminLayout from "./layout/adminLayout"; // yukarıdaki componenti koyduğun dosya
 
@@ -86,11 +87,13 @@ import AdminPracticeExam from "./pages/admin/practiceExam";
 import Setup2FAPage from "./pages/user/setup2FA";
 import AdminVerify2FA from "./pages/admin/verify2FA";
 import AdminSetup2FA from "./pages/admin/setup2FA";
+import AdminCertificateInputs from "./pages/admin/certificateInputs";
 
 import HomePage from "./pages/home/homePage";
 import About from "./pages/home/about";
 import Contact from "./pages/home/contact";
 
+import NotFound from "./pages/home/notFound";
 function App() {
   const [showModal, setShowModal] = useState(false);
 
@@ -113,6 +116,7 @@ function App() {
       <div>
         <Routes>
           {/* kullanıcı sayfaları */}
+          <Route path="*" element={<NotFound />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
@@ -127,6 +131,7 @@ function App() {
           <Route path="/image-gallery" element={<UserImageGallery />} />
           <Route path="/education-set" element={<UserEducationSet />} />
           <Route path="/education/:id" element={<UserEducation />} />
+          <Route path="/announcements" element={<UserAnnouncement />} />
           <Route
             path="/education-set-detail/:id"
             element={<UserEducationSetDetail />}
@@ -295,6 +300,10 @@ function App() {
           <Route path="/admin/practice-exam" element={<AdminPracticeExam />} />
           <Route path="/admin/setup-2fa" element={<AdminSetup2FA />} />
           <Route path="/admin/verify-2fa" element={<AdminVerify2FA />} />
+          <Route
+            path="/admin/certificate-inputs"
+            element={<AdminCertificateInputs />}
+          />
 
           {/* </Route> */}
         </Routes>

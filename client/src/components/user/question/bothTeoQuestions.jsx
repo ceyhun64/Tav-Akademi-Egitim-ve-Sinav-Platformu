@@ -37,7 +37,7 @@ const containerStyle = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  padding: "2rem",
+  padding: "0.2rem",
   boxSizing: "border-box",
   backgroundImage: "linear-gradient(to right, #f0f4f8, #e0e7ee)",
 };
@@ -54,6 +54,10 @@ export default function BothTeoQuestion() {
   const { bothTeoQuestions, duration, otherExamId, name } = useSelector(
     (state) => state.question
   );
+  console.log("Sınav süresi (duration):", duration);
+
+  const [theoreticalFinished, setTheoreticalFinished] = useState(false);
+
   console.log("otherExamId:", otherExamId);
 
   const [teoQuestions, setTeoQuestions] = useState([]);
@@ -243,39 +247,43 @@ export default function BothTeoQuestion() {
     }
     return code;
   };
-  const handleFinishExam = () => {
+  const handleFinishExam = (autoSubmit = false) => {
+    if (!entryDate || !entryTime) {
+      alert(
+        "Sınav başlangıç zamanı henüz alınamadı, lütfen sayfayı yenileyip tekrar deneyin."
+      );
+      return;
+    }
+
+    const totalQuestionCount = teoQuestions.length;
     const answeredCount = Object.keys(selectedAnswers).length;
-    const unansweredCount = teoQuestions.length - answeredCount;
+    const unanswered = totalQuestionCount - answeredCount;
 
-    if (unansweredCount > 0) {
-      // Boş soru uyarısı ve sınav durdurma (benzer handleSubmit)
-      setUnansweredCount(unansweredCount);
-      setShowUnansweredWarning(true);
-      setIsPaused(true);
-      return;
+    if (!autoSubmit) {
+      // Kullanıcı manuel bitirirken tüm soruları cevaplamasını zorunlu kıl
+      if (unanswered > 0) {
+        setUnansweredCount(unanswered);
+        setShowUnansweredWarning(true);
+        setIsPaused(true); // Sınavı durdur
+        return;
+      }
+
+      // Eğer kod girişi gösterilmiyorsa, ilk tıklamada kodu oluştur ve göster
+      if (!showCodeInput) {
+        const code = generateRandomCode();
+        setConfirmExitCode(code);
+        setShowCodeInput(true);
+        return;
+      }
+
+      // Eğer kod giriş ekranı açık, girilen kod doğru mu kontrol et
+      if (userInputCode.toUpperCase() !== confirmExitCode) {
+        alert("Girdiğiniz kod yanlış. Lütfen doğru kodu girin.");
+        return;
+      }
     }
 
-    // Kod girişi gösterilmiyorsa ilk tıklamada kodu oluşturup göster
-    if (!showCodeInput) {
-      const code = generateRandomCode();
-      setConfirmExitCode(code);
-      setShowCodeInput(true);
-      // alert kaldırıldı
-      return;
-    }
-
-    // Kod giriş ekranı açık ve kod yanlışsa uyar
-    if (userInputCode.toUpperCase() !== confirmExitCode) {
-      alert("Girdiğiniz kod yanlış. Lütfen doğru kodu girin.");
-      return;
-    }
-
-    // Kod doğruysa sınavı bitir, thunk çağrısını yap, uygulamalı sınava geçişi yönet
-    console.log("Seçilen Cevaplar:", selectedAnswers);
-
-    setExamEnded(true);
-    setIsPaused(true);
-
+    // Otomatik bitir veya doğrulama geçtiyse sınavı bitir
     const now = new Date();
     const exitDate = now.toISOString().split("T")[0];
     const exitTime = now.toTimeString().split(" ")[0];
@@ -287,6 +295,10 @@ export default function BothTeoQuestion() {
       })
     );
 
+    setExamEnded(true);
+    setIsPaused(true);
+    setTheoreticalFinished(true);
+
     dispatch(
       answerTeoQuestionsThunk({
         answers: answersArray,
@@ -297,7 +309,6 @@ export default function BothTeoQuestion() {
         exit_time: exitTime,
       })
     );
-
     if (otherExamId) {
       navigate(`/both-img-questions/${otherExamId}`);
     } else {
@@ -313,6 +324,8 @@ export default function BothTeoQuestion() {
     setIsPaused(false);
     requestFullscreen();
   };
+  console.log("theoreticalFinished:", theoreticalFinished);
+  console.log("otherExamId:", otherExamId);
 
   return (
     <div style={containerStyle} ref={examContainerRef}>
@@ -351,9 +364,7 @@ export default function BothTeoQuestion() {
             </div>
           </div>
         )}
-
-        {/* Uyarı: Cevapsız Sorular */}
-        {examEnded && showUnansweredWarning && (
+        {showUnansweredWarning && (
           <div style={{ ...overlayStyle, backgroundColor: "white" }}>
             <div style={alertBoxStyle}>
               <h4 className="text-warning">
@@ -369,25 +380,6 @@ export default function BothTeoQuestion() {
                 }}
               >
                 Tamam
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Sınav Sonlandı */}
-        {examEnded && (
-          <div style={overlayStyle}>
-            <div style={alertBoxStyle}>
-              <h4 className="text-success">
-                <i className="bi bi-flag-fill me-2" />
-                Sınav Sonlandı
-              </h4>
-              <p>Süreniz doldu, sınav otomatik olarak bitirildi.</p>
-              <button
-                className="btn btn-success mt-3"
-                onClick={() => navigate("/user-panel")}
-              >
-                Anasayfaya Dön
               </button>
             </div>
           </div>
@@ -419,7 +411,7 @@ export default function BothTeoQuestion() {
           !examEnded && (
             <div className="row">
               {/* Soru Kartı */}
-              <div className="col-lg-9 mb-4 shadow-sm border-0">
+              <div className="col-lg-9 mb-4 shadow-sm border-0 question-card-wrapper">
                 <div className="card shadow-sm border-0 h-100 d-flex flex-column">
                   <div
                     className="card-header bg-white d-flex justify-content-between align-items-center border-bottom"
@@ -455,7 +447,14 @@ export default function BothTeoQuestion() {
                       dangerouslySetInnerHTML={{ __html: q?.question }}
                     ></h5>
 
-                    <div className="list-group">
+                    <div
+                      className="list-group"
+                      style={{
+                        width: "100%", // tam genişlik masaüstünde
+                        maxWidth: "100%", // mobilde max 600px, masaüstü tam genişlik
+                        margin: "auto",
+                      }}
+                    >
                       {["a", "b", "c", "d", "e"]
                         .map((opt) => ({ key: opt, text: q?.[opt] }))
                         .filter(({ text }) => text != null)
@@ -464,17 +463,57 @@ export default function BothTeoQuestion() {
                           return (
                             <button
                               key={key}
-                              className={`list-group-item list-group-item-action d-flex align-items-center ${
-                                isSelected ? "active border border-primary" : ""
-                              }`}
+                              className="list-group-item d-flex align-items-center border"
                               onClick={() =>
                                 handleAnswerChange(Number(q.id), key)
                               }
+                              style={{
+                                padding: "0.5rem",
+                                cursor: "pointer",
+                                userSelect: "none",
+                                borderRadius: 8,
+                                marginBottom: 8,
+                                justifyContent: "flex-start",
+                                gap: 12,
+                                width: "100%", // tam genişlik
+                              }}
                             >
-                              <span className="me-2 fw-bold text-uppercase">
-                                {key}:
-                              </span>
-                              {text}
+                              {/* Soldaki harf kutusu */}
+                              <div
+                                style={{
+                                  minWidth: 40,
+                                  height: 40,
+                                  backgroundColor: isSelected
+                                    ? "#001b66"
+                                    : "#e2e8f0",
+                                  color: isSelected ? "white" : "#001b66",
+                                  fontWeight: "bold",
+                                  fontSize: 18,
+                                  borderRadius: 8,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  flexShrink: 0,
+                                  userSelect: "none",
+                                  transition: "background-color 0.3s ease",
+                                }}
+                                title={`Şık ${key.toUpperCase()}`}
+                              >
+                                {key.toUpperCase()}
+                              </div>
+
+                              {/* Sağdaki metin */}
+                              <div
+                                style={{
+                                  flex: 1,
+                                  fontSize: 16,
+                                  color: "#333", // seçili olsa da değişmesin
+                                  userSelect: "none",
+                                  textAlign: "left",
+                                }}
+                              >
+                                {text}
+                              </div>
                             </button>
                           );
                         })}
@@ -483,7 +522,7 @@ export default function BothTeoQuestion() {
 
                   {/* Navigasyon ve Kod */}
                   <div className="card-footer d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 bg-light border-top">
-                    <div className="d-flex gap-2">
+                    <div className="navigation-buttons ">
                       <button
                         className="btn btn-outline-secondary"
                         onClick={handlePrev}
@@ -493,7 +532,7 @@ export default function BothTeoQuestion() {
                         Önceki
                       </button>
                       <button
-                        className="btn btn-outline-primary"
+                        className="btn btn-outline-primary  ms-5"
                         onClick={handleNext}
                         disabled={currentIndex === bothTeoQuestions.length - 1}
                       >
@@ -546,20 +585,10 @@ export default function BothTeoQuestion() {
                     {!examEnded && (
                       <button
                         className="btn btn-success mt-3 mt-md-0"
-                        onClick={() => {
-                          const unansweredCount = bothTeoQuestions.filter(
-                            (q) => !selectedAnswers[q.id]
-                          ).length;
-
-                          if (unansweredCount > 0) {
-                            setUnansweredCount(unansweredCount); // Bu satır önemli
-                            setShowUnansweredWarning(true); // sadece uyarıyı göster
-                            setIsPaused(true); // sınavı duraklat
-                          } else {
-                            handleFinishExam(false); // boş soru yoksa sınavı bitir
-                          }
-                        }}
                         style={{ whiteSpace: "nowrap" }}
+                        onClick={() => {
+                          handleFinishExam(false);
+                        }}
                       >
                         <i className="bi bi-check2-circle me-2" />
                         Uygulama Sınavına Geç
@@ -573,8 +602,9 @@ export default function BothTeoQuestion() {
               <div className="col-lg-3 position-relative">
                 {/* Zamanlayıcı - Sağ üst sabit */}
                 <div
+                  className="timer-top-mobile"
                   style={{
-                    top: "30px",
+                    top: "10px",
                     right: "10px",
                   }}
                 >
@@ -587,11 +617,11 @@ export default function BothTeoQuestion() {
 
                 {/* Cevap Özeti Kartı */}
                 <div
-                  className="card shadow-sm rounded-4 p-3 d-flex flex-column align-items-center"
+                  className="card shadow-sm rounded-4 p-3 d-flex flex-column align-items-center d-none d-lg-flex"
                   style={{
                     maxHeight: "2000px",
                     overflowY: "auto",
-                    height: "360px",
+                    height: "500px",
                   }}
                 >
                   <div className="d-flex align-items-center gap-2 mb-3">

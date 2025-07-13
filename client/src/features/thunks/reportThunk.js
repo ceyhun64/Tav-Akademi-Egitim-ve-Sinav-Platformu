@@ -19,6 +19,7 @@ export const getUserTeoResultsThunk = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await getAllUserTeoResults();
+      console.log("thunk:", response.data);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);

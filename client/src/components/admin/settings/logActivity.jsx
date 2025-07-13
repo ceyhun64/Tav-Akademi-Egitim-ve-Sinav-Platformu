@@ -42,44 +42,52 @@ export default function LogActivity() {
       return true;
     }) || [];
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300;
   return (
     <div
-      className="poolteo-container"
-      style={{
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        overflowX: "hidden", // yatay kaymayı engeller
-      }}
+      className="poolImg-container"
+      style={{ overflowX: "hidden", padding: "1rem" }}
     >
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
-          padding: "1.5rem 1.2rem",
+          padding: "1rem",
           position: "fixed",
           left: 0,
           top: 0,
-          backgroundColor: "#003399", // biraz daha canlı mavi
+          backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 12px rgba(0, 0, 0, 0.25)",
+          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
-          zIndex: 10,
-          borderRadius: "0 12px 12px 0",
+          zIndex: 99999,
         }}
       >
         <Sidebar />
       </div>
 
-      {/* Main Content */}
+      {/* Ana İçerik */}
       <div
-        style={{
-          marginLeft: "260px",
-          padding: "2.5rem 3rem",
-          backgroundColor: "#f4f6fc",
-          minHeight: "100vh",
-          transition: "margin-left 0.3s ease",
-          color: "#222",
-        }}
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
       >
         <div
           style={{
@@ -90,6 +98,7 @@ export default function LogActivity() {
           }}
         >
           <h1
+            className=" mt-2 ms-5"
             style={{
               color: "#003399",
               fontSize: "28px",
@@ -100,13 +109,15 @@ export default function LogActivity() {
               userSelect: "none",
             }}
           >
-            <i
-              className="bi bi-journal-check"
-              style={{ fontSize: "1.6rem" }}
-            ></i>
+            {!isMobile && (
+              <i
+                className="bi bi-journal-bookmark-fill"
+                style={{ fontSize: "1.6rem" }}
+              ></i>
+            )}
             İşlem Kayıtları
           </h1>
-        </div>{" "}
+        </div>
         {/* Kategori seçimi */}
         <div
           className="card shadow-sm"
@@ -183,8 +194,9 @@ export default function LogActivity() {
                 style={{
                   borderCollapse: "separate",
                   borderSpacing: "0 8px",
-                  minWidth: "1100px",
+                  minWidth: "100%", // %100 genişlik (mobilde sığmazsa yatay kaydırma)
                   userSelect: "none",
+                  fontSize: isMobile ? "0.85rem" : "1rem",
                 }}
               >
                 <thead
@@ -197,19 +209,30 @@ export default function LogActivity() {
                     className="text-center align-middle"
                     style={{ fontWeight: "600", color: "#334155" }}
                   >
-                    <th style={{ width: "40px" }}>#</th>
-                    <th>Zaman</th>
-                    <th>Aksiyon</th>
+                    <th
+                      style={{
+                        width: "40px",
+                        padding: isMobile ? "6px" : "12px",
+                      }}
+                    >
+                      #
+                    </th>
+                    <th style={{ padding: isMobile ? "6px" : "12px" }}>
+                      Zaman
+                    </th>
+                    <th style={{ padding: isMobile ? "6px" : "12px" }}>
+                      Aksiyon
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredLogs.map((item, index) => (
                     <tr
-                      key={item.id}
+                      key={item.id ? item.id : index}
                       style={{
                         backgroundColor: "#fff",
                         boxShadow: "0 2px 6px rgb(0 0 0 / 0.05)",
-                        borderRadius: "10px",
+                        borderRadius: isMobile ? "6px" : "10px",
                         cursor: "default",
                         transition: "background-color 0.2s ease",
                       }}
@@ -222,19 +245,28 @@ export default function LogActivity() {
                     >
                       <td
                         className="text-center"
-                        style={{ verticalAlign: "middle" }}
+                        style={{
+                          verticalAlign: "middle",
+                          padding: isMobile ? "6px" : "12px",
+                        }}
                       >
                         {index + 1}
                       </td>
                       <td
                         className="text-center"
-                        style={{ verticalAlign: "middle" }}
+                        style={{
+                          verticalAlign: "middle",
+                          padding: isMobile ? "6px" : "12px",
+                        }}
                       >
                         {new Date(item.timestamp).toLocaleString()}
                       </td>
                       <td
                         className="text-center"
-                        style={{ verticalAlign: "middle" }}
+                        style={{
+                          verticalAlign: "middle",
+                          padding: isMobile ? "6px" : "12px",
+                        }}
                       >
                         {item.action}
                       </td>

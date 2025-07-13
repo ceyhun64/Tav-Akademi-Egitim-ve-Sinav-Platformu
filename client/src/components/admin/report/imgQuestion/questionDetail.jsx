@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 
-export default function QuestionDetailCard({ question, currentIndex }) {
+export default function QuestionDetailCard({
+  question,
+  currentIndex,
+  isMobile,
+}) {
   const canvasRef = useRef(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
@@ -15,9 +19,8 @@ export default function QuestionDetailCard({ question, currentIndex }) {
       : null;
 
   const polygons = pool.coordinate || [];
-
-  const MAX_WIDTH = 600;
-  const MAX_HEIGHT = 400;
+  const MAX_WIDTH = isMobile ? 300 : 600;
+  const MAX_HEIGHT = isMobile ? 200 : 400;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -114,7 +117,10 @@ export default function QuestionDetailCard({ question, currentIndex }) {
       </div>
 
       <div className="card-body">
-        <h5 className="text-dark mb-4" style={{ fontWeight: "600" }}>
+        <h5
+          className="text-dark mb-4"
+          style={{ fontWeight: "600", fontSize: isMobile ? "1rem" : "1.25rem" }}
+        >
           {pool?.question}
         </h5>
 
@@ -131,6 +137,7 @@ export default function QuestionDetailCard({ question, currentIndex }) {
                 width: `${displaySize.width}px`,
                 height: `${displaySize.height}px`,
                 boxShadow: "0 0 10px rgba(0, 27, 102, 0.2)",
+                maxWidth: "100%",
               }}
             />
           </div>
@@ -168,6 +175,8 @@ export default function QuestionDetailCard({ question, currentIndex }) {
                   fontWeight: isCorrect ? "600" : "500",
                   cursor: "default",
                   transition: "background-color 0.3s ease",
+                  fontSize: isMobile ? "0.875rem" : "1rem", // Responsive font size
+                  padding: isMobile ? "0.5rem 0.75rem" : "0.75rem 1.25rem", // Adjust spacing
                 }}
               >
                 <span style={{ userSelect: "none" }}>
@@ -213,8 +222,11 @@ export default function QuestionDetailCard({ question, currentIndex }) {
         </ul>
 
         <div
-          className="text-center fs-5 fw-bold"
-          style={{ color: question.is_correct ? "#001b66" : "#dc3545" }}
+          className="text-center fw-bold"
+          style={{
+            fontSize: isMobile ? "1.1rem" : "1.25rem",
+            color: question.is_correct ? "#001b66" : "#dc3545",
+          }}
         >
           {question.is_correct ? (
             <>

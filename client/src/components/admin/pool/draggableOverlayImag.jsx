@@ -5,6 +5,7 @@ export default function DraggableOverlayImage({
   containerRef,
   onPositionChange,
   onSizeChange,
+  showOverlay,
 }) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
@@ -130,10 +131,12 @@ export default function DraggableOverlayImage({
           width: "100%",
           height: "100%",
           display: "block",
-          pointerEvents: "none", // click dragging is handled by container div
+          pointerEvents: "none",
+          opacity: showOverlay ? 0 : 1,
         }}
         draggable={false}
       />
+
       {/* Resize handle in bottom-right */}
       <div
         onMouseDown={startResizing}

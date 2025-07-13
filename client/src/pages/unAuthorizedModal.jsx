@@ -1,49 +1,40 @@
 import React from "react";
 
-export default function UnauthorizedModal({ onClose }) {
+export default function UnauthorizedPage() {
   return (
-    <>
-      <div
+    <div
+      style={{
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#f8f9fa",
+        color: "#333",
+        textAlign: "center",
+        padding: "2rem",
+      }}
+    >
+      <h1 style={{ fontSize: "10rem", margin: 0, fontWeight: "bold" }}>401</h1>
+      <h2 style={{ fontSize: "2rem", margin: "1rem 0" }}>Unauthorized</h2>
+      <p style={{ fontSize: "1.25rem", marginBottom: "2rem" }}>
+        Bu sayfaya erişme yetkiniz yoktur.
+      </p>
+      <button
+        onClick={() => window.history.back()}
         style={{
-          position: "fixed",
-          inset: 0,
-          backgroundColor: "rgba(0, 0, 0, 0.8)", // Daha koyu
-          backdropFilter: "blur(8px)", // Daha fazla blur
-          zIndex: 1000,
-        }}
-      />
-      <div
-        style={{
-          position: "fixed",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          background: "white",
-          padding: "2rem",
-          borderRadius: "8px",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
-          zIndex: 1001,
-          maxWidth: "90vw",
-          textAlign: "center",
+          padding: "0.75rem 1.5rem",
+          fontSize: "1rem",
+          cursor: "pointer",
+          backgroundColor: "#007bff",
+          color: "white",
+          border: "none",
+          borderRadius: "4px",
+          fontWeight: "bold",
         }}
       >
-        <p>Bu sayfaya erişme yetkiniz yoktur!</p>
-        <button
-          onClick={onClose}
-          style={{
-            marginTop: "1rem",
-            padding: "0.5rem 1rem",
-            cursor: "pointer",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            fontWeight: "bold",
-          }}
-        >
-          Tamam
-        </button>
-      </div>
-    </>
+        Geri Dön
+      </button>
+    </div>
   );
 }

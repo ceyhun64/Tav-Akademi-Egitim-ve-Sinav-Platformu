@@ -128,63 +128,97 @@ export default function CreateImgExam({ onCreated }) {
       alert("Sınav oluşturulamadı: " + err.message);
     }
   };
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
 
   return (
     <div
-      className="poolteo-container"
-      style={{
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        overflowX: "hidden",
-        backgroundColor: "#f4f6fc",
-        minHeight: "100vh",
-      }}
+      className="poolImg-container"
+      style={{ overflowX: "hidden", padding: "1rem" }}
     >
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
-          padding: "2rem 1.5rem",
+          padding: "1rem",
           position: "fixed",
           left: 0,
           top: 0,
-          backgroundColor: "#001b66",
+          backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 12px rgba(0, 0, 0, 0.2)",
+          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
-          zIndex: 10,
-          borderRadius: "0 16px 16px 0",
+          zIndex: 99999,
         }}
       >
         <Sidebar />
       </div>
 
-      {/* Main Content */}
+      {/* Ana İçerik */}
       <div
-        style={{
-          marginLeft: "260px",
-          padding: "3rem 3.5rem",
-          transition: "margin-left 0.3s ease",
-          color: "#222",
-        }}
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
       >
-        {/* Başlık */}
-        <div className="d-flex justify-content-between align-items-center mb-5">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "2.5rem",
+          }}
+        >
           <h1
+            className="mb-4 mt-2 ms-5"
             style={{
-              color: "#001b66",
-              fontSize: "30px",
-              fontWeight: "bold",
+              color: "#003399",
+              fontSize: "28px",
+              fontWeight: "700",
               display: "flex",
               alignItems: "center",
-              gap: "0.7rem",
+              gap: "0.6rem",
+              userSelect: "none",
             }}
           >
-            <i
-              className="bi bi-clipboard-check-fill"
-              style={{ fontSize: "1.8rem" }}
-            ></i>
+            {!isMobile && (
+              <i
+                className="bi bi-journal-bookmark-fill"
+                style={{ fontSize: "1.6rem" }}
+              ></i>
+            )}
             Uygulamalı Sınav Oluştur
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                marginLeft: isMobile ? "auto" : "30px",
+                backgroundColor: "#001b66",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "6px 16px", // padding yatay biraz artırıldı
+                cursor: "pointer",
+                fontSize: "1rem",
+                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+              }}
+            >
+              Geri Dön
+            </button>
           </h1>
         </div>
 
@@ -603,6 +637,7 @@ export default function CreateImgExam({ onCreated }) {
               <p style={{ color: "red", fontWeight: "600" }}>Hata: {error}</p>
             ) : (
               <UserList
+                isMobile={isMobile}
                 users={users}
                 selectedUserIds={formData.userIds}
                 onUserToggle={toggleUserSelection}
@@ -616,8 +651,18 @@ export default function CreateImgExam({ onCreated }) {
             )}
           </div>
 
-          <button type="submit" className="btn btn-primary mt-3">
-            Sınavı Oluştur
+          <button
+            type="submit"
+            className="btn btn-primary mt-3"
+            style={{
+              fontSize: "16px",
+              gridColumn: isMobile ? undefined : "1 / -1",
+              justifySelf: "center", // Ortalamak için start yerine center
+              width: isMobile ? "50%" : "150px", // Masaüstünde sabit, küçük genişlik
+            }}
+          >
+            {" "}
+            Sınav Oluştur
           </button>
         </form>
       </div>

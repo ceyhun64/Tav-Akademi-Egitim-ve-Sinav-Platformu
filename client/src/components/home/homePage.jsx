@@ -19,8 +19,10 @@ export default function Home() {
   const allCompleted = modules.every((m) => m.completed);
 
   return (
-    <div className="container my-5">
-      <h1 className="mb-5 text-center fw-bold">Güvenlik Firması Eğitim Portalı</h1>
+    <div className="container my-5" style={{ overflowX: "hidden" }}>
+      <h1 className="mb-5 text-center fw-bold">
+        Güvenlik Firması Eğitim Portalı
+      </h1>
       <p className="text-center fs-5 mb-4">
         Hoşgeldiniz! Eğitim modüllerini tamamlayın ve sınava girin.
       </p>

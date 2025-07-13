@@ -47,6 +47,10 @@ const PracticeExamQuestions = require("./practiceExamQuestions");
 const PracticeExam = require("./practiceExam");
 const PracticeExamUser = require("./practiceExamUser");
 
+const Requester = require("./requester");
+const Educator = require("./educator");
+const CourseNo = require("./courseNo");
+const CourseType = require("./courseType");
 // İlişkiler
 
 // --- User - Exam Many-to-Many via ExamUser ---
@@ -412,4 +416,8 @@ module.exports = {
   PracticeExam,
   PracticeExamQuestions,
   PracticeExamUser,
+  Requester,
+  Educator,
+  CourseNo,
+  CourseType,
 };

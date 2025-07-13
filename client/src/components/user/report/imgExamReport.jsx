@@ -16,181 +16,202 @@ export default function ImgExamReport() {
     status: "",
   });
 
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [showHiddenColumns, setShowHiddenColumns] = useState(false);
+
+  const columns = [
+    { key: "name", label: "Sınav Adı", priority: 1 },
+    { key: "entry_date", label: "Giriş Tarihi", priority: 3 },
+    { key: "exit_date", label: "Çıkış Tarihi", priority: 3 },
+    { key: "true_count", label: "Doğru", priority: 1 },
+    { key: "false_count", label: "Yanlış", priority: 1 },
+    { key: "score", label: "Puan", priority: 1 },
+    { key: "status", label: "Başarı Durumu", priority: 1 },
+  ];
+
   useEffect(() => {
     dispatch(getUserImgExamResultThunk());
   }, [dispatch]);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  let visiblePriority = 1;
+  if (windowWidth > 900) visiblePriority = 3;
+  else if (windowWidth > 600) visiblePriority = 2;
+
+  const visibleColumns = columns.filter(
+    (col) => col.priority <= visiblePriority
+  );
+  const hiddenColumns = columns.filter((col) => col.priority > visiblePriority);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  const filteredResults = imgResultByUser?.filter((result) => {
-    return (
-      (filters.name === "" ||
-        result.exam?.name
-          ?.toLowerCase()
-          .includes(filters.name.toLowerCase())) &&
-      (filters.entry_date === "" ||
-        result.entry_date?.includes(filters.entry_date)) &&
-      (filters.exit_date === "" ||
-        result.exit_date?.includes(filters.exit_date)) &&
-      (filters.true_count === "" ||
-        String(result.true_count)?.includes(filters.true_count)) &&
-      (filters.false_count === "" ||
-        String(result.false_count)?.includes(filters.false_count)) &&
-      (filters.score === "" || String(result.score)?.includes(filters.score)) &&
-      (filters.status === "" ||
-        (filters.status === "passed" && result.pass) ||
-        (filters.status === "failed" && !result.pass && result.completed) ||
-        (filters.status === "incomplete" && !result.completed))
-    );
-  });
+  const filteredResults = imgResultByUser
+    ?.filter((result) => {
+      return (
+        (filters.name === "" ||
+          result.exam?.name
+            ?.toLowerCase()
+            .includes(filters.name.toLowerCase())) &&
+        (filters.entry_date === "" ||
+          result.entry_date?.includes(filters.entry_date)) &&
+        (filters.exit_date === "" ||
+          result.exit_date?.includes(filters.exit_date)) &&
+        (filters.true_count === "" ||
+          String(result.true_count)?.includes(filters.true_count)) &&
+        (filters.false_count === "" ||
+          String(result.false_count)?.includes(filters.false_count)) &&
+        (filters.score === "" ||
+          String(result.score)?.includes(filters.score)) &&
+        (filters.status === "" ||
+          (filters.status === "passed" && result.pass) ||
+          (filters.status === "failed" && !result.pass && result.completed) ||
+          (filters.status === "incomplete" && !result.completed))
+      );
+    })
+    ?.sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date));
+
+  const renderCell = (col, result) => {
+    if (col.key === "status") {
+      if (!result.completed)
+        return <span className="badge bg-secondary">Tamamlanmadı</span>;
+      return result.pass ? (
+        <span className="badge bg-success">Başarılı</span>
+      ) : (
+        <span className="badge bg-danger">Başarısız</span>
+      );
+    }
+    if (col.key === "name") return result.exam?.name ?? "—";
+    return result[col.key] ?? "—";
+  };
 
   return (
-    <div className="container mt-4">
-      {/* Kullanıcılar */}
-      <div
-        style={{
-          backgroundColor: "#fff",
-          borderRadius: "12px",
-          padding: "20px",
-          boxShadow: "0 6px 15px rgba(0, 27, 102, 0.1)",
-          marginTop: "30px",
-        }}
-      >
-        <h5
-          style={{
-            color: "#001b66",
-            marginBottom: "20px",
-            fontWeight: "700",
-            fontSize: "18px",
-          }}
-        >
-          <i
-            className="bi bi-bar-chart-line-fill"
-            style={{ marginRight: "8px" }}
-          ></i>
+    <div className="container-fluid px-2 px-md-4 mt-4">
+      <div className="bg-white rounded p-4 shadow-sm position-relative mt-4">
+        <h5 className="text-primary fw-bold mb-3">
+          <i className="bi bi-bar-chart-line-fill me-2"></i>
           Uygulamalı Sınav Sonuçları
         </h5>
-        <div
-          className="table-responsive"
-          style={{ borderRadius: "12px", overflow: "hidden" }}
-        >
+
+        {hiddenColumns.length > 0 && (
+          <button
+            onClick={() => setShowHiddenColumns(!showHiddenColumns)}
+            className="btn btn-sm"
+            style={{
+              position: "absolute",
+              top: 20,
+              right: 20,
+              backgroundColor: "#001b66",
+              color: "white",
+              border: "none",
+              borderRadius: "50%",
+              width: "30px",
+              height: "30px",
+              cursor: "pointer",
+              fontWeight: "bold",
+            }}
+            title="Gizlenen kolonları göster"
+          >
+            ...
+          </button>
+        )}
+
+        {/* Hidden Columns Dropdown */}
+        {showHiddenColumns && (
+          <div
+            className="position-absolute bg-white border rounded shadow p-2"
+            style={{
+              top: 60,
+              right: 20,
+              zIndex: 10,
+              minWidth: 150,
+              maxHeight: 400,
+              overflowY: "auto",
+            }}
+          >
+            <strong>Gizlenen Kolonlar</strong>
+            <table className="table table-sm mt-2">
+              <thead style={{ backgroundColor: "#f5f7fa" }}>
+                <tr>
+                  {hiddenColumns.map((col) => (
+                    <th key={col.key}>{col.label}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filteredResults.map((result, index) => (
+                  <tr key={index}>
+                    {hiddenColumns.map((col) => (
+                      <td key={col.key}>{renderCell(col, result)}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Main Table */}
+        <div className="table-responsive">
           <table
             className="table align-middle table-hover"
             style={{ borderCollapse: "separate", borderSpacing: "0 6px" }}
           >
             <thead style={{ backgroundColor: "#f5f7fa" }}>
               <tr>
-                <th>
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="Sınav Adı"
-                    className="form-control form-control-sm rounded"
-                    value={filters.name}
-                    onChange={handleFilterChange}
-                  />
-                </th>
-                <th>
-                  <input
-                    type="text"
-                    name="entry_date"
-                    placeholder="Giriş Tarihi"
-                    className="form-control form-control-sm rounded"
-                    value={filters.entry_date}
-                    onChange={handleFilterChange}
-                  />
-                </th>
-                <th>
-                  <input
-                    type="text"
-                    name="exit_date"
-                    placeholder="Çıkış Tarihi"
-                    className="form-control form-control-sm rounded"
-                    value={filters.exit_date}
-                    onChange={handleFilterChange}
-                  />
-                </th>
-                <th>
-                  <input
-                    type="text"
-                    name="true_count"
-                    placeholder="Doğru"
-                    className="form-control form-control-sm rounded"
-                    value={filters.true_count}
-                    onChange={handleFilterChange}
-                  />
-                </th>
-                <th>
-                  <input
-                    type="text"
-                    name="false_count"
-                    placeholder="Yanlış"
-                    className="form-control form-control-sm rounded"
-                    value={filters.false_count}
-                    onChange={handleFilterChange}
-                  />
-                </th>
-                <th>
-                  <input
-                    type="text"
-                    name="score"
-                    placeholder="Puan"
-                    className="form-control form-control-sm rounded"
-                    value={filters.score}
-                    onChange={handleFilterChange}
-                  />
-                </th>
-                <th>
-                  <select
-                    name="status"
-                    className="form-control form-control-sm rounded"
-                    value={filters.status}
-                    onChange={handleFilterChange}
-                  >
-                    <option value="">Tümü</option>
-                    <option value="passed">Başarılı</option>
-                    <option value="failed">Başarısız</option>
-                    <option value="incomplete">Tamamlanmadı</option>
-                  </select>
-                </th>
+                {visibleColumns.map((col) => (
+                  <th key={col.key}>
+                    {windowWidth <= 600 ? (
+                      col.label
+                    ) : col.key === "status" ? (
+                      <select
+                        name="status"
+                        className="form-control form-control-sm rounded"
+                        value={filters.status}
+                        onChange={handleFilterChange}
+                      >
+                        <option value="">Tümü</option>
+                        <option value="passed">Başarılı</option>
+                        <option value="failed">Başarısız</option>
+                        <option value="incomplete">Tamamlanmadı</option>
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        name={col.key}
+                        placeholder={col.label}
+                        className="form-control form-control-sm rounded"
+                        value={filters[col.key]}
+                        onChange={handleFilterChange}
+                      />
+                    )}
+                  </th>
+                ))}
               </tr>
             </thead>
+
             <tbody>
               {filteredResults && filteredResults.length > 0 ? (
                 filteredResults.map((result, index) => (
-                  <tr
-                    key={index}
-                    style={{
-                      backgroundColor: "#ffffff",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    <td>{result.exam?.name || "—"}</td>
-                    <td>{result.entry_date || "—"}</td>
-                    <td>{result.exit_date || "—"}</td>
-                    <td>{result.true_count ?? "—"}</td>
-                    <td>{result.false_count ?? "—"}</td>
-                    <td>{result.score !== null ? result.score : "—"}</td>
-                    <td>
-                      {result.completed ? (
-                        result.pass ? (
-                          <span className="badge bg-success">Başarılı</span>
-                        ) : (
-                          <span className="badge bg-danger">Başarısız</span>
-                        )
-                      ) : (
-                        <span className="badge bg-secondary">Tamamlanmadı</span>
-                      )}
-                    </td>
+                  <tr key={index} className="bg-white shadow-sm rounded">
+                    {visibleColumns.map((col) => (
+                      <td key={col.key}>{renderCell(col, result)}</td>
+                    ))}
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className="text-center text-muted py-4">
+                  <td
+                    colSpan={visibleColumns.length}
+                    className="text-center text-muted py-4"
+                  >
                     Sonuç bulunamadı.
                   </td>
                 </tr>

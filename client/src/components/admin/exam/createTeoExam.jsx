@@ -76,63 +76,101 @@ export default function CreateTeoExam() {
       .unwrap()
       .then(() => {
         alert("Sınav başarıyla oluşturuldu!");
-        navigate("/admin/exams");
       })
       .catch((err) => {
         alert("Hata oluştu: " + err.message);
       });
   };
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300;
   return (
-    <div className="poolteo-container">
+    <div
+      className="poolImg-container"
+      style={{ overflowX: "hidden", padding: "1rem" }}
+    >
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
           padding: "1rem",
           position: "fixed",
           left: 0,
           top: 0,
-          backgroundColor: "#001b66",
+          backgroundColor: "white",
           color: "#fff",
           boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
-          zIndex: 10,
+          zIndex: 99999,
         }}
       >
         <Sidebar />
       </div>
 
-      {/* Main Content */}
+      {/* Ana İçerik */}
       <div
-        style={{
-          marginLeft: "260px",
-          padding: "2rem",
-          backgroundColor: "#f8f9fc",
-          minHeight: "100vh",
-        }}
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
       >
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "2rem",
+            marginBottom: "2.5rem",
           }}
         >
           <h1
+            className="mb-4 mt-2 ms-5"
             style={{
-              color: "#001b66",
-              fontSize: "24px",
-              fontWeight: "600",
+              color: "#003399",
+              fontSize: "28px",
+              fontWeight: "700",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.6rem",
+              userSelect: "none",
             }}
           >
-            <i
-              className="bi bi-file-earmark-text-fill"
-              style={{ marginRight: "8px" }}
-            ></i>
+            {!isMobile && (
+              <i
+                className="bi bi-journal-bookmark-fill"
+                style={{ fontSize: "1.6rem" }}
+              ></i>
+            )}
             Teorik Sınav Oluştur
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                marginLeft: isMobile ? "auto" : "30px",
+                backgroundColor: "#001b66",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "6px 16px", // padding yatay biraz artırıldı
+                cursor: "pointer",
+                fontSize: "1rem",
+                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+              }}
+            >
+              Geri Dön
+            </button>
           </h1>
         </div>
 
@@ -537,6 +575,7 @@ export default function CreateTeoExam() {
               <p style={{ color: "red", fontWeight: "600" }}>Hata: {error}</p>
             ) : (
               <UserList
+                isMobile={isMobile}
                 users={users}
                 selectedUserIds={formData.userIds}
                 onUserToggle={handleUserCheckbox}
@@ -551,29 +590,18 @@ export default function CreateTeoExam() {
           </div>
 
           {/* Buton */}
+
           <button
             type="submit"
+            className="btn btn-primary mt-3"
             style={{
-              marginTop: "30px",
-              width: "100%",
-              padding: "14px",
-              fontSize: "17px",
-              backgroundColor: "#001b66",
-              color: "#fff",
-              border: "none",
-              borderRadius: "12px",
-              cursor: "pointer",
-              fontWeight: "700",
-              letterSpacing: "0.05em",
-              transition: "background-color 0.3s",
+              fontSize: "16px",
+              gridColumn: isMobile ? undefined : "1 / -1",
+              justifySelf: "center", // Ortalamak için start yerine center
+              width: isMobile ? "50%" : "150px", // Masaüstünde sabit, küçük genişlik
             }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "#003399")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "#001b66")
-            }
           >
+            {" "}
             Sınav Oluştur
           </button>
         </form>

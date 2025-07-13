@@ -20,6 +20,7 @@ const initialState = {
   userTeoResults: [],
   userImgResults: [],
   userResultDetail: {},
+  
   userEducationResultDetail: {},
   userEducationSetsResult: [],
   questionCategoryResult: {},

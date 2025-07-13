@@ -37,29 +37,29 @@ export default function CountdownTimer({ duration, onTimeUp, isPaused }) {
   return (
     <div
       style={{
-        fontSize: "1.2rem",
-        fontWeight: "700",
+        fontSize: "0.9rem", // küçültüldü
+        fontWeight: "600",
         color: remainingTime <= 30 ? "#ffebee" : "#c5cae9",
         background:
           remainingTime <= 30
-            ? "linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)" // alarm kırmızısı degrade
-            : "linear-gradient(135deg, #283593 0%, #3949ab 100%)", // lacivert degrade
-        padding: "0.75rem 1.5rem",
-        borderRadius: "14px",
-        marginBottom: "1rem",
+            ? "linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)"
+            : "linear-gradient(135deg, #283593 0%, #3949ab 100%)",
+        borderRadius: "10px", // biraz daha küçük
+        marginBottom: "0.5rem",
         boxShadow:
           remainingTime <= 30
-            ? "0 6px 16px rgba(211, 47, 47, 0.7)"
-            : "0 6px 16px rgba(40, 53, 147, 0.7)",
-        transition: "all 0.4s ease",
+            ? "0 4px 10px rgba(211, 47, 47, 0.6)"
+            : "0 4px 10px rgba(40, 53, 147, 0.6)",
+        transition: "all 0.3s ease",
         userSelect: "none",
         textAlign: "center",
         fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        letterSpacing: "0.04em",
+        letterSpacing: "0.03em",
         display: "inline-block",
-        minWidth: "280px",
+        minWidth: "200px", // küçültüldü
+        padding: "0.4rem 0.6rem", // eklendi, daha sıkı
         boxSizing: "border-box",
-        border: remainingTime <= 30 ? "2px solid #b71c1c" : "2px solid #1a237e",
+        border: remainingTime <= 30 ? "1px solid #b71c1c" : "1px solid #1a237e",
       }}
       aria-live="polite"
       role="timer"

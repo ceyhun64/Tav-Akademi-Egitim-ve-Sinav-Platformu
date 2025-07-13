@@ -12,6 +12,9 @@ axiosInstance.interceptors.request.use(
     const token = localStorage.getItem("token");
     const sessionId = localStorage.getItem("sessionId");
 
+
+    console.log("Token:", token);
+    console.log("Session ID:", sessionId);
     if (token) {
       config.headers["x-auth-token"] = token;
     }

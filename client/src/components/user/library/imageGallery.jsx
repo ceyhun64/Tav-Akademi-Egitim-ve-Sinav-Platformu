@@ -5,6 +5,28 @@ import {
   getImageGallerySubCategoryByCategoryThunk,
 } from "../../../features/thunks/imageGalleryCatThunk"; // Kategori thunkları
 import { useDispatch, useSelector } from "react-redux";
+
+const navButtonStyle = {
+  zIndex: 1051,
+  opacity: 0.6,
+  backgroundColor: "rgba(21, 95, 185, 0.65)",
+  border: "none",
+  borderRadius: "50%",
+  width: "40px",
+  height: "40px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  transition: "all 0.3s ease",
+  cursor: "pointer",
+};
+
+const navButtonHoverStyle = {
+  opacity: 1,
+  backgroundColor: "rgba(21, 3, 223, 0.74)",
+  boxShadow: "0 0 8px rgba(0,0,0,0.15)",
+};
+
 export default function ImageGallery() {
   const dispatch = useDispatch();
   const { galleries } = useSelector((state) => state.imageGallery);
@@ -81,11 +103,12 @@ export default function ImageGallery() {
         {/* Galeri Başlığı ve Filtre Alanı */}
         <div className="col-12 mb-4">
           <h2 className="fw-semibold">
-            <i className="bi bi-image me-2" /> Resim Galerileri
+            <i className="bi bi-image me-2" /> Görüntü Kütüphanesi
           </h2>
           <div className="d-flex flex-wrap gap-3 mt-3">
             <select
-              className="form-select w-auto"
+              className="form-select"
+              style={{ width: "200px" }}
               value={selectedCategoryId || ""}
               onChange={handleCategoryChange}
             >
@@ -100,7 +123,8 @@ export default function ImageGallery() {
             </select>
 
             <select
-              className="form-select w-auto"
+              className="form-select "
+              style={{ width: "200px" }}
               value={selectedSubCategoryId || ""}
               onChange={handleSubCategoryChange}
               disabled={!selectedCategoryId}
@@ -194,11 +218,25 @@ export default function ImageGallery() {
                 {prevGallery && (
                   <button
                     onClick={handlePrev}
-                    className="btn btn-primary position-absolute top-50 start-0 translate-middle-y"
-                    style={{ zIndex: 1051, opacity: 0.7 }}
+                    className="position-absolute top-50 start-0 translate-middle-y"
+                    style={navButtonStyle}
                     aria-label="Önceki Resim"
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity =
+                        navButtonHoverStyle.opacity;
+                      e.currentTarget.style.backgroundColor =
+                        navButtonHoverStyle.backgroundColor;
+                      e.currentTarget.style.boxShadow =
+                        navButtonHoverStyle.boxShadow;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = navButtonStyle.opacity;
+                      e.currentTarget.style.backgroundColor =
+                        navButtonStyle.backgroundColor;
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   >
-                    <i className="bi bi-chevron-left fs-1"></i>
+                    <i className="bi bi-chevron-left fs-5 text-white"></i>
                   </button>
                 )}
 
@@ -220,11 +258,25 @@ export default function ImageGallery() {
                 {nextGallery && (
                   <button
                     onClick={handleNext}
-                    className="btn btn-primary position-absolute top-50 end-0 translate-middle-y"
-                    style={{ zIndex: 1051, opacity: 0.7 }}
+                    className="position-absolute top-50 end-0 translate-middle-y"
+                    style={navButtonStyle}
                     aria-label="Sonraki Resim"
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity =
+                        navButtonHoverStyle.opacity;
+                      e.currentTarget.style.backgroundColor =
+                        navButtonHoverStyle.backgroundColor;
+                      e.currentTarget.style.boxShadow =
+                        navButtonHoverStyle.boxShadow;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = navButtonStyle.opacity;
+                      e.currentTarget.style.backgroundColor =
+                        navButtonStyle.backgroundColor;
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
                   >
-                    <i className="bi bi-chevron-right fs-1"></i>
+                    <i className="bi bi-chevron-right fs-5 text-white"></i>
                   </button>
                 )}
 

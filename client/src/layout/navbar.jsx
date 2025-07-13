@@ -64,7 +64,7 @@ export default function Navbar() {
           <img
             src={logo}
             alt="Tav Güvenlik Hizmetleri"
-            style={{ height: "80px", marginRight: "20px" }}
+            style={{ height: "60px", marginRight: "20px" }}
           />
           <span
             className="fw-bold text-primary text-uppercase"
@@ -134,6 +134,7 @@ export default function Navbar() {
                   aria-haspopup="true"
                   aria-expanded={dropdownOpen}
                   onClick={() => setDropdownOpen(!dropdownOpen)}
+                  style={{ width: "120px" }} // ← burası önemli!
                 >
                   Giriş Yap
                 </button>
@@ -145,6 +146,7 @@ export default function Navbar() {
                     <button
                       className="dropdown-item"
                       onClick={() => handleLoginTypeSelect("personel")}
+                      style={{ width: "120px" }} // ← burası önemli!
                     >
                       Personel Girişi
                     </button>
@@ -153,6 +155,7 @@ export default function Navbar() {
                     <button
                       className="dropdown-item"
                       onClick={() => handleLoginTypeSelect("yonetici")}
+                      style={{ width: "120px" }} // ← burası önemli!
                     >
                       Yönetici Girişi
                     </button>

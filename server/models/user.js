@@ -47,6 +47,7 @@ const User = sequelize.define(
     roleId: {
       type: DataTypes.INTEGER,
       allowNull: true,
+      defaultValue: 4,
     },
 
     is2FAEnabled: {
@@ -69,7 +70,7 @@ User.prototype.createAuthToken = function () {
 
   // jwt.sign fonksiyonunun ikinci parametresi olarak expiresIn'ı geçiyoruz
   return jwt.sign(
-    { id: this.id, isAdmin: this.isAdmin, name: this.name }, // Payload
+    { id: this.id, roleId: this.roleId, kullanici_adi: this.kullanici_adi },
     jwtPrivateKey, // Gizli anahtar
     { expiresIn } // Token süresi
   );

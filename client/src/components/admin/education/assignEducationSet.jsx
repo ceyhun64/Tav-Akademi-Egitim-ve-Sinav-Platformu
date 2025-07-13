@@ -56,60 +56,82 @@ export default function AssignEducationSet() {
       alert("Atama sırasında bir hata oluştu.");
     }
   };
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300;
   return (
-    <div className="poolteo-container" style={{ display: "flex" }}>
+    <div
+      className="poolImg-container"
+      style={{ overflowX: "hidden", padding: "1rem" }}
+    >
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
           padding: "1rem",
           position: "fixed",
           left: 0,
           top: 0,
-          backgroundColor: "#001b66",
+          backgroundColor: "white",
           color: "#fff",
           boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
-          zIndex: 10,
+          zIndex: 99999,
         }}
       >
         <Sidebar />
-      </div>{" "}
-      {/* Main Content */}
+      </div>
+
+      {/* Ana İçerik */}
       <div
-        style={{
-          marginLeft: "260px",
-          padding: "2rem",
-          backgroundColor: "#f8f9fc",
-          minHeight: "100vh",
-          flex: 1,
-        }}
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
       >
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "2rem",
+            marginBottom: "2.5rem",
           }}
         >
-          <h2
+          <h1
+            className=" mt-2 ms-5"
             style={{
-              color: "#001b66",
-              fontSize: "24px",
-              fontWeight: "600",
+              color: "#003399",
+              fontSize: "28px",
+              fontWeight: "700",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.6rem",
+              userSelect: "none",
             }}
           >
-            <i
-              className="bi bi-arrow-right-square-fill"
-              style={{ marginRight: "8px" }}
-            ></i>
+            {!isMobile && (
+              <i
+                className="bi bi-journal-bookmark-fill"
+                style={{ fontSize: "1.6rem" }}
+              ></i>
+            )}
             Eğitim Seti Ata
-          </h2>
+          </h1>
         </div>
-
         <form
           onSubmit={handleSubmit}
           style={{
@@ -159,7 +181,6 @@ export default function AssignEducationSet() {
           <div
             className=" mb-4"
             style={{
-              padding: "20px",
               borderRadius: "12px",
             }}
           >
@@ -231,7 +252,7 @@ export default function AssignEducationSet() {
             </div>
           </div>
 
-          {/* Kullanıcı Listesi */}
+          {/* Kullanıcılar */}
           <div
             style={{
               backgroundColor: "#fff",
@@ -239,7 +260,6 @@ export default function AssignEducationSet() {
               padding: "20px",
               boxShadow: "0 6px 15px rgba(0, 27, 102, 0.1)",
               marginTop: "30px",
-              marginBottom: "20px",
             }}
           >
             <h5
@@ -248,15 +268,16 @@ export default function AssignEducationSet() {
                 marginBottom: "20px",
                 fontWeight: "700",
                 fontSize: "18px",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
               }}
             >
-              <i className="bi bi-people-fill"></i>
-              Kullanıcı Seçimi *
+              <i
+                className="bi bi-people-fill"
+                style={{ marginRight: "8px" }}
+              ></i>
+              Kullanıcılar
             </h5>
             <UserList
+              isMobile={isMobile}
               users={users}
               selectedUserIds={formData.userIds}
               onUserToggle={(userId) =>

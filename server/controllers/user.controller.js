@@ -6,6 +6,7 @@ exports.update_user_details = async (req, res) => {
   try {
     // Gelen form verileri
     const { id } = req.params;
+    const userId = id;
     const {
       tcno,
       sicil,
@@ -27,19 +28,6 @@ exports.update_user_details = async (req, res) => {
     // Zorunlu kontroller
     if (!tcno || !sicil || !ad || !soyad || !kullanici_adi || !email) {
       return res.status(400).json({ message: "Zorunlu alanlar eksik." });
-    }
-
-    // Benzersiz alanlar kontrolü: Kendi kaydımız hariç çakışma varsa hata
-    const conflict = await User.findOne({
-      where: {
-        id,
-        [Op.or]: [{ email }, { kullanici_adi }, { tcno }, { sicil }],
-      },
-    });
-    if (conflict) {
-      return res.status(400).json({
-        message: "Email, kullanıcı adı, TC no veya sicil zaten kullanılıyor.",
-      });
     }
 
     // Güncellenecek alanları bir objede toplayın

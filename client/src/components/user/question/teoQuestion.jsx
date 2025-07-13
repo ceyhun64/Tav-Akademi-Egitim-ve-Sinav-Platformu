@@ -8,6 +8,7 @@ import {
 import CountdownTimer from "./timer/teoTimer";
 import AnswerSummary from "./summary/answerSummary";
 import ExamSecurityHandler from "./examSecurity";
+import "./TeoQuestion.css";
 
 const overlayStyle = {
   position: "fixed",
@@ -36,7 +37,7 @@ const containerStyle = {
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
-  padding: "2rem",
+  padding: "0.2rem",
   boxSizing: "border-box",
   backgroundImage: "linear-gradient(to right, #f0f4f8, #e0e7ee)",
 };
@@ -54,6 +55,8 @@ export default function TeoQuestion() {
   const { teoQuestions, duration, name } = useSelector(
     (state) => state.question
   );
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [entryDate, setEntryDate] = useState(null);
@@ -85,6 +88,17 @@ export default function TeoQuestion() {
       elem.msRequestFullscreen();
     }
   };
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   useEffect(() => {
     const timer = setTimeout(() => {
       requestFullscreen();
@@ -423,7 +437,7 @@ export default function TeoQuestion() {
           !examEnded && (
             <div className="row">
               {/* Soru Kartı */}
-              <div className="col-lg-9 mb-4 shadow-sm border-0">
+              <div className="col-lg-9 mb-4 shadow-sm border-0 question-card-wrapper">
                 <div className="card shadow-sm border-0 h-100 d-flex flex-column">
                   <div
                     className="card-header bg-white d-flex justify-content-between align-items-center border-bottom"
@@ -459,7 +473,14 @@ export default function TeoQuestion() {
                       dangerouslySetInnerHTML={{ __html: q?.question }}
                     ></h5>
 
-                    <div className="list-group">
+                    <div
+                      className="list-group"
+                      style={{
+                        width: "100%", // tam genişlik masaüstünde
+                        maxWidth: isMobile ? 600 : "100%", // mobilde max 600, masaüstü tam
+                        margin: "auto",
+                      }}
+                    >
                       {["a", "b", "c", "d", "e"]
                         .map((opt) => ({ key: opt, text: q?.[opt] }))
                         .filter(({ text }) => text != null)
@@ -468,17 +489,58 @@ export default function TeoQuestion() {
                           return (
                             <button
                               key={key}
-                              className={`list-group-item list-group-item-action d-flex align-items-center ${
-                                isSelected ? "active border border-primary" : ""
-                              }`}
+                              // Butonun kendisi seçili renkte değil, border koyabiliriz
+                              className="list-group-item d-flex align-items-center border"
                               onClick={() =>
                                 handleAnswerChange(Number(q.id), key)
                               }
+                              style={{
+                                padding: "0.5rem",
+                                cursor: "pointer",
+                                userSelect: "none",
+                                borderRadius: 8,
+                                marginBottom: 8,
+                                justifyContent: "flex-start",
+                                gap: 12,
+                                width: "100%", // tam genişlik
+                              }}
                             >
-                              <span className="me-2 fw-bold text-uppercase">
-                                {key}:
-                              </span>
-                              {text}
+                              {/* Sadece soldaki harf seçili */}
+                              <div
+                                style={{
+                                  minWidth: 40,
+                                  height: 40,
+                                  backgroundColor: isSelected
+                                    ? "#001b66"
+                                    : "#e2e8f0",
+                                  color: isSelected ? "white" : "#001b66",
+                                  fontWeight: "bold",
+                                  fontSize: 18,
+                                  borderRadius: 8,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  flexShrink: 0,
+                                  userSelect: "none",
+                                  transition: "background-color 0.3s ease",
+                                }}
+                                title={`Şık ${key.toUpperCase()}`}
+                              >
+                                {key.toUpperCase()}
+                              </div>
+
+                              {/* Sağdaki metin */}
+                              <div
+                                style={{
+                                  flex: 1,
+                                  fontSize: 16,
+                                  color: "#333", // seçili olsa da değişmesin
+                                  userSelect: "none",
+                                  textAlign: "left",
+                                }}
+                              >
+                                {text}
+                              </div>
                             </button>
                           );
                         })}
@@ -487,7 +549,7 @@ export default function TeoQuestion() {
 
                   {/* Navigasyon ve Kod */}
                   <div className="card-footer d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 bg-light border-top">
-                    <div className="d-flex gap-2">
+                    <div className="navigation-buttons">
                       <button
                         className="btn btn-outline-secondary"
                         onClick={handlePrev}
@@ -497,7 +559,7 @@ export default function TeoQuestion() {
                         Önceki
                       </button>
                       <button
-                        className="btn btn-outline-primary"
+                        className="btn btn-outline-primary ms-5"
                         onClick={handleNext}
                         disabled={currentIndex === teoQuestions.length - 1}
                       >
@@ -565,8 +627,9 @@ export default function TeoQuestion() {
               <div className="col-lg-3 position-relative">
                 {/* Zamanlayıcı - Sağ üst sabit */}
                 <div
+                  className="timer-top-mobile"
                   style={{
-                    top: "30px",
+                    top: "10px",
                     right: "10px",
                   }}
                 >
@@ -579,11 +642,11 @@ export default function TeoQuestion() {
 
                 {/* Cevap Özeti Kartı */}
                 <div
-                  className="card shadow-sm rounded-4 p-3 d-flex flex-column align-items-center"
+                  className="card shadow-sm rounded-4 p-3 d-flex flex-column align-items-center d-none d-lg-flex"
                   style={{
                     maxHeight: "2000px",
                     overflowY: "auto",
-                    height: "360px",
+                    height: "500px",
                   }}
                 >
                   <div className="d-flex align-items-center gap-2 mb-3">

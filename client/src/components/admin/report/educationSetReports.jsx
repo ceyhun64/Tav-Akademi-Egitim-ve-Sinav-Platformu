@@ -12,12 +12,15 @@ import {
 } from "../../../features/thunks/grpInstThunk";
 
 export default function EducationSetReports() {
-  const { userEducationSetsResult } = useSelector((state) => state.report);
-  const { groups, institutions } = useSelector((state) => state.grpInst);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { userEducationSetsResult } = useSelector((state) => state.report);
+  const { groups, institutions } = useSelector((state) => state.grpInst);
 
   // Filtreler
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [filterLokasyon, setFilterLokasyon] = useState("");
   const [filterGrup, setFilterGrup] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -36,35 +39,13 @@ export default function EducationSetReports() {
     dispatch(getInstitutionsThunk());
   }, [dispatch]);
 
-  const lokasyonlar = useMemo(() => {
-    if (!userEducationSetsResult?.data) return [];
-    return Array.from(
-      new Set(
-        userEducationSetsResult.data
-          .map((item) => item.user?.lokasyon)
-          .filter(Boolean)
-      )
-    );
-  }, [userEducationSetsResult]);
-
-  const gruplar = useMemo(() => {
-    if (!userEducationSetsResult?.data) return [];
-    return Array.from(
-      new Set(
-        userEducationSetsResult.data
-          .map((item) => item.user?.grup)
-          .filter(Boolean)
-      )
-    );
-  }, [userEducationSetsResult]);
-
+ 
   const filteredData = useMemo(() => {
     if (!userEducationSetsResult?.data) return [];
 
     return userEducationSetsResult.data.filter((item) => {
       const user = item.user || {};
 
-      // Burada grup ve lokasyon id'lerine göre kontrol
       if (filterLokasyon && user.lokasyonId !== Number(filterLokasyon))
         return false;
       if (filterGrup && user.grupId !== Number(filterGrup)) return false;
@@ -86,7 +67,6 @@ export default function EducationSetReports() {
           return false;
         }
       }
-
       return true;
     });
   }, [
@@ -150,44 +130,51 @@ export default function EducationSetReports() {
     }
   };
 
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300;
+  if (!userEducationSetsResult || !userEducationSetsResult.data) {
+    return <div>Yükleniyor...</div>;
+  }
   return (
     <div
-      className="poolteo-container"
-      style={{
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        overflowX: "hidden", // yatay kaymayı engeller
-      }}
+      className="poolImg-container"
+      style={{ overflowX: "hidden", padding: "1rem" }}
     >
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
-          padding: "1.5rem 1.2rem",
+          padding: "1rem",
           position: "fixed",
           left: 0,
           top: 0,
-          backgroundColor: "#003399", // biraz daha canlı mavi
+          backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 12px rgba(0, 0, 0, 0.25)",
+          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
-          zIndex: 10,
-          borderRadius: "0 12px 12px 0",
+          zIndex: 99999,
         }}
       >
         <Sidebar />
       </div>
 
-      {/* Main Content */}
+      {/* Ana İçerik */}
       <div
-        style={{
-          marginLeft: "260px",
-          padding: "2.5rem 3rem",
-          backgroundColor: "#f4f6fc",
-          minHeight: "100vh",
-          transition: "margin-left 0.3s ease",
-          color: "#222",
-        }}
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
       >
         <div
           style={{
@@ -198,6 +185,7 @@ export default function EducationSetReports() {
           }}
         >
           <h1
+            className="mb-4 mt-2 ms-5"
             style={{
               color: "#003399",
               fontSize: "28px",
@@ -208,11 +196,29 @@ export default function EducationSetReports() {
               userSelect: "none",
             }}
           >
-            <i
-              className="bi bi-clipboard-check-fill"
-              style={{ fontSize: "1.6rem" }}
-            ></i>
-            Eğitim Seti Sonuçları
+            {!isMobile && (
+              <i
+                className="bi bi-journal-bookmark-fill"
+                style={{ fontSize: "1.6rem" }}
+              ></i>
+            )}
+            Uygulamalı Sınav Sonuçları
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                marginLeft: isMobile ? "auto" : "30px",
+                backgroundColor: "#001b66",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "6px 16px", // padding yatay biraz artırıldı
+                cursor: "pointer",
+                fontSize: "1rem",
+                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+              }}
+            >
+              Geri Dön
+            </button>
           </h1>
         </div>
         {/* Filtreleme inputları */}
@@ -341,66 +347,84 @@ export default function EducationSetReports() {
             className="table-responsive"
             style={{
               borderRadius: "16px",
-              overflow: "auto",
-              maxWidth: "1200px",
+              overflowX: "hidden",
+              maxWidth: "100%",
               maxHeight: "800px",
               boxShadow: "0 4px 20px rgb(0 0 0 / 0.07)",
               backgroundColor: "#fff",
               border: "1px solid #e2e8f0",
-              padding: "12px",
+              padding: "8px",
             }}
           >
             <table
               className="table align-middle table-hover"
               style={{
                 borderCollapse: "separate",
-                borderSpacing: "0 8px",
-                minWidth: "1100px",
+                borderSpacing: "0 6px",
+                width: "100%",
+                fontSize: "12px",
                 userSelect: "none",
-                textAlign: "center",
+                tableLayout: "fixed",
               }}
             >
               <thead
                 style={{ backgroundColor: "#e9f1ff", borderRadius: "12px" }}
               >
                 <tr
-                  style={{ fontWeight: "600", color: "#334155" }}
                   className="text-center align-middle"
+                  style={{ fontWeight: "600", color: "#334155" }}
                 >
-                  <th style={{ width: "40px" }}>
-                    <input
-                      type="checkbox"
-                      checked={
-                        selectedIds.length === filteredData.length &&
-                        filteredData.length > 0
-                      }
-                      onChange={handleSelectAll}
-                      style={{ cursor: "pointer" }}
-                    />
-                  </th>
-                  {[
-                    "Lokasyon",
-                    "Grup",
-                    "Sicil",
-                    "Ad",
-                    "Soyad",
-                    "Eğitim Seti Adı",
-                    "Başlangıç Tarihi",
-                    "Bitiş Tarihi",
-                    "Başlangıç Saati",
-                    "Bitiş Saati",
-                    "Tamamlandı mı?",
-                    "Teorik Sınav Puanı",
-                    "Görüntü Sınav Puanı",
-                  ].map((header, i) => (
-                    <th
-                      key={i}
-                      style={{ whiteSpace: "nowrap", padding: "12px 8px" }}
-                      className="text-center"
-                    >
-                      {header}
+                  {!isMobile && (
+                    <th style={{ width: "30px", padding: "6px 4px" }}>
+                      <input
+                        type="checkbox"
+                        checked={
+                          selectedIds.length === filteredData.length &&
+                          filteredData.length > 0
+                        }
+                        onChange={handleSelectAll}
+                        style={{ cursor: "pointer", transform: "scale(0.8)" }}
+                      />
                     </th>
-                  ))}
+                  )}
+
+                  {isMobile ? (
+                    <>
+                      <th style={{ padding: "6px 8px" }}>Ad</th>
+                      <th style={{ padding: "6px 8px" }}>Soyad</th>
+                      <th style={{ padding: "6px 8px" }}>Puan</th>
+                    </>
+                  ) : (
+                    [
+                      "Lokasyon",
+                      "Grup",
+                      "Sicil",
+                      "Ad",
+                      "Soyad",
+                      "Eğitim Seti Adı",
+                      "Başlangıç Tarihi",
+                      "Bitiş Tarihi",
+                      "Başlangıç Saati",
+                      "Bitiş Saati",
+                      "Tamamlandı mı?",
+                      "Teorik Sınav Puanı",
+                      "Görüntü Sınav Puanı",
+                    ].map((header, i) => (
+                      <th
+                        key={i}
+                        className="text-center"
+                        style={{
+                          whiteSpace: "nowrap",
+                          padding: "6px 8px",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                        title={header}
+                      >
+                        {header}
+                      </th>
+                    ))
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -408,24 +432,21 @@ export default function EducationSetReports() {
                   filteredData.map((item, index) => {
                     const uniqueId = `${item.userId}-${item.educationSetId}`;
                     const isSelected = selectedIds.includes(uniqueId);
+                    const user = item.user || {};
 
                     return (
                       <tr
                         key={index}
-                        className={
-                          isSelected
-                            ? "table-warning cursor-pointer"
-                            : "cursor-pointer"
-                        }
+                        className="cursor-pointer"
                         onClick={() =>
                           handleRowClick(item.userId, item.educationSetId)
                         }
                         style={{
-                          userSelect: "none",
                           backgroundColor: "#fff",
                           boxShadow: "0 2px 6px rgb(0 0 0 / 0.05)",
                           borderRadius: "10px",
                           transition: "background-color 0.2s ease",
+                          fontSize: "12px",
                         }}
                         onMouseEnter={(e) =>
                           (e.currentTarget.style.backgroundColor = "#f0f4ff")
@@ -434,68 +455,93 @@ export default function EducationSetReports() {
                           (e.currentTarget.style.backgroundColor = "#fff")
                         }
                       >
-                        <td
-                          onClick={(e) => e.stopPropagation()}
-                          style={{ textAlign: "center" }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              handleCheckboxChange(uniqueId);
-                            }}
-                            style={{ cursor: "pointer" }}
-                          />
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                          {institutions.find(
-                            (inst) => inst.id === item.user?.lokasyonId
-                          )?.name || "-"}
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                          {groups.find((grp) => grp.id === item.user?.grupId)
-                            ?.name || "-"}
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                          {item.user?.sicil || "-"}
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                          {item.user?.ad || "-"}
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                          {item.user?.soyad || "-"}
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                          {item.educationSet?.name || "-"}
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                          {item.start_date || "-"}
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                          {item.finish_date || "-"}
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                          {item.start_time || "-"}
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                          {item.finish_time || "-"}
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                          {item.finished ? "Evet" : "Hayır"}
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                          {item.exam_theoretical_score || "-"}
-                        </td>
-                        <td style={{ textAlign: "center" }}>
-                          {item.exam_video_score || "-"}
-                        </td>
+                        {!isMobile && (
+                          <td
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ textAlign: "center", padding: "6px 4px" }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                handleCheckboxChange(uniqueId);
+                              }}
+                              style={{
+                                cursor: "pointer",
+                                transform: "scale(0.8)",
+                              }}
+                            />
+                          </td>
+                        )}
+
+                        {isMobile ? (
+                          <>
+                            <td style={{ textAlign: "center" }}>
+                              {user.ad || user.kullanici_adi || "-"}
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              {user.soyad || "-"}
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              {item.exam_theoretical_score ?? "-"}
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td style={{ textAlign: "center" }}>
+                              {institutions.find(
+                                (inst) => inst.id === user.lokasyonId
+                              )?.name || "-"}
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              {groups.find((grp) => grp.id === user.grupId)
+                                ?.name || "-"}
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              {user.sicil || "-"}
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              {user.ad || "-"}
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              {user.soyad || "-"}
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              {item.educationSet?.name || "-"}
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              {item.start_date || "-"}
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              {item.finish_date || "-"}
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              {item.start_time || "-"}
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              {item.finish_time || "-"}
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              {item.finished ? "Evet" : "Hayır"}
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              {item.exam_theoretical_score ?? "-"}
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              {item.exam_video_score ?? "-"}
+                            </td>
+                          </>
+                        )}
                       </tr>
                     );
                   })
                 ) : (
                   <tr>
-                    <td colSpan="14" style={{ textAlign: "center" }}>
+                    <td
+                      colSpan={isMobile ? 3 : 14}
+                      style={{ textAlign: "center" }}
+                    >
                       Veri bulunamadı
                     </td>
                   </tr>

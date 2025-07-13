@@ -14,6 +14,17 @@ export default function QuestionCategory() {
 
   const data = questionCategoryResult?.data || [];
 
+  // Toplam değerleri hesapla
+  const totalCorrect = data.reduce(
+    (sum, item) => sum + (item.correctCount ?? 0),
+    0
+  );
+  const totalIncorrect = data.reduce(
+    (sum, item) => sum + (item.incorrectCount ?? 0),
+    0
+  );
+  const totalQuestions = totalCorrect + totalIncorrect;
+
   return (
     <div className="container my-5" style={{ maxWidth: 700 }}>
       {data.length > 0 ? (
@@ -28,10 +39,13 @@ export default function QuestionCategory() {
               <tr>
                 <th style={{ padding: "0.75rem" }}>Kategori Adı</th>
                 <th className="text-center" style={{ padding: "0.75rem" }}>
-                  Doğru Sayısı
+                  Doğru
                 </th>
                 <th className="text-center" style={{ padding: "0.75rem" }}>
-                  Yanlış Sayısı
+                  Yanlış
+                </th>
+                <th className="text-center" style={{ padding: "0.75rem" }}>
+                  Toplam Soru
                 </th>
               </tr>
             </thead>
@@ -42,24 +56,62 @@ export default function QuestionCategory() {
                   categoryName,
                   correctCount,
                   incorrectCount,
-                }) => (
-                  <tr key={questionCategoryId}>
-                    <td style={{ verticalAlign: "middle" }}>{categoryName}</td>
-                    <td
-                      className="text-center fw-semibold"
-                      style={{ color: "#28a745", verticalAlign: "middle" }}
-                    >
-                      {correctCount}
-                    </td>
-                    <td
-                      className="text-center fw-semibold"
-                      style={{ color: "#dc3545", verticalAlign: "middle" }}
-                    >
-                      {incorrectCount}
-                    </td>
-                  </tr>
-                )
+                }) => {
+                  const total = (correctCount ?? 0) + (incorrectCount ?? 0);
+                  return (
+                    <tr key={questionCategoryId}>
+                      <td style={{ verticalAlign: "middle" }}>
+                        {categoryName}
+                      </td>
+                      <td
+                        className="text-center fw-semibold"
+                        style={{ color: "#28a745", verticalAlign: "middle" }}
+                      >
+                        {correctCount}
+                      </td>
+                      <td
+                        className="text-center fw-semibold"
+                        style={{ color: "#dc3545", verticalAlign: "middle" }}
+                      >
+                        {incorrectCount}
+                      </td>
+                      <td
+                        className="text-center fw-semibold"
+                        style={{ color: "#003399", verticalAlign: "middle" }}
+                      >
+                        {total}
+                      </td>
+                    </tr>
+                  );
+                }
               )}
+              {/* Toplam satırı */}
+              <tr
+                style={{
+                  backgroundColor: "#e9ecef",
+                  fontWeight: "700",
+                }}
+              >
+                <td style={{ verticalAlign: "middle" }}>Toplam</td>
+                <td
+                  className="text-center"
+                  style={{ color: "#28a745", verticalAlign: "middle" }}
+                >
+                  {totalCorrect}
+                </td>
+                <td
+                  className="text-center"
+                  style={{ color: "#dc3545", verticalAlign: "middle" }}
+                >
+                  {totalIncorrect}
+                </td>
+                <td
+                  className="text-center"
+                  style={{ color: "#003399", verticalAlign: "middle" }}
+                >
+                  {totalQuestions}
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>

@@ -56,12 +56,11 @@ const containerStyle = {
   display: "flex",
   justifyContent: "center",
   // alignItems: "flex-start",  // ortalamak yerine yukarı hizalama yapalım
-  padding: "2rem 1rem", // sağ-sol padding azalttım mobil uyum için
+  padding: "2rem 0 0 0", // sadece üst padding, sağ-sol kaldırıldı
   boxSizing: "border-box",
   background: "white", // Hafif mavi-gri gradient
   overflowY: "auto", // taşarsa kaydırma olsun
 };
-
 const contentWrapperStyle = {
   maxWidth: "1600px",
   width: "100%",
@@ -271,9 +270,9 @@ export default function BothImgQuestion() {
     blackwhite: bw,
     edgeenhancement: sen,
     bluefilter: o2,
+    orangefilter: os,
     highintensity: hi,
     transparency,
-    orangefilter: os,
   };
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -281,6 +280,19 @@ export default function BothImgQuestion() {
   useEffect(() => {
     dispatch(getBothQuestionsImgThunk(examId));
   }, [dispatch, examId]);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const handleImageClick = (e) => {
     const rect = e.target.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -441,30 +453,6 @@ export default function BothImgQuestion() {
             }}
           />
         );
-      case "highintensity":
-        return (
-          <HighIntensityCanvas
-            src={q.image}
-            {...commonProps}
-            onCanvasLoad={({ width, height }) => {
-              setImageSizes((prev) => {
-                const prevSize = prev[q.id];
-                // Eğer ölçüler zaten aynıysa güncelleme
-                if (
-                  prevSize &&
-                  prevSize.width === width &&
-                  prevSize.height === height
-                ) {
-                  return prev;
-                }
-                return {
-                  ...prev,
-                  [q.id]: { width, height },
-                };
-              });
-            }}
-          />
-        );
       case "orangefilter":
         return (
           <OrangeFilterCanvas
@@ -489,6 +477,31 @@ export default function BothImgQuestion() {
             }}
           />
         );
+      case "highintensity":
+        return (
+          <HighIntensityCanvas
+            src={q.image}
+            {...commonProps}
+            onCanvasLoad={({ width, height }) => {
+              setImageSizes((prev) => {
+                const prevSize = prev[q.id];
+                // Eğer ölçüler zaten aynıysa güncelleme
+                if (
+                  prevSize &&
+                  prevSize.width === width &&
+                  prevSize.height === height
+                ) {
+                  return prev;
+                }
+                return {
+                  ...prev,
+                  [q.id]: { width, height },
+                };
+              });
+            }}
+          />
+        );
+
       default:
         return (
           <img
@@ -616,38 +629,45 @@ export default function BothImgQuestion() {
   return (
     <div>
       {!isExamStarted ? (
-        <button
-          onClick={handleStartExam}
+        <div
           style={{
+            display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            marginTop: "24rem",
-            margin: "2rem auto",
-            padding: "1rem 2.5rem",
-            fontSize: "1.2rem",
-            fontWeight: "600",
-            color: "#fff",
-            background: "linear-gradient(45deg, #004aad, #32cd99)",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-            boxShadow: "0 4px 15px rgba(50, 205, 153, 0.5)",
-            transition: "background 0.3s ease, transform 0.2s ease",
+            height: "100vh", // Sayfa yüksekliğini kaplayarak dikey ortalama sağlar
+            width: "100%",
           }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.transform = "scale(1.05)")
-          }
-          onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
         >
-          Uygulama Sınavına Başla
-        </button>
+          <button
+            onClick={handleStartExam}
+            style={{
+              padding: "1rem 2.5rem",
+              fontSize: "1.2rem",
+              fontWeight: "600",
+              color: "#fff",
+              background: "linear-gradient(45deg, #004aad, #32cd99)",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              boxShadow: "0 4px 15px rgba(50, 205, 153, 0.5)",
+              transition: "background 0.3s ease, transform 0.2s ease",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.transform = "scale(1.05)")
+            }
+            onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+          >
+            Uygulama Sınavına Başla
+          </button>
+        </div>
       ) : (
         <div style={containerStyle} ref={examContainerRef}>
           <div style={contentWrapperStyle}>
             <div className="row justify-content-center">
               {/* Sol: Filtre Butonları */}
-              <div className="col-lg-1 mb-4">
-                <div className="d-flex flex-column gap-3">
+              {/* Sol: Filtre Butonları */}
+              <div className="col-12 col-lg-1 mb-1 mb-lg-0 filter-column">
+                <div className="d-none d-lg-flex flex-column gap-3 align-items-center">
                   <FilterButtons
                     filters={filters}
                     activeFilter={activeFilter}
@@ -659,7 +679,7 @@ export default function BothImgQuestion() {
                     className="btn"
                     style={{
                       backgroundColor: "white",
-                      border: "2px solid #001b66", // Eklendi
+                      border: "2px solid #001b66",
                       padding: "8px",
                       borderRadius: "6px",
                       display: "inline-flex",
@@ -668,7 +688,7 @@ export default function BothImgQuestion() {
                       cursor: "pointer",
                       transition: "background-color 0.3s, border-color 0.3s",
                       fontSize: "1.25rem",
-                      color: "#001b66", // İkon rengiyle uyumlu hale getirildi
+                      color: "#001b66",
                     }}
                   >
                     <i
@@ -678,7 +698,6 @@ export default function BothImgQuestion() {
                   </button>
                 </div>
               </div>
-
               {/* Uyarılar */}
               {(showUnansweredWarning ||
                 (isPaused && !examEnded) ||
@@ -760,9 +779,8 @@ export default function BothImgQuestion() {
                   </div>
                 </div>
               )}
-
-              {/* Orta: Resim ve Şıklar */}
-              <div className="col-lg-7 mb-4">
+              {/* orta resim ve şıklar */}
+              <div className="col-lg-7 mb-2 image-column">
                 <div className="card shadow rounded-4 p-4 position-relative">
                   {/* Başlık */}
                   <div className="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
@@ -778,7 +796,7 @@ export default function BothImgQuestion() {
 
                   {/* ImageMarker */}
                   {!examEnded && q?.image && (
-                    <div className="text-center mb-4">
+                    <div className="text-center mb-2">
                       <ImageMarker
                         src={q.image}
                         selectedCoordinate={selectedCoordinates[q.id]}
@@ -839,6 +857,23 @@ export default function BothImgQuestion() {
                           </div>
                         )}
                       </ImageMarker>
+                      <div className="d-flex d-lg-none justify-content-between align-items-center my-3 px-2">
+                        <div
+                          style={{
+                            display: "flex",
+                            overflowX: "auto",
+                            gap: 8,
+                            flex: 1,
+                          }}
+                        >
+                          <FilterButtons
+                            filters={filters}
+                            activeFilter={activeFilter}
+                            setActiveFilter={setActiveFilter}
+                          />
+                        </div>
+                      </div>
+
                       {showSelectAnswerWarning && (
                         <div style={overlayStyle}>
                           <div
@@ -867,6 +902,7 @@ export default function BothImgQuestion() {
                           </div>
                         </div>
                       )}
+
                       {modalOpen && (
                         <FullscreenModal onClose={closeModal}>
                           {renderImage(true)}
@@ -889,12 +925,15 @@ export default function BothImgQuestion() {
 
                   {/* Soru Metni */}
                   <h5
-                    className="mb-4 p-3 border rounded bg-white"
+                    className="mb-2 border rounded bg-white p-0 p-lg-3"
                     dangerouslySetInnerHTML={{ __html: q?.question }}
                   ></h5>
 
                   {/* Şıklar Grid Şeklinde */}
-                  <div className="row g-2">
+                  <div
+                    className="row g-2"
+                    style={{ maxWidth: "100%", margin: "auto" }}
+                  >
                     {["a", "b", "c", "d", "e", "f"]
                       .map((opt) => ({ key: opt, text: q?.[opt] }))
                       .filter(({ text }) => text != null)
@@ -906,20 +945,32 @@ export default function BothImgQuestion() {
                               onClick={() =>
                                 handleAnswerChange(Number(q.id), key)
                               }
-                              className="list-group-item list-group-item-action d-flex align-items-center w-100"
+                              className="list-group-item d-flex align-items-center border"
                               style={{
-                                borderRadius: "10px",
-                                border: isSelected
-                                  ? "2px solid #001b66"
-                                  : "1.5px solid #ced4da",
-                                backgroundColor: isSelected
-                                  ? "#001b66"
-                                  : "#ffffff",
-                                color: isSelected ? "#ffffff" : "#001b66",
-                                fontWeight: 700,
-                                transition: "all 0.3s ease",
+                                padding: "0.5rem",
                                 cursor: "pointer",
-                                padding: "10px 15px", // padding eklendi
+                                userSelect: "none",
+                                borderRadius: 8,
+                                justifyContent: "flex-start",
+                                gap: 12,
+                                width: "100%", // tam genişlik
+                                display: "flex",
+                                flexDirection: "row",
+                                alignItems: "center",
+                                borderColor: "#ced4da",
+                                backgroundColor: "#ffffff",
+                                color: "#001b66",
+                                fontWeight:
+                                  window.innerWidth >= 992 ? 700 : 300,
+                                transition: "all 0.3s ease",
+                                paddingTop:
+                                  window.innerWidth >= 992
+                                    ? "0.5rem"
+                                    : "0.5rem",
+                                paddingBottom:
+                                  window.innerWidth >= 992
+                                    ? "0.5rem"
+                                    : "0.5rem",
                               }}
                               onMouseEnter={(e) => {
                                 if (!isSelected) {
@@ -938,10 +989,43 @@ export default function BothImgQuestion() {
                                 }
                               }}
                             >
-                              <span className="me-2 fw-bold text-uppercase">
-                                {key}:
-                              </span>
-                              {text}
+                              {/* Soldaki harf kutusu - sadece burada renk değişimi */}
+                              <div
+                                style={{
+                                  minWidth: 40,
+                                  height: 40,
+                                  backgroundColor: isSelected
+                                    ? "#001b66"
+                                    : "#e2e8f0",
+                                  color: isSelected ? "white" : "#001b66",
+                                  fontWeight: "bold",
+                                  fontSize: 18,
+                                  borderRadius: 8,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  flexShrink: 0,
+                                  userSelect: "none",
+                                  transition: "background-color 0.3s ease",
+                                  marginRight: 12,
+                                }}
+                                title={`Şık ${key.toUpperCase()}`}
+                              >
+                                {key.toUpperCase()}
+                              </div>
+
+                              {/* Sağdaki metin - hiç değişmedi */}
+                              <div
+                                style={{
+                                  flex: 1,
+                                  fontSize: 16,
+                                  color: "#333",
+                                  userSelect: "none",
+                                  textAlign: "left",
+                                }}
+                              >
+                                {text}
+                              </div>
                             </button>
                           </div>
                         );
@@ -988,7 +1072,7 @@ export default function BothImgQuestion() {
                             fontSize: "1.5rem",
                             backgroundColor: "#c9d1f4",
                             padding: "10px",
-                            marginBottom: "10px",
+                            marginBottom: "5px",
                             userSelect: "all",
                             letterSpacing: "4px",
                             textAlign: "center",
@@ -1025,13 +1109,11 @@ export default function BothImgQuestion() {
                   </div>
                 </div>
               </div>
+
               {/* Sağ: Sayaç ve Cevap Özeti */}
               <div className="col-lg-2 mb-4 d-flex flex-column align-items-stretch gap-3">
                 {/* Timer Kart dışında, ortalanmış */}
-                <div
-                  className="d-flex justify-content-center align-items-center mb-3"
-                  style={{ minHeight: "100px" }}
-                >
+                <div className="d-flex justify-content-center align-items-center">
                   <CountdownTimer
                     duration={duration}
                     onTimeUp={() => {
@@ -1047,7 +1129,7 @@ export default function BothImgQuestion() {
 
                 {/* Cevap Özeti Kartı */}
                 <div
-                  className="card shadow-sm rounded-4 p-3 d-flex flex-column align-items-center"
+                  className="card shadow-sm rounded-4 p-3 d-flex flex-column align-items-center d-none d-lg-flex"
                   style={{
                     maxHeight: "2000px",
                     overflowY: "auto",

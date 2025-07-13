@@ -10,6 +10,15 @@ export const getAnnouncements = async () => {
     throw error;
   }
 };
+export const getAnnouncementByUser=async()=>{
+  try {
+    const response = await axiosInstance.get("/announcement/user");
+    return response.data;
+  } catch (error) {
+    console.error("getAnnouncementByUser error:", error);
+    throw error;
+  }
+}
 
 // Yeni duyuru oluştur
 export const createAnnouncement = async ({

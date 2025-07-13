@@ -12,6 +12,7 @@ import {
   getQuestionCatThunk,
 } from "../../../features/thunks/queDifThunk";
 import Sidebar from "../adminPanel/sidebar";
+import { getBanSubsThunk } from "../../../features/thunks/banSubsThunk";
 
 import { getImgBookletsThunk } from "../../../features/thunks/bookletThunk";
 
@@ -20,6 +21,7 @@ export default function UpdatePoolImg() {
   const { poolImg } = useSelector((state) => state.poolImg);
   const dispatch = useDispatch();
 
+  const { banSubs } = useSelector((state) => state.banSubs);
   useEffect(() => {
     if (id) {
       dispatch(getPoolImgByIdThunk(id));
@@ -58,6 +60,9 @@ export default function UpdatePoolImg() {
       setImage(poolImg.image);
     }
   }, [poolImg]);
+  useEffect(() => {
+    dispatch(getBanSubsThunk());
+  }, [dispatch]);
 
   const imageRef = useRef(null);
   const containerRef = useRef(null);
@@ -259,46 +264,91 @@ export default function UpdatePoolImg() {
       alert("Gönderme sırasında hata oluştu.");
     }
   };
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
 
   return (
-    <div className="poolImg-container">
+    <div className="poolImg-container" style={{ overflowX: "hidden" }}>
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
           padding: "1rem",
           position: "fixed",
           left: 0,
           top: 0,
-          backgroundColor: "#001b66",
+          backgroundColor: "white",
           color: "#fff",
           boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
-          zIndex: 10,
+          zIndex: 99999,
         }}
       >
         <Sidebar />
       </div>
-      <div className="poolImg-content" style={{ marginLeft: "260px" }}>
+
+      {/* Ana İçerik */}
+      <div
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
+      >
         <h2
-          className="mb-4 text-center d-flex align-items-center justify-content-center"
+          className="mb-4 mt-2 ms-4 d-flex align-items-center"
           style={{
             fontWeight: "600",
             fontSize: "1.5rem",
             color: "#001b66",
             gap: "10px",
+            justifyContent: "flex-start",
           }}
         >
           <i
             className="bi bi-pencil-square"
             style={{ fontSize: "1.6rem", color: "#001b66" }}
           ></i>
-          Görüntü Soru Güncelle
+          Uygulamalı Soru Güncelle
+          <button
+            onClick={() => window.history.back()}
+            style={{
+              marginLeft: isMobile ? "auto" : "30px",
+              backgroundColor: "#001b66",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              padding: "6px 16px", // padding yatay biraz artırıldı
+              cursor: "pointer",
+              fontSize: "1rem",
+              whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+            }}
+          >
+            Geri Dön
+          </button>
         </h2>
-
-        <div className="content-columns">
-          {/* Sol Sütun */}
+        <div
+          className="content-columns"
+          style={{
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr",
+            gap: isMobile ? "10px" : "20px",
+          }}
+        >
           <div className="left-column">
             <div
               className="d-flex flex-wrap align-items-center gap-2"
@@ -401,27 +451,75 @@ export default function UpdatePoolImg() {
           </div>
 
           {/* Sağ Sütun */}
-          <div className="right-column">
-            <div style={{ marginTop: 20 }}>
-              {Object.entries(form).map(([field, value]) =>
-                field === "question" ||
-                field === "difLevelId" ||
-                field === "bookletId" ||
-                field === "questionCategoryId" ? null : (
-                  <div key={field} style={{ marginBottom: 8 }}>
-                    <label style={{ display: "inline-block", width: 120 }}>
-                      {field}:
-                    </label>
-                    <input
-                      type="text"
+          <div
+            className="right-column"
+            style={{
+              display: isMobile ? "flex" : "block",
+              flexDirection: "column",
+              alignItems: isMobile ? "center" : "flex-start",
+              width: isMobile ? "100%" : "auto",
+            }}
+          >
+            <div>
+              {Object.entries(form).map(([field, value]) => {
+                const isExcluded =
+                  field === "question" ||
+                  field === "difLevelId" ||
+                  field === "bookletId" ||
+                  field === "questionCategoryId" ||
+                  field === "answer"; // 'answer' render edilmiyor
+
+                if (isExcluded) return null;
+
+                return (
+                  <div
+                    key={field}
+                    style={{
+                      marginBottom: 12,
+                      display: "flex",
+                      alignItems: "center",
+                      width: isMobile ? "90%" : 300,
+                      justifyContent: isMobile ? "center" : "flex-start",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {/* Sol harf kutusu */}
+                    <div
+                      onClick={() =>
+                        setForm((prev) => ({ ...prev, answer: field }))
+                      }
+                      style={{
+                        width: 40,
+                        backgroundColor:
+                          form.answer === field ? "#001b66" : "#e2e8f0",
+                        color: form.answer === field ? "#fff" : "#001b66",
+                        padding: "10px",
+                        textAlign: "center",
+                        marginBottom: 15,
+                        fontWeight: "bold",
+                        borderTopLeftRadius: 6,
+                        borderBottomLeftRadius: 6,
+                        transition: "all 0.2s ease-in-out",
+                        flexShrink: 0,
+                      }}
+                      title="Doğru cevabı seç"
+                    >
+                      {field.toUpperCase()}
+                    </div>
+
+                    {/* Sağ taraf: Select kutusu */}
+                    <select
                       name={field}
                       value={value}
                       onChange={handleFormChange}
                       style={{
-                        padding: 6,
-                        width: 300,
-                        borderRadius: 6,
+                        width: selectWidth,
+                        padding: "10px",
                         border: "1px solid #cbd5e1",
+                        borderLeft: "none",
+                        marginBottom: 15,
+                        borderTopRightRadius: 6,
+                        borderBottomRightRadius: 6,
                         fontSize: 14,
                         transition: "border-color 0.3s ease",
                       }}
@@ -431,12 +529,19 @@ export default function UpdatePoolImg() {
                       onBlur={(e) =>
                         (e.currentTarget.style.borderColor = "#cbd5e1")
                       }
-                    />
+                    >
+                      <option value="">Yasaklı Madde Seçiniz</option>
+                      {banSubs.map((item) => (
+                        <option key={item.id} value={item.name}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                )
-              )}
+                );
+              })}
 
-              {/* Kitapçık */}
+              {/* Kitapçık seçimi */}
               <div style={{ marginBottom: 8 }}>
                 <label style={{ display: "inline-block", width: 120 }}>
                   Kitapçık
@@ -447,8 +552,8 @@ export default function UpdatePoolImg() {
                   onChange={handleFormChange}
                   required
                   style={{
-                    padding: 6,
-                    width: 300,
+                    padding: 10,
+                    width: selectWidth,
                     borderRadius: 6,
                     border: "1px solid #cbd5e1",
                     fontSize: 14,
@@ -468,16 +573,9 @@ export default function UpdatePoolImg() {
                     </option>
                   ))}
                 </select>
-
-                {form.bookletId && (
-                  <p className="small text-muted">
-                    {imgBooklets.find((b) => b.id === parseInt(form.bookletId))
-                      ?.question_count ?? "Soru sayısı bilgisi yok"}
-                  </p>
-                )}
               </div>
 
-              {/* Zorluk */}
+              {/* Zorluk Seviyesi */}
               <div style={{ marginBottom: 8 }}>
                 <label style={{ display: "inline-block", width: 120 }}>
                   Zorluk Seviyesi:
@@ -487,8 +585,8 @@ export default function UpdatePoolImg() {
                   value={form.difLevelId}
                   onChange={handleFormChange}
                   style={{
-                    padding: 6,
-                    width: 300,
+                    padding: 10,
+                    width: selectWidth,
                     borderRadius: 6,
                     border: "1px solid #cbd5e1",
                     fontSize: 14,
@@ -510,7 +608,7 @@ export default function UpdatePoolImg() {
                 </select>
               </div>
 
-              {/* Kategori */}
+              {/* Soru Kategorisi */}
               <div style={{ marginBottom: 8 }}>
                 <label style={{ display: "inline-block", width: 120 }}>
                   Soru Kategorisi:
@@ -520,8 +618,8 @@ export default function UpdatePoolImg() {
                   value={form.questionCategoryId}
                   onChange={handleFormChange}
                   style={{
-                    padding: 6,
-                    width: 300,
+                    padding: 10,
+                    width: selectWidth,
                     borderRadius: 6,
                     border: "1px solid #cbd5e1",
                     fontSize: 14,

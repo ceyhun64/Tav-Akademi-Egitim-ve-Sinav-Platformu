@@ -2,18 +2,24 @@ const express = require("express");
 const router = express.Router();
 const questionCatController = require("../controllers/queDif.controller");
 const authorize = require("../middlewares/authorize");
+const verifyToken = require("../middlewares/verifyToken");
 
 // getir
-router.get("/dif", questionCatController.getDifLevels);
+router.get("/dif", verifyToken, questionCatController.getDifLevels);
 
-router.post("/dif", questionCatController.createDifLevel);
+router.post("/dif", verifyToken, questionCatController.createDifLevel);
 
-router.delete("/dif/:id", questionCatController.deleteDifLevel);
+router.delete("/dif/:id", verifyToken, questionCatController.deleteDifLevel);
 
-router.get("/",authorize(15), questionCatController.getQuestionCat);
+router.get(
+  "/",
+  verifyToken,
+  authorize(15),
+  questionCatController.getQuestionCat
+);
 
-router.post("/", questionCatController.createQuestionCat);
+router.post("/", verifyToken, questionCatController.createQuestionCat);
 
-router.delete("/:id", questionCatController.deleteQuestionCat);
+router.delete("/:id", verifyToken, questionCatController.deleteQuestionCat);
 
 module.exports = router;

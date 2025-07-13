@@ -57,7 +57,7 @@ export default function Banner() {
 
           <div className="d-flex gap-3 flex-wrap">
             <Link
-              to="/courses"
+              to="/login/user"
               className="btn btn-primary btn-lg d-flex align-items-center gap-2 shadow-sm"
             >
               <i className="bi bi-mortarboard-fill" style={{color:"white"}}></i>

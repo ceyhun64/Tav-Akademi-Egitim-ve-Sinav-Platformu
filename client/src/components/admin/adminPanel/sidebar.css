@@ -141,3 +141,101 @@
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   color: #001b66;
 }
+
+/* İkon hover beyaz */
+.sidebar .sidebar-link:hover svg,
+.sidebar .btn-toggle:hover svg,
+.sidebar .logout-button:hover svg {
+  fill: white;
+  color: white;
+}
+
+/* Font küçült */
+.sidebar .sidebar-link,
+.sidebar .btn-toggle {
+  font-size: 0.95rem;
+  height: 55px;
+}
+
+/* Çıkış butonu */
+.sidebar .logout-button {
+  border-radius: 10px;
+}
+
+/* Footer */
+.sidebar .sidebar-footer {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #001b66;
+  padding: 1rem 1.5rem;
+  background: #f9faff;
+  border-top: 1px solid #e0e0e0;
+  user-select: none;
+}
+/* Hamburger butonu genel stil */
+.hamburger-btn {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  width: 40px;
+  height: 40px;
+  z-index: 1300;
+  display: none; /* Mobil dışında gizli */
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  background-color: #001b66;
+  border: none;
+  border-radius: 6px;
+  padding: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Hamburger çizgileri */
+.hamburger-btn div {
+  width: 24px;
+  height: 3px;
+  background-color: #ffffff;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* Mobilde hamburger göster, sidebar gizle */
+
+/* Sadece mobilde göster */
+@media (max-width: 768px) {
+  .hamburger-btn {
+    display: flex;
+  }
+
+  .sidebar {
+    left: -260px;
+    transition: left 0.3s ease;
+    box-shadow: none;
+  }
+
+  .sidebar.open {
+    left: 0;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .main-content {
+    margin-left: 0;
+    transition: margin-left 0.3s ease;
+  }
+
+  body.sidebar-open {
+    overflow: hidden;
+  }
+
+  .sidebar .submenu {
+    position: relative;
+    left: 0;
+    width: 100%;
+    border: none;
+    box-shadow: none;
+    padding-left: 1rem;
+    margin-top: 0.5rem;
+  }
+}

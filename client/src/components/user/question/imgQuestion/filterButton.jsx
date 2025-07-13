@@ -1,18 +1,28 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 export default function FilterButtons({
   filters,
   activeFilter,
   setActiveFilter,
 }) {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 600);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <div
       style={{
-        display: "flex",
-        flexDirection: "column", // Dikey hizalama
-        gap: 16, // Butonlar arası boşluk
-        alignItems: "center", // Ortala
-        marginBottom: 16,
+        display: isMobile ? "block" : "flex",
+        flexDirection: isMobile ? "initial" : "column",
+        overflowX: isMobile ? "auto" : "visible",
+        whiteSpace: isMobile ? "nowrap" : "normal",
+        gap: 12,
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
       {Object.keys(filters).map((key) => (
@@ -27,12 +37,12 @@ export default function FilterButtons({
               : "border-secondary bg-white"
           }`}
           style={{
-            width: 130,
-            height: 100,
-            padding: 8,
-            display: "flex",
+            width: isMobile ? 36 : 100,
+            height: isMobile ? 24 : 80,
+            display: "inline-flex",
             justifyContent: "center",
             alignItems: "center",
+            marginRight: isMobile ? 6 : 0,
             transition: "all 0.2s ease-in-out",
           }}
           title={key.charAt(0).toUpperCase() + key.slice(1)}

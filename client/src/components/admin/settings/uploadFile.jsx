@@ -66,44 +66,53 @@ export default function UploadFile() {
     setSelectedFileIds([]); // Silme sonrası seçimi temizle
   };
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
+
   return (
     <div
-      className="poolteo-container"
-      style={{
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        overflowX: "hidden", // yatay kaymayı engeller
-      }}
+      className="poolImg-container"
+      style={{ overflowX: "hidden", padding: "1rem" }}
     >
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
-          padding: "1.5rem 1.2rem",
+          padding: "1rem",
           position: "fixed",
           left: 0,
           top: 0,
-          backgroundColor: "#003399", // biraz daha canlı mavi
+          backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 12px rgba(0, 0, 0, 0.25)",
+          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
-          zIndex: 10,
-          borderRadius: "0 12px 12px 0",
+          zIndex: 99999,
         }}
       >
         <Sidebar />
       </div>
 
-      {/* Main Content */}
+      {/* Ana İçerik */}
       <div
-        style={{
-          marginLeft: "260px",
-          padding: "2.5rem 3rem",
-          backgroundColor: "#f4f6fc",
-          minHeight: "100vh",
-          transition: "margin-left 0.3s ease",
-          color: "#222",
-        }}
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
       >
         <div
           style={{
@@ -114,6 +123,7 @@ export default function UploadFile() {
           }}
         >
           <h1
+            className="mb-4 mt-2 ms-5"
             style={{
               color: "#003399",
               fontSize: "28px",
@@ -124,8 +134,29 @@ export default function UploadFile() {
               userSelect: "none",
             }}
           >
-            <i className="bi bi-upload" style={{ fontSize: "1.6rem" }}></i>
+            {!isMobile && (
+              <i
+                className="bi bi-journal-bookmark-fill"
+                style={{ fontSize: "1.6rem" }}
+              ></i>
+            )}
             Dosya Yükleme İşlemleri
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                marginLeft: isMobile ? "auto" : "30px",
+                backgroundColor: "#001b66",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "6px 16px", // padding yatay biraz artırıldı
+                cursor: "pointer",
+                fontSize: "1rem",
+                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+              }}
+            >
+              Geri Dön
+            </button>
           </h1>
         </div>
         <div
@@ -220,6 +251,8 @@ export default function UploadFile() {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
+                flexDirection: isMobile ? "column" : "row",
+                gap: isMobile ? "1rem" : "0",
                 marginBottom: "1rem",
               }}
             >
@@ -238,22 +271,23 @@ export default function UploadFile() {
                 className="table-responsive"
                 style={{
                   borderRadius: "16px",
-                  overflow: "auto",
-                  maxWidth: "1200px",
-                  maxHeight: "800px",
+                  overflowX: "auto",
+                  maxWidth: "100%",
+                  maxHeight: isMobile ? "none" : "800px",
                   boxShadow: "0 4px 20px rgb(0 0 0 / 0.07)",
                   backgroundColor: "#fff",
                   border: "1px solid #e2e8f0",
-                  padding: "12px",
+                  padding: isMobile ? "6px" : "12px",
                 }}
               >
                 <table
                   className="table align-middle table-hover"
                   style={{
                     borderCollapse: "separate",
-                    borderSpacing: "0 8px",
-                    minWidth: "1100px",
-                    userSelect: "none",
+                    borderSpacing: "0 6px",
+                    minWidth: "100%",
+                    tableLayout: "fixed",
+                    fontSize: isMobile ? "0.75rem" : "1rem",
                   }}
                 >
                   <thead
@@ -264,9 +298,12 @@ export default function UploadFile() {
                   >
                     <tr
                       className="text-center align-middle"
-                      style={{ fontWeight: "600", color: "#334155" }}
+                      style={{
+                        fontWeight: "600",
+                        color: "#334155",
+                      }}
                     >
-                      <th style={{ width: "40px" }}>
+                      <th style={{ width: isMobile ? "30px" : "40px" }}>
                         <input
                           type="checkbox"
                           onChange={handleSelectAll}
@@ -276,9 +313,11 @@ export default function UploadFile() {
                           }
                         />
                       </th>
-                      <th style={{ width: "40px" }}>#</th>
-                      <th>İsim</th>
-                      <th>Yükleme Tarihi</th>
+                      <th style={{ width: isMobile ? "30px" : "40px" }}>#</th>
+                      <th style={{ width: isMobile ? "40%" : "auto" }}>İsim</th>
+                      <th style={{ width: isMobile ? "30%" : "auto" }}>
+                        Yükleme Tarihi
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -317,13 +356,22 @@ export default function UploadFile() {
                         </td>
                         <td
                           className="text-center"
-                          style={{ verticalAlign: "middle" }}
+                          style={{
+                            verticalAlign: "middle",
+                            wordBreak: "break-word",
+                            whiteSpace: "normal",
+                          }}
                         >
                           {file.name}
                         </td>
                         <td
                           className="text-center"
-                          style={{ verticalAlign: "middle" }}
+                          style={{
+                            verticalAlign: "middle",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
                         >
                           {new Date(file.createdAt).toLocaleString("tr-TR")}
                         </td>

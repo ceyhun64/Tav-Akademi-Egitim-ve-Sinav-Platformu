@@ -5,6 +5,7 @@ import {
   getInstitutionsThunk,
 } from "../../../features/thunks/grpInstThunk";
 import { useEffect } from "react";
+import "./userFilter.css"
 
 export default function UserFilter({ filters, onChange, uniqueValues }) {
   const dispatch = useDispatch();
@@ -15,7 +16,6 @@ export default function UserFilter({ filters, onChange, uniqueValues }) {
     dispatch(getInstitutionsThunk());
   }, [dispatch]);
 
-  // İl seçildiğinde ona bağlı ilçeleri almak için:
   const ilcelerForSelectedIl = filters.il
     ? uniqueValues.ilceler?.filter((ilce) => ilce.il_adi === filters.il)
     : [];
@@ -23,8 +23,9 @@ export default function UserFilter({ filters, onChange, uniqueValues }) {
   return (
     <div className="card p-3 mb-3 shadow-sm">
       <h5>Filtrele</h5>
-      <div className="row">
-        <div className="col-md-3 mb-2">
+      {/* user-filter-row classı eklendi */}
+      <div className="row user-filter-row">
+        <div className="col-md-4 col-6 mb-2">
           <input
             type="text"
             name="sicil"
@@ -35,7 +36,7 @@ export default function UserFilter({ filters, onChange, uniqueValues }) {
           />
         </div>
 
-        <div className="col-md-3 mb-2">
+        <div className="col-md-4 col-6 mb-2">
           <input
             type="text"
             name="ad"
@@ -46,7 +47,7 @@ export default function UserFilter({ filters, onChange, uniqueValues }) {
           />
         </div>
 
-        <div className="col-md-3 mb-2">
+        <div className="col-md-4 col-6 mb-2">
           <input
             type="text"
             name="soyad"
@@ -57,7 +58,7 @@ export default function UserFilter({ filters, onChange, uniqueValues }) {
           />
         </div>
 
-        <div className="col-md-3 mb-2">
+        <div className="col-md-4 col-6 mb-2">
           <select
             name="il"
             className="form-select"
@@ -73,7 +74,7 @@ export default function UserFilter({ filters, onChange, uniqueValues }) {
           </select>
         </div>
 
-        <div className="col-md-3 mb-2">
+        <div className="col-md-4 col-6 mb-2">
           <select
             name="ilce"
             className="form-select"
@@ -90,7 +91,7 @@ export default function UserFilter({ filters, onChange, uniqueValues }) {
           </select>
         </div>
 
-        <div className="col-md-3 mb-2">
+        <div className="col-md-4 col-6 mb-2">
           <select
             name="lokasyonId"
             className="form-select"
@@ -110,7 +111,7 @@ export default function UserFilter({ filters, onChange, uniqueValues }) {
           </select>
         </div>
 
-        <div className="col-md-3 mb-2">
+        <div className="col-md-4 col-6 mb-2">
           <select
             name="grupId"
             className="form-select"

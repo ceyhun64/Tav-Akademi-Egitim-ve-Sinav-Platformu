@@ -8,22 +8,44 @@
   color: #001b66; /* Koyu lacivert */
 }
 
+/* nav-link hover underline efekt */
 .custom-nav-link {
+  position: relative;
+  display: inline-block;
   color: #001b66 !important; /* Koyu lacivert */
   margin: 0 15px;
   font-weight: 600;
-  transition: color 0.3s ease, border-bottom 0.3s ease;
-  border-bottom: 2px solid transparent;
+  padding-bottom: 4px;
+  transition: all 0.4s ease;
+}
+/* "Sınavlarım" ve "Sonuçlarım" alt çizgilerini kaldır */
+.custom-nav-link.no-underline::after {
+  display: none;
 }
 
-.custom-nav-link:hover {
-  color: #003399 !important; /* Açık lacivert */
-  border-bottom: 2px solid #003399;
+.custom-nav-link.no-underline.active-link {
+  border-bottom: none;
+}
+
+.custom-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 0;
+  background-color: #001b66;
+  transition: all 0.4s ease;
+}
+
+.custom-nav-link:hover::after,
+.custom-nav-link.active-link::after {
+  width: 100%;
 }
 
 .custom-nav-link.active-link {
-  color: #001b66 !important; /* Koyu lacivert */
-  border-bottom: 2px solid #001b66;
+  color: #001b66 !important;
+  border-bottom: 1px solid #001b66;
 }
 
 .navbar-center {
@@ -33,14 +55,14 @@
 .custom-login-button {
   background-color: white;
   border: 2px solid #001b66; /* Koyu lacivert */
-  color: #001b66; /* Koyu lacivert */
+  color: #001b66;
   padding: 8px 20px;
   border-radius: 8px;
   transition: all 0.3s ease;
 }
 
 .custom-login-button:hover {
-  background-color: #001b66; /* Koyu lacivert */
+  background-color: #001b66;
   color: white;
 }
 
@@ -49,61 +71,190 @@
   font-weight: 600;
   padding: 8px 24px;
 }
+.btn-success.dropdown-toggle {
+  max-width: 200px;
+  width: 100%;
+}
 
-/* Dropdown item hover */
+/* Giriş Yap dropdown menü efekt ve genişlik */
+.nav-item.dropdown {
+  position: relative;
+}
+
+.nav-item.dropdown .dropdown-menu {
+  width: 120px !important; /* Kesin olarak daralt */
+  min-width: 120px !important;
+  max-width: 120px !important;
+  text-align: center;
+}
+
+.nav-item.dropdown .dropdown-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.nav-item.dropdown .dropdown-toggle {
+  width: 100%;
+  transition: all 0.3s ease;
+}
+/* sadece "Sınavlarım" ve "Sonuçlarım" dropdown menüleri için */
+.navbar .nav-item.dropdown .dropdown-menu {
+  margin-bottom: 0 !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+/* sadece ::after olan kısmı etkilesin, active-link olanı yok etmesin */
+.navbar .nav-item.dropdown .custom-nav-link::after {
+  display: none;
+}
+
+.navbar .nav-item.dropdown .custom-nav-link.active-link {
+  border-bottom: none;
+}
+
+/* Menü içindeki butonlara hover efekti */
+.dropdown-item {
+  width: 100% !important; /* Menü kadar genişlik */
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  text-align: center;
+}
+
 .dropdown-item:hover,
 .dropdown-item:focus {
   background-color: #004085;
-  color: white;
+  color: #fff;
+  font-weight: 600;
+  width: 100px;
 }
 
 /* Responsive düzenlemeler */
-
 @media (max-width: 991.98px) {
-  /* Navbar brand küçült */
+  /* Navbar arka plan ve içerik hizalama */
+  .navbar {
+    padding: 1rem;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Logo boyutu küçült */
   .navbar-brand img {
-    height: 60px !important;
-    margin-right: 12px !important;
+    height: 50px !important;
+    margin-right: 10px !important;
   }
 
   .navbar-brand span {
     font-size: 1rem;
   }
 
-  /* Menü elemanları biraz daha küçük ve ortalanmış */
-  .custom-nav-link {
-    margin: 0 8px;
-    font-size: 0.9rem;
+  /* Navbar collapse içeriği (menü) kutu gibi */
+  .navbar-collapse {
+    background-color: #fff;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+    margin-top: 10px;
+  }
+  .navbar-toggler {
+    border: none !important;
+    box-shadow: none !important;
   }
 
-  /* Dropdown menü genişliği mobilde %100 yap */
+  .navbar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center; /* Menü öğelerini ortalar */
+  }
+
+  .navbar-nav .nav-item {
+    width: auto; /* full width kaldır */
+    padding: 0; /* boşlukları kaldır */
+  }
+  .custom-nav-link {
+    width: auto !important; /* metin kadar */
+    display: inline-block;
+    margin: 0 auto;
+    text-align: center;
+    font-size: 1rem;
+    padding-bottom: 4px;
+  }
+
+  .custom-nav-link::after {
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 0;
+    background-color: #001b66;
+    transition: all 0.4s ease;
+  }
+
+  .custom-nav-link:hover::after,
+  .custom-nav-link.active-link::after {
+    width: 100%; /* sadece metin genişliği */
+  }
+
+  /* Dropdown buton */
+  .btn-success.dropdown-toggle {
+    width: 80%; /* %100 yerine %80 yaptık */
+    max-width: 300px; /* opsiyonel, maksimum genişlik sınırı */
+    padding: 12px;
+    text-align: center;
+    font-size: 1rem;
+    border-radius: 10px;
+    margin: 0 auto; /* ortalamak için */
+    display: block;
+  }
+
+  /* Dropdown menü mobilde tam genişlik */
   .dropdown-menu {
+    position: relative !important;
+    width: 100% !important;
     min-width: 100% !important;
     left: 0 !important;
-    right: auto !important;
+    right: 0 !important;
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    box-shadow: none;
+    border-radius: 0;
+    margin-top: 8px;
+    padding: 0;
   }
 
-  /* Dropdown item padding artır */
   .dropdown-item {
-    padding: 12px 20px;
+    padding: 14px 20px;
     font-size: 1rem;
-  }
-
-  /* Dropdown buton genişliği mobilde %100 */
-  .btn-success.dropdown-toggle {
-    width: 100%;
-    text-align: center;
-  }
-
-  /* Navbar collapse içerisindeki menü elemanları alt alta */
-  .navbar-collapse {
+    border-bottom: 2px solid #eee;
     background-color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
   }
 
-  /* Navbar nav item margin alt */
-  .navbar-nav .nav-item {
-    margin-bottom: 8px;
+  .dropdown-item:hover {
+    background-color: #004085;
+    color: white;
+  }
+
+  /* Giriş yap butonu (opsiyonel) */
+  .btn-success.dropdown-toggle {
+    width: 80%; /* %100 yerine %80 yaptık */
+    max-width: 300px; /* opsiyonel, maksimum genişlik sınırı */
+    padding: 12px;
+    text-align: center;
+    font-size: 1rem;
+    border-radius: 10px;
+    margin: 0 auto; /* ortalamak için */
+    display: block;
+  }
+
+  /* Giriş yap butonu */
+  .custom-login-button {
+    width: 80%; /* %100 yerine %80 */
+    max-width: 300px; /* opsiyonel */
+    margin: 12px auto 0 auto; /* üst boşluk + yatay ortalama */
+    font-size: 1rem;
+    padding: 12px;
+    display: block;
   }
 }

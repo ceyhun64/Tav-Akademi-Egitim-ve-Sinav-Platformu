@@ -13,6 +13,7 @@ export default function Sidebar() {
 
   const { ad } = useSelector((state) => state.auth);
   const menuRef = useRef(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   //kitapçık dropdownları için state ve ref
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -85,6 +86,24 @@ export default function Sidebar() {
     }
   }, [reportDropdownOpen]);
 
+  // Menü açılıp kapanınca body'ye scroll engelleme
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.classList.add("sidebar-open");
+    } else {
+      document.body.classList.remove("sidebar-open");
+    }
+  }, [sidebarOpen]);
+
+  const toggleSidebar = () => setSidebarOpen((prev) => !prev);
+
+  // Sidebar açıkken linke tıklayınca sidebar kapansın
+  const handleLinkClick = () => {
+    if (window.innerWidth <= 768) {
+      setSidebarOpen(false);
+    }
+  };
+
   useEffect(() => {
     if (settingsDropdownOpen && settingsToggleRef.current && menuRef.current) {
       const buttonRect = settingsToggleRef.current.getBoundingClientRect();
@@ -98,9 +117,33 @@ export default function Sidebar() {
     }
   }, [settingsDropdownOpen]);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <>
-      <aside className="sidebar">
+      {/* Hamburger butonu */}
+      <button
+        className="hamburger-btn"
+        aria-label="Toggle sidebar menu"
+        onClick={toggleSidebar}
+      >
+        <div></div>
+        <div></div>
+        <div></div>
+      </button>
+
+      <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <div className="sidebar-header d-flex align-items-center justify-content-center p-4">
           <Link
             to="/admin-panel"
@@ -108,6 +151,7 @@ export default function Sidebar() {
           >
             <img
               src={logo}
+              onClick={handleLinkClick}
               alt="Tav Güvenlik Hizmetleri"
               style={{ height: "60px", marginRight: "12px" }}
             />
@@ -120,6 +164,7 @@ export default function Sidebar() {
             <li>
               <Link
                 to="/admin/register"
+                onClick={handleLinkClick}
                 className={`sidebar-link d-flex align-items-center ${
                   location.pathname === "/admin/register" ? "active-link" : ""
                 }`}
@@ -133,6 +178,7 @@ export default function Sidebar() {
             <li>
               <Link
                 to="/admin/authorized"
+                onClick={handleLinkClick}
                 className={`sidebar-link d-flex align-items-center ${
                   location.pathname === "/admin/authorized" ? "active-link" : ""
                 }`}
@@ -167,6 +213,7 @@ export default function Sidebar() {
             <li>
               <Link
                 to="/admin/image-gallery"
+                onClick={handleLinkClick}
                 className={`sidebar-link d-flex align-items-center ${
                   location.pathname === "/admin/image-gallery"
                     ? "active-link"
@@ -235,6 +282,7 @@ export default function Sidebar() {
             <li>
               <Link
                 to="/admin/certificate"
+                onClick={handleLinkClick}
                 className={`sidebar-link d-flex align-items-center ${
                   location.pathname === "/admin/certificate"
                     ? "active-link"
@@ -353,7 +401,7 @@ export default function Sidebar() {
           style={{
             position: "fixed",
             top: dropdownPosition.top + "px",
-            left: "285px", // Sidebar genişliği + boşluk
+            left: isMobile ? "160px" : "285px", // Sidebar genişliği + boşluk
             width: "220px",
             backgroundColor: "#fff",
             border: "1px solid #ddd",
@@ -431,7 +479,7 @@ export default function Sidebar() {
           style={{
             position: "fixed",
             top: examDropdownPosition.top + "px",
-            left: "285px", // Sidebar genişliği + boşluk
+            left: isMobile ? "160px" : "285px", // Sidebar genişliği + boşluk
             width: "220px",
             backgroundColor: "#fff",
             border: "1px solid #ddd",
@@ -545,7 +593,7 @@ export default function Sidebar() {
           style={{
             position: "fixed",
             top: educationDropdownPosition.top + "px",
-            left: "285px",
+            left: isMobile ? "160px" : "285px", // Sidebar genişliği + boşluk
             width: "220px",
             backgroundColor: "#fff",
             border: "1px solid #ddd",
@@ -658,7 +706,7 @@ export default function Sidebar() {
           style={{
             position: "fixed",
             top: reportDropdownPosition.top + "px",
-            left: "285px",
+            left: isMobile ? "160px" : "285px", // Sidebar genişliği + boşluk
             width: "220px",
             backgroundColor: "#fff",
             border: "1px solid #ddd",
@@ -774,7 +822,7 @@ export default function Sidebar() {
           style={{
             position: "fixed",
             top: `${settingsDropdownPosition.top}px`,
-            left: "285px",
+            left: isMobile ? "160px" : "285px", // Sidebar genişliği + boşluk
             width: "220px",
             backgroundColor: "#fff",
             border: "1px solid #ddd",
@@ -848,7 +896,9 @@ export default function Sidebar() {
             <Link
               to="/admin/practice-exam"
               className={`sidebar-sublink ${
-                location.pathname === "/admin/practice-exam" ? "active-link" : ""
+                location.pathname === "/admin/practice-exam"
+                  ? "active-link"
+                  : ""
               }`}
               onClick={() => setSettingsDropdownOpen(false)}
               style={{

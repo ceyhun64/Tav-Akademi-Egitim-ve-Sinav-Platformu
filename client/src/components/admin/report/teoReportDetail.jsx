@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { getUserResultDetailThunk } from "../../../features/thunks/reportThunk";
@@ -30,7 +30,7 @@ export default function TeoReportDetail() {
   const navigate = useNavigate();
   const { userResultDetail } = useSelector((state) => state.report);
   const { groups, institutions } = useSelector((state) => state.grpInst);
-
+  console.log("userResultDetail", userResultDetail);
   const { data } = userResultDetail || {};
 
   useEffect(() => {
@@ -43,8 +43,6 @@ export default function TeoReportDetail() {
     dispatch(getGroupsThunk());
     dispatch(getInstitutionsThunk());
   }, [dispatch]);
-
-  if (!data) return <p className="text-center mt-5">Yükleniyor...</p>;
 
   const user = data.user || {};
   const exam = data.exam || {};
@@ -96,10 +94,18 @@ export default function TeoReportDetail() {
 
   const InfoRow = ({ label, value }) => (
     <tr>
-      <th scope="row" className="w-50">
+      <td
+        className="fw-semibold"
+        style={{
+          whiteSpace: "nowrap",
+          width: "120px", // Etiket hücresi için sabit genişlik
+          verticalAlign: "top",
+          padding: "4px 8px",
+        }}
+      >
         {label}
-      </th>
-      <td>{value ?? "-"}</td>
+      </td>
+      <td style={{ padding: "4px 8px" }}>{value}</td>
     </tr>
   );
 
@@ -107,70 +113,104 @@ export default function TeoReportDetail() {
     ? " Tebrikler, sınavı geçtiniz!"
     : " Üzgünüz, sınavda başarısız oldunuz.";
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300;
+  if (!userResultDetail || !userResultDetail.data) {
+    return <div>Yükleniyor...</div>; // Ya da bir spinner koyabilirsiniz
+  }
   return (
     <div
-      className="poolteo-container"
-      style={{
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        overflowX: "hidden",
-        backgroundColor: "#f4f6fc",
-        minHeight: "100vh",
-      }}
+      className="poolImg-container"
+      style={{ overflowX: "hidden", padding: "1rem" }}
     >
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
-          padding: "2rem 1.5rem",
+          padding: "1rem",
           position: "fixed",
           left: 0,
           top: 0,
-          backgroundColor: "#001b66",
+          backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 12px rgba(0, 0, 0, 0.2)",
+          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
-          zIndex: 10,
-          borderRadius: "0 16px 16px 0",
+          zIndex: 99999,
         }}
       >
         <Sidebar />
       </div>
 
-      {/* Main Content */}
+      {/* Ana İçerik */}
       <div
-        style={{
-          marginLeft: "260px",
-          width: "calc(100% - 260px)", // 👈 bu kritik
-
-          padding: "3rem 3.5rem",
-          transition: "margin-left 0.3s ease",
-          color: "#222",
-        }}
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
       >
-        {/* Başlık */}
-        <div className="d-flex justify-content-between align-items-center mb-5">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "2.5rem",
+          }}
+        >
           <h1
+            className="mb-4 mt-2 ms-5"
             style={{
-              color: "#001b66",
-              fontSize: "30px",
-              fontWeight: "bold",
+              color: "#003399",
+              fontSize: "28px",
+              fontWeight: "700",
               display: "flex",
               alignItems: "center",
-              gap: "0.7rem",
+              gap: "0.6rem",
+              userSelect: "none",
             }}
           >
-            <i
-              className="bi bi-clipboard-check-fill"
-              style={{ fontSize: "1.8rem" }}
-            ></i>
+            {!isMobile && (
+              <i
+                className="bi bi-journal-bookmark-fill"
+                style={{ fontSize: "1.6rem" }}
+              ></i>
+            )}
             Teorik Sınav Sonuçları
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                marginLeft: isMobile ? "auto" : "30px",
+                backgroundColor: "#001b66",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "6px 16px", // padding yatay biraz artırıldı
+                cursor: "pointer",
+                fontSize: "1rem",
+                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+              }}
+            >
+              Geri Dön
+            </button>
           </h1>
         </div>
-
         <div className="row">
           {/* Sol Panel */}
-          <div className="col-lg-8">
+          <div className="col-lg-6">
             {/* Kullanıcı Bilgileri */}
             <Card title="Kullanıcı Bilgileri" color="#001b66">
               <div
@@ -216,19 +256,20 @@ export default function TeoReportDetail() {
               />
               <InfoRow label="Süre (dk)" value={exam.sure} />
             </Card>
-
-            {/* Katılım Bilgileri */}
-            <Card title="Katılım Bilgileri" color="#0033cc">
-              <InfoRow label="Giriş Tarihi" value={data.entry_date} />
-              <InfoRow label="Giriş Saati" value={data.entry_time} />
-              <InfoRow label="Çıkış Tarihi" value={data.exit_date} />
-              <InfoRow label="Çıkış Saati" value={data.exit_time} />
-              <InfoRow label="Geçirilen Süre" value={duration} />
-            </Card>
           </div>
 
           {/* Sağ Panel */}
-          <div className="col-lg-4">
+          <div className="col-lg-6">
+            <div>
+              {/* Katılım Bilgileri */}
+              <Card title="Katılım Bilgileri" color="#0033cc">
+                <InfoRow label="Giriş Tarihi" value={data.entry_date} />
+                <InfoRow label="Giriş Saati" value={data.entry_time} />
+                <InfoRow label="Çıkış Tarihi" value={data.exit_date} />
+                <InfoRow label="Çıkış Saati" value={data.exit_time} />
+                <InfoRow label="Geçirilen Süre" value={duration} />
+              </Card>
+            </div>
             <div
               className="card shadow-sm border-0"
               style={{ minWidth: "400px" }}
@@ -291,17 +332,6 @@ export default function TeoReportDetail() {
           {/* Geri Dön Butonları */}
           <div className="text-center mt-5">
             <div className="d-inline-flex flex-wrap gap-3 justify-content-center">
-              <button
-                className="btn btn-primary d-flex align-items-center gap-2 shadow-sm px-4 py-2"
-                onClick={() => navigate(-1)}
-              >
-                <i
-                  className="bi bi-arrow-left-circle"
-                  style={{ color: "white" }}
-                ></i>
-                Geri Dön
-              </button>
-
               <button
                 className="btn btn-outline-primary d-flex align-items-center gap-2 shadow-sm px-4 py-2"
                 onClick={() =>

@@ -33,130 +33,196 @@ export default function Education() {
       .includes(nameFilter.toLowerCase());
     return matchesType && matchesName;
   });
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300;
   return (
-    <div className="poolteo-container" style={{ display: "flex" }}>
+    <div
+      className="poolImg-container"
+      style={{ overflowX: "hidden", padding: "1rem" }}
+    >
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
           padding: "1rem",
           position: "fixed",
           left: 0,
           top: 0,
-          backgroundColor: "#001b66",
+          backgroundColor: "white",
           color: "#fff",
           boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
-          zIndex: 10,
+          zIndex: 99999,
         }}
       >
         <Sidebar />
       </div>
 
-      {/* Main Content */}
+      {/* Ana İçerik */}
       <div
-        style={{
-          marginLeft: "260px",
-          padding: "2rem",
-          backgroundColor: "#f8f9fc",
-          minHeight: "100vh",
-          flex: 1,
-        }}
+        className="poolImg-content"
+        style={{ marginLeft: isMobile ? "0px" : "260px" }}
       >
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "2rem",
+            marginBottom: "2.5rem",
           }}
         >
-          <h2
+          <h1
+            className="mb-4 mt-2 ms-5"
             style={{
-              color: "#001b66",
-              fontSize: "24px",
-              fontWeight: "600",
+              color: "#003399",
+              fontSize: "28px",
+              fontWeight: "700",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.6rem",
+              userSelect: "none",
             }}
           >
-            <i
-              className="bi bi-clipboard-check-fill"
-              style={{ marginRight: "8px" }}
-            ></i>
+            {!isMobile && (
+              <i
+                className="bi bi-journal-bookmark-fill"
+                style={{ fontSize: "1.6rem" }}
+              ></i>
+            )}
             Eğitimler
-          </h2>
+          </h1>
         </div>
 
         {/* Filtre Alanı */}
         <div
+          className="filters"
           style={{
             display: "flex",
             flexWrap: "wrap",
-            gap: "1rem",
-            marginBottom: "2rem",
             alignItems: "center",
+            gap: "1.25rem",
+            marginBottom: "2rem",
+            paddingBottom: "0.5rem",
+            width: "100%",
           }}
         >
-          <button
-            onClick={() => navigate("/admin/create-education")}
+          <div
             style={{
-              padding: "0.6rem 1.2rem",
-              backgroundColor: "#001b66",
-              color: "#fff",
-              borderRadius: "6px",
-              border: "none",
-              fontWeight: "600",
-              cursor: "pointer",
-              transition: "background-color 0.3s ease, transform 0.2s",
-              boxShadow: "0 2px 6px rgba(0, 0, 0, 0.15)",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "#003399")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "#001b66")
-            }
-          >
-            + Eğitim Ekle
-          </button>
-
-          <input
-            type="text"
-            placeholder="İsme göre filtrele"
-            value={nameFilter}
-            onChange={(e) => setNameFilter(e.target.value)}
-            style={{
-              padding: "0.55rem 1rem",
-              borderRadius: "6px",
-              border: "1px solid #ccc",
-              width: "220px",
-              backgroundColor: "#fff",
-              color: "#001b66",
-              fontSize: "14px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            }}
-          />
-
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            style={{
-              padding: "0.55rem 1rem",
-              borderRadius: "6px",
-              border: "1px solid #ccc",
-              width: "220px",
-              backgroundColor: "#fff",
-              color: "#001b66",
-              fontSize: "14px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              display: "flex",
+              flexDirection: isMobile ? "column" : "row",
+              flexWrap: "wrap",
+              width: "100%",
+              gap: "1rem",
             }}
           >
-            <option value="">Tüm Türler</option>
-            <option value="video">Video</option>
-            <option value="pdf">PDF</option>
-            <option value="sunum">Sunum</option>
-          </select>
+            {/* Eğitim Ekle Butonu */}
+            <div
+              style={{
+                className: "ms-2 me-2",
+                flex: "1 1 100%",
+                maxWidth: isMobile ? "100%" : "30%",
+              }}
+            >
+              <button
+                onClick={() => navigate("/admin/create-education")}
+                style={{
+                  width: "100%",
+                  padding: "10px 16px",
+                  backgroundColor: "#001b66",
+                  color: "#fff",
+                  borderRadius: "6px",
+                  border: "none",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  fontSize: "1rem",
+                  whiteSpace: "nowrap",
+                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.15)",
+                  transition: "background-color 0.3s ease, transform 0.2s",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#003399")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#001b66")
+                }
+              >
+                + Eğitim Ekle
+              </button>
+            </div>
+
+            {/* İsim Filtreleme */}
+            <div
+              style={{
+                className: "ms-2 me-2",
+
+                flex: "1 1 100%",
+                maxWidth: isMobile ? "100%" : "30%",
+              }}
+            >
+              <input
+                type="text"
+                placeholder="İsme göre filtrele"
+                value={nameFilter}
+                onChange={(e) => setNameFilter(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid #ccc",
+                  backgroundColor: "#fff",
+                  color: "#001b66",
+                  fontSize: "1rem",
+                  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+                }}
+              />
+            </div>
+
+            {/* Tür Filtreleme */}
+            <div
+              style={{
+                flex: "1 1 100%",
+                maxWidth: isMobile ? "100%" : "30%",
+                className: "ms-2 me-2",
+              }}
+            >
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: "6px",
+                  border: "1px solid #ccc",
+                  backgroundColor: "#fff",
+                  color: "#001b66",
+                  fontSize: "1rem",
+                  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+                }}
+              >
+                <option value="">Tüm Türler</option>
+                <option value="video">Video</option>
+                <option value="pdf">PDF</option>
+                <option value="sunum">Sunum</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         {filteredEducations?.length === 0 && (
@@ -165,11 +231,16 @@ export default function Education() {
 
         <ul
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            display: isMobile ? "flex" : "grid",
+            flexDirection: isMobile ? "column" : undefined,
             gap: "1.5rem",
             padding: 0,
             margin: 0,
+            listStyleType: "none", // 👈 Noktayı kaldırır
+
+            gridTemplateColumns: isMobile
+              ? undefined
+              : "repeat(auto-fit, minmax(300px, 1fr))",
           }}
         >
           {filteredEducations?.map((item) => {
@@ -180,12 +251,14 @@ export default function Education() {
               <li
                 key={item.id}
                 style={{
-                  maxWidth:"390px",
+                  width: isMobile ? "100%" : "100%",
+                  maxWidth: isMobile ? "100%" : "390px",
                   backgroundColor: "#fff",
                   padding: "1.5rem",
                   borderRadius: "12px",
                   boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                   transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                  margin: isMobile ? "0 auto" : undefined,
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = "translateY(-5px)";
@@ -289,18 +362,28 @@ export default function Education() {
                 )}
 
                 <p
-                  style={{ color: "#555", fontSize: "14px", marginTop: "1rem" }}
+                  style={{
+                    color: "#555",
+                    fontSize: "14px",
+                    marginTop: "1rem",
+                  }}
                 >
                   Oluşturulma tarihi:{" "}
                   {new Date(item.createdAt).toLocaleDateString("tr-TR")}
                 </p>
 
                 <div
-                  style={{ display: "flex", gap: "0.75rem", marginTop: "1rem" }}
+                  style={{
+                    display: "flex",
+                    flexDirection: isMobile ? "column" : "row",
+                    gap: "0.75rem",
+                    marginTop: "1rem",
+                  }}
                 >
                   <button
                     onClick={() => handleDelete(item.id)}
                     style={{
+                      width: isMobile ? "100%" : "auto",
                       flex: 1,
                       padding: "0.5rem",
                       backgroundColor: "#e74c3c",
@@ -322,6 +405,7 @@ export default function Education() {
                   <Link
                     to={`/admin/education-detail/${item.id}`}
                     style={{
+                      width: isMobile ? "100%" : "auto",
                       flex: 1,
                       padding: "0.5rem",
                       backgroundColor: "#001b66",

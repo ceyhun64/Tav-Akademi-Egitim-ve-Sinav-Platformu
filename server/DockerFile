@@ -7,6 +7,8 @@ RUN apt-get update && apt-get install -y poppler-utils && apt-get clean
 # Çalışma dizini ayarlanıyor
 WORKDIR /app
 
+EXPOSE 3000
+
 # package.json ve package-lock.json'u kopyalıyoruz
 COPY package*.json ./
 

@@ -14,7 +14,6 @@ const RoleLevel = sequelize.define("rolelevels", {
   level: {
     type: DataTypes.INTEGER,
     allowNull: true,
-    unique: true,
-  }
+  },
 });
 module.exports = RoleLevel;

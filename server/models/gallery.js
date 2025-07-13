@@ -5,28 +5,33 @@ const { DataTypes } = require("sequelize");
 const ImageGaleryCat = require("./galleryCat");
 const ImageGalerySubCat = require("./gallerySubCat");
 
-const ImageGalery = sequelize.define("ImageGaleries", {
-  image: {
-    type: DataTypes.STRING,
-    allowNull: true, // Resmin URL'si veya dosya yolu burada tutulacak
-  },
-  imageCatId: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: ImageGaleryCat,  // Yabancı anahtar olarak ImageGaleryCat modelini referans alıyoruz
-      key: "id",  // İlişkili modelin id'si ile bağlanacak
+const ImageGalery = sequelize.define(
+  "ImageGaleries",
+  {
+    image: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    imageCatId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: ImageGaleryCat,
+        key: "id",
+      },
+    },
+    imageSubCatId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: ImageGalerySubCat,
+        key: "id",
+      },
     },
   },
-  imageSubCatId: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: ImageGalerySubCat,  // Yabancı anahtar olarak ImageGalerySubCat modelini referans alıyoruz
-      key: "id",  // İlişkili modelin id'si ile bağlanacak
-    },
-  },
-});
-
+  {
+    freezeTableName: true, // tablo adı "ImageGaleries" olarak kalır
+  }
+);
 
 module.exports = ImageGalery;

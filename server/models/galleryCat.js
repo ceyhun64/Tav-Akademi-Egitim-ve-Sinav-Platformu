@@ -3,7 +3,7 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../data/db"); // Veritabanı bağlantısı
 
 const ImageGaleryCat = sequelize.define(
-  "ImageGaleryCategories",
+  "ImageGaleryCat", // Model adı tekil ve basit
   {
     name: {
       type: DataTypes.STRING,
@@ -11,8 +11,8 @@ const ImageGaleryCat = sequelize.define(
     },
   },
   {
-    timestamps: false, // Zaman damgası istemiyorsak
-
+    tableName: "imageGaleryCategories", // burada tablo adını ver, küçük harflerle
+    timestamps: false,
   }
 );
 

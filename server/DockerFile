@@ -1,0 +1,20 @@
+# Base image olarak Node.js'in resmi imajını alıyoruz (versiyonunu ihtiyacına göre seç)
+FROM node:18-bullseye
+
+# poppler-utils paketini kuruyoruz
+RUN apt-get update && apt-get install -y poppler-utils && apt-get clean
+
+# Çalışma dizini ayarlanıyor
+WORKDIR /app
+
+# package.json ve package-lock.json'u kopyalıyoruz
+COPY package*.json ./
+
+# Node.js bağımlılıklarını yüklüyoruz
+RUN npm install
+
+# Proje dosyalarını kopyalıyoruz
+COPY . .
+
+# Uygulamayı başlatıyoruz
+CMD ["node", "server.js"]

@@ -72,7 +72,7 @@ app.use("/api/certificate", certificateRoutes);
 app.use("/api/practiceexam", practiceExamRoutes);
 
 (async () => {
-  await sequelize.sync({ force: true });
+  await sequelize.sync({ force: false });
   await dummyData(); //dummy data eklemek için
 })();
 

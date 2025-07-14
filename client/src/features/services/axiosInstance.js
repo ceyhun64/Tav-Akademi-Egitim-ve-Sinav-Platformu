@@ -2,6 +2,7 @@ import axios from "axios";
 import emitter from "./eventEmitter"; // event emitter’ı import et
 
 const API_URL = `${import.meta.env.VITE_API_URL}`;
+console.log("API URL:", import.meta.env.VITE_API_URL);
 
 const axiosInstance = axios.create({
   baseURL: API_URL,

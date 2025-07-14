@@ -1,0 +1,25 @@
+{
+  "development": {
+    "username": "root",
+    "password": "sJWknFpWaNhsQEFhmxgutFzbGSSjuwIb",
+    "database": "railway",
+    "host": "crossover.proxy.rlwy.net",
+    "port": 34884,
+    "dialect": "mysql"
+  },
+  "test": {
+    "username": "root",
+    "password": "Ceycey.123",
+    "database": "database_test",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  },
+  "production": {
+    "username": "root",
+    "password": "sJWknFpWaNhsQEFhmxgutFzbGSSjuwIb",
+    "database": "railway",
+    "host": "crossover.proxy.rlwy.net",
+    "port": 34884,
+    "dialect": "mysql"
+  }
+}

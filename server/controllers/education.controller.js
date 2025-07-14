@@ -7,12 +7,13 @@ const {
 const fs = require("fs");
 const { fromPath } = require("pdf2pic");
 const { PDFDocument } = require("pdf-lib");
+const { fromBuffer } = require("pdf2pic");
+
 const cloudinary = require("cloudinary").v2;
 const axios = require("axios");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const logActivity = require("../helpers/logActivity");
-const poppler = require("pdf-poppler");
 
 // Galeriyi getir
 exports.getAllEducations = async (req, res) => {
@@ -91,63 +92,35 @@ exports.uploadSingleFile = async (req, res) => {
     let pageImages = [];
 
     if (ext === ".pdf") {
-      // PDF dosyasını indir
       const response = await axios.get(fileUrl, {
         responseType: "arraybuffer",
       });
+      const pdfBuffer = Buffer.from(response.data);
 
-      const tmpDir = path.join(__dirname, "..", "tmp");
-      if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
-
-      const tempPdfPath = path.join(tmpDir, `${uuidv4()}.pdf`);
-      fs.writeFileSync(tempPdfPath, response.data);
-
-      // Sayfa sayısını öğren
-      const pdfBytes = fs.readFileSync(tempPdfPath);
-      const pdfDoc = await PDFDocument.load(pdfBytes);
+      const pdfDoc = await PDFDocument.load(pdfBuffer);
       numPages = pdfDoc.getPageCount();
 
-      // JPEG çıktı klasörü oluştur
-      const outputDir = path.join(tmpDir, uuidv4());
-      fs.mkdirSync(outputDir, { recursive: true });
+      const convert = fromBuffer(pdfBuffer, {
+        density: 200,
+        format: "jpeg",
+        width: 1000,
+        height: 1414,
+        saveFilename: "page",
+        savePath: "./tmp", // Render destekli geçici klasör
+      });
 
-      // Sayfaları tek tek dönüştür
       for (let i = 1; i <= numPages; i++) {
-        const opts = {
-          format: "jpeg",
-          out_dir: outputDir,
-          out_prefix: "page",
-          dpi: 200, // daha net görüntü
-          page: i,
-        };
-
-        await poppler.convert(tempPdfPath, opts);
-      }
-
-      // Oluşan sayfa dosyalarını oku
-      const files = fs
-        .readdirSync(outputDir)
-        .filter(
-          (file) =>
-            file.startsWith("page") &&
-            (file.endsWith(".jpg") || file.endsWith(".jpeg"))
-        );
-
-      // Cloudinary’e yükle
-      for (const fileName of files) {
-        const imagePath = path.join(outputDir, fileName);
-        const uploadRes = await cloudinary.uploader.upload(imagePath, {
+        const result = await convert(i); // i = page number
+        const uploadRes = await cloudinary.uploader.upload(result.path, {
           folder: "education_pages",
         });
         pageImages.push(uploadRes.secure_url);
-      }
 
-      // Temizlik
-      fs.unlinkSync(tempPdfPath);
-      fs.rmSync(outputDir, { recursive: true, force: true });
+        // Temizle
+        fs.unlinkSync(result.path);
+      }
     }
 
-    // Veritabanına kaydet
     const newEducation = await Education.create({
       name,
       duration,

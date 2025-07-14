@@ -6,21 +6,23 @@ const RoleLevelPerm = sequelize.define("rolelevelperms", {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: "rolelevels", // Tablo adı veya Model referansı olabilir
+      model: "rolelevels",
       key: "id",
     },
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
+    primaryKey: true, // burada primary key olarak işaretlendi
   },
   permissionId: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: "permissions", // Tablo adı veya Model referansı olabilir
+      model: "permissions",
       key: "id",
     },
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
+    primaryKey: true, // burada da
   },
 });
 

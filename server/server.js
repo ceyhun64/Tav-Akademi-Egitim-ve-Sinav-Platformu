@@ -39,7 +39,7 @@ const certificateRoutes = require("./routes/certificate.routes");
 const practiceExamRoutes = require("./routes/practiceExam.routes");
 
 const corsOptions = {
-  origin: "https://tav-akademi-egitim-ve-sinav-platfor-rho.vercel.app", // frontendin çalıştığı adres http://localhost:5173
+  origin: "https://tav-akademi-egitim-ve-sinav-platfor-henna.vercel.app", // frontendin çalıştığı adres http://localhost:5173
   methods: ["GET", "POST", "PUT", "DELETE"], // Sadece GET, POST, PUT, DELETE izin verilir
 };
 app.use(cors(corsOptions));

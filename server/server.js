@@ -3,13 +3,13 @@ const express = require("express"); //expressi dahil ettik
 const cors = require("cors"); //cors dahil ettik
 const app = express(); //app adlı uygulamayı oluşturduk
 
-app.use((req, res, next) => {
-  //middleware'leri kullanarak istekleri yönetiyoruz(req:istek, res:yeniden yönlendirme, next:bir sonraki middleware'e geçiş)
-  res.header("Access-Control-Allow-Origin", process.env.FRONTEND_URL); // İzin verilen kaynaklar
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE"); // İzin verilen HTTP metotları
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization"); // İzin verilen başlıklar
-  next(); // Bir sonraki middleware'e geçiş
-});
+// app.use((req, res, next) => {
+//   //middleware'leri kullanarak istekleri yönetiyoruz(req:istek, res:yeniden yönlendirme, next:bir sonraki middleware'e geçiş)
+//   res.header("Access-Control-Allow-Origin", process.env.FRONTEND_URL); // İzin verilen kaynaklar
+//   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE"); // İzin verilen HTTP metotları
+//   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization"); // İzin verilen başlıklar
+//   next(); // Bir sonraki middleware'e geçiş
+// });
 
 const sequelize = require("./data/db"); //sequelize dahil ettik
 const dummyData = require("./data/dummy-data"); //dummyData dahil ettik
@@ -39,7 +39,7 @@ const certificateRoutes = require("./routes/certificate.routes");
 const practiceExamRoutes = require("./routes/practiceExam.routes");
 
 const corsOptions = {
-  origin: "*", // frontendin çalıştığı adres http://localhost:5173
+  origin: "https://tav-akademi-egitim-ve-sinav-platfor-rho.vercel.app", // frontendin çalıştığı adres http://localhost:5173
   methods: ["GET", "POST", "PUT", "DELETE"], // Sadece GET, POST, PUT, DELETE izin verilir
 };
 app.use(cors(corsOptions));

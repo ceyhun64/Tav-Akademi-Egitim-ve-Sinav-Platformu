@@ -3,7 +3,7 @@ require("dotenv").config();
 const sequelize = require("../data/db");
 const { DataTypes } = require("sequelize");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 const jwtPrivateKey = process.env.JWT_PRIVATE_KEY;
 

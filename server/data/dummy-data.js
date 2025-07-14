@@ -35,7 +35,7 @@ const {
   
 } = require("../models/index");
 const { v4: uuidv4 } = require("uuid"); // Eğer UUID üretmen gerekiyorsa
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 const unifiedId1 = uuidv4();
 const unifiedId2 = uuidv4();

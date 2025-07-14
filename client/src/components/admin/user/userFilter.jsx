@@ -5,7 +5,7 @@ import {
   getInstitutionsThunk,
 } from "../../../features/thunks/grpInstThunk";
 import { useEffect } from "react";
-import "./userFilter.css"
+import "./UserFilter.css"
 
 export default function UserFilter({ filters, onChange, uniqueValues }) {
   const dispatch = useDispatch();

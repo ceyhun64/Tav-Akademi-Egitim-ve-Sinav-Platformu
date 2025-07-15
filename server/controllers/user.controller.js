@@ -1,6 +1,33 @@
-const { User, Role } = require("../models/index");
+const { User, Role, Institution, Group } = require("../models/index");
 const { Op } = require("sequelize");
 const logActivity = require("../helpers/logActivity");
+
+exports.get_user_details = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    const user = await User.findByPk(userId, {
+      attributes: { exclude: ["sifre"] },
+      include: [
+        { model: Role, as: "role" },
+        { model: Institution, as: "lokasyon" }, // ← BURASI DÜZELTİLDİ
+        { model: Group, as: "grup" }, // ← senin modelde "grup" olarak tanımlanmış
+      ],
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "Kullanıcı bulunamadı." });
+    }
+
+    return res.status(200).json(user);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Sunucu hatası.",
+      error: error.message,
+    });
+  }
+};
 
 exports.update_user_details = async (req, res) => {
   try {

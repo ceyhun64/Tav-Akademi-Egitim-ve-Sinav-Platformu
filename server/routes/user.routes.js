@@ -5,6 +5,10 @@ const verifyToken = require("../middlewares/verifyToken");
 const authorize = require("../middlewares/authorize");
 
 const { uploadSingle } = require("../middlewares/upload");
+
+// Kullanıcı detaylarını getir
+router.get("/details/:id", verifyToken, userController.get_user_details);
+
 //kullanıcıları getir
 router.get("/", verifyToken, userController.get_all_users);
 

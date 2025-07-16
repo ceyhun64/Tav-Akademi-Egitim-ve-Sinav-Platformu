@@ -1,7 +1,7 @@
 import axios from "axios";
 import axiosInstance from "./axiosInstance";
 
-const API_URL = `${import.meta.env.VITE_API_URL}/auth`;
+const API_URL = `https://tav-akademi-egitim-ve-sinav-platformu-1.onrender.com/api/auth`;
 
 // login api isteği
 export const login = async (kullanici_adi, sifre) => {

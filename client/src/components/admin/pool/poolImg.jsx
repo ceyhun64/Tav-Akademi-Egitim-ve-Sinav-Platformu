@@ -18,21 +18,68 @@ export default function PoolImg() {
   const { poolImgs } = useSelector((state) => state.poolImg);
   const { imgBooklets } = useSelector((state) => state.booklet);
   const { difLevels, questionCats } = useSelector((state) => state.queDif);
+
+  // Sayfalama state'leri
+  const [itemsPerPage, setItemsPerPage] = useState(10); // Varsayılan olarak 10 soru
+  const [currentPage, setCurrentPage] = useState(1);
+  const [expandedRow, setExpandedRow] = useState(null); // Detayları göstermek için
+
+  const [selectedBooklet, setSelectedBooklet] = useState("");
+
+  // Filtered pool images based on selectedBooklet
+  const filteredPoolImgs = selectedBooklet
+    ? poolImgs.filter((item) => item.bookletId === selectedBooklet)
+    : poolImgs;
+
+  // Toplam sayfa sayısı (filteredPoolImgs üzerinden hesaplanmalı)
+  const totalPages = Math.ceil(filteredPoolImgs.length / itemsPerPage);
+
+  // Mevcut sayfada gösterilecek sorular (filteredPoolImgs üzerinden slice edilmeli)
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentQuestions = filteredPoolImgs.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+
+  // Sayfa numarası değiştirme fonksiyonu
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    setExpandedRow(null); // Yeni sayfaya geçildiğinde açık olan satırları kapat
+  };
+
+  // Sayfalama düğmeleri için dinamik dizi oluşturma
+  const pageNumbers = [];
+  // Çok fazla sayfa varsa, sadece belirli bir aralığı göster (örn: 5 sayfa)
+  const maxPageButtons = 5;
+  let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
+  let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
+
+  if (endPage - startPage + 1 < maxPageButtons) {
+    startPage = Math.max(1, endPage - maxPageButtons + 1);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pageNumbers.push(i);
+  }
+
+  // Satır genişletme/daraltma
+
   useEffect(() => {
     dispatch(getDifLevelsThunk());
     dispatch(getQuestionCatThunk());
   }, [dispatch]);
 
-  const [selectedBooklet, setSelectedBooklet] = useState("");
-  const [expandedRow, setExpandedRow] = useState(null); // detay için
-
   useEffect(() => {
     dispatch(getImgBookletsThunk());
-    dispatch(getPoolImgThunk());
+    dispatch(getPoolImgThunk()); // Initial fetch of all pool images
   }, [dispatch]);
 
   const handleDelete = async (id) => {
+    if (!window.confirm("Bu soruyu silmek istediğinize emin misiniz?")) return;
+
     await dispatch(deletePoolImgThunk(id));
+    // After deletion, re-fetch based on current filter or all
     if (selectedBooklet) {
       dispatch(getPoolImgsByBookletIdThunk(selectedBooklet));
     } else {
@@ -43,13 +90,14 @@ export default function PoolImg() {
   const handleBookletChange = (e) => {
     const bookletId = e.target.value;
     setSelectedBooklet(bookletId);
+    setCurrentPage(1); // Reset to first page when booklet filter changes
+    setExpandedRow(null); // Close any expanded rows
 
     if (bookletId) {
       dispatch(getPoolImgsByBookletIdThunk(bookletId));
     } else {
-      dispatch(getPoolImgThunk());
+      dispatch(getPoolImgThunk()); // Fetch all if no booklet is selected
     }
-    setExpandedRow(null); // filtre değişince detay kapat
   };
 
   const toggleRow = (id) => {
@@ -86,7 +134,7 @@ export default function PoolImg() {
     // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
     setSidebarOpen(!isMobile);
   }, [isMobile]);
-  const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
+  // const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik - Bu değişken kullanılmıyor
 
   return (
     <div
@@ -310,8 +358,54 @@ export default function PoolImg() {
             </div>
           </div>
         </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "10px 16px",
+            backgroundColor: "#f5f7fa",
+            borderBottom: "1px solid #ddd",
+            color: "#001b66",
+            fontWeight: 600,
+            fontSize: "1rem",
+            flexWrap: "wrap",
+            gap: "10px",
+          }}
+        >
+          {/* Sayfa başına soru seçimi */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <label htmlFor="itemsPerPageSelect">Sayfa Başına Soru:</label>
+            <select
+              id="itemsPerPageSelect"
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1); // Sayfa boyutu değiştiğinde ilk sayfaya dön
+                setExpandedRow(null); // Detayları kapat
+              }}
+              style={{
+                padding: "5px 8px",
+                borderRadius: "5px",
+                border: "1px solid #ccc",
+                backgroundColor: "#fff",
+                fontSize: "0.95rem",
+              }}
+            >
+              {[5, 10, 20, 30, 40, 50].map((count) => (
+                <option key={count} value={count}>
+                  {count}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {poolImgs?.length === 0 ? (
+          {/* Toplam soru sayısı (filteredPoolImgs üzerinden gösterilmeli) */}
+          <div style={{ whiteSpace: "nowrap" }}>
+            Toplam Soru: {filteredPoolImgs.length}
+          </div>
+        </div>
+        {filteredPoolImgs?.length === 0 ? (
           <p style={{ color: "#5a6380", fontSize: "1.1rem" }}>
             Henüz soru eklenmemiş.
           </p>
@@ -342,7 +436,7 @@ export default function PoolImg() {
                   {!isMobile && (
                     <>
                       <th className="col-id" style={{ width: 70 }}>
-                        ID
+                        Sıra
                       </th>
                       <th className="col-image" style={{ width: 130 }}>
                         Görüntü
@@ -363,7 +457,7 @@ export default function PoolImg() {
                 </tr>
               </thead>
               <tbody>
-                {poolImgs?.map((item) => (
+                {currentQuestions?.map((item, index) => (
                   <React.Fragment key={item.id}>
                     <tr
                       style={{
@@ -414,9 +508,8 @@ export default function PoolImg() {
                           )}
                         </button>
                       </td>
-
-                      {!isMobile && <td className="col-id">{item.id}</td>}
-
+                      <td>{index + 1 + (currentPage - 1) * itemsPerPage}</td>{" "}
+                      {/* Corrected index for current page */}
                       {!isMobile && (
                         <td className="col-image">
                           {item.image ? (
@@ -436,7 +529,6 @@ export default function PoolImg() {
                           )}
                         </td>
                       )}
-
                       <td
                         style={{
                           verticalAlign: "middle",
@@ -446,7 +538,6 @@ export default function PoolImg() {
                         className="mb-4 p-3 border rounded bg-white"
                         dangerouslySetInnerHTML={{ __html: item?.question }}
                       />
-
                       {!isMobile && (
                         <td className="col-actions">
                           <div
@@ -507,7 +598,6 @@ export default function PoolImg() {
                         </td>
                       )}
                     </tr>
-
                     {expandedRow === item.id && (
                       <tr>
                         <td
@@ -540,11 +630,13 @@ export default function PoolImg() {
                               <li>E: {item.e}</li>
                               <li>F: {item.f}</li>
                             </ul>
-
                             <p>
                               <strong>Doğru Cevap:</strong>{" "}
                               <span
-                                style={{ color: "#001b66", fontWeight: "700" }}
+                                style={{
+                                  color: "#001b66",
+                                  fontWeight: "700",
+                                }}
                               >
                                 {item.answer.toUpperCase()}
                               </span>
@@ -575,6 +667,68 @@ export default function PoolImg() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginTop: "20px",
+              gap: "8px",
+              flexWrap: "wrap",
+            }}
+          >
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="btn btn-outline-secondary btn-sm"
+              style={{
+                borderRadius: "6px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                transition: "background-color 0.3s, box-shadow 0.3s",
+                marginRight: "0",
+              }}
+            >
+              Önceki
+            </button>
+            {pageNumbers.map((number) => (
+              <button
+                key={number}
+                onClick={() => handlePageChange(number)}
+                className={`btn btn-sm ${
+                  currentPage === number ? "btn-primary" : "btn-outline-primary"
+                }`}
+                style={{
+                  borderRadius: "6px",
+                  boxShadow:
+                    currentPage === number
+                      ? "0 2px 8px rgba(0,123,255,0.4)"
+                      : "0 1px 3px rgba(0,0,0,0.1)",
+                  transition: "background-color 0.3s, box-shadow 0.3s",
+                  margin: "0",
+                  minWidth: "36px",
+                  padding: "0 12px",
+                  fontWeight: currentPage === number ? "600" : "400",
+                }}
+              >
+                {number}
+              </button>
+            ))}
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="btn btn-outline-secondary btn-sm"
+              style={{
+                borderRadius: "6px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                transition: "background-color 0.3s, box-shadow 0.3s",
+                marginLeft: "0",
+              }}
+            >
+              Sonraki
+            </button>
           </div>
         )}
       </div>

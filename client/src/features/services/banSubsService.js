@@ -31,6 +31,7 @@ export const createBanSubs = async ({ name }) => {
 };
 export const updateBanSubs = async ({ id, name }) => {
   try {
+    console.log(id, name);  
     const response = await axiosInstance.put(`/bansubs/${id}`, {
       name,
     });

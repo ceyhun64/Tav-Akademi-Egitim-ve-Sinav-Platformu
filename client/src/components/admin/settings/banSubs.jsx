@@ -23,7 +23,7 @@ export default function BanSubs() {
     setFormData({ ...formData, name: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const trimmedName = formData.name.trim().toLowerCase();
     if (!trimmedName) return;
@@ -40,9 +40,11 @@ export default function BanSubs() {
     }
 
     if (formData.id) {
-      dispatch(updateBanSubsThunk(formData));
+      await dispatch(updateBanSubsThunk(formData)).unwrap();
+      await dispatch(getBanSubsThunk()).unwrap();
     } else {
-      dispatch(createBanSubsThunk({ name: formData.name }));
+      await dispatch(createBanSubsThunk({ name: formData.name })).unwrap();
+      await dispatch(getBanSubsThunk()).unwrap();
     }
 
     setFormData({ id: null, name: "" });

@@ -30,8 +30,27 @@ export default function TeoReportDetail() {
   const navigate = useNavigate();
   const { userResultDetail } = useSelector((state) => state.report);
   const { groups, institutions } = useSelector((state) => state.grpInst);
+
   console.log("userResultDetail", userResultDetail);
-  const { data } = userResultDetail || {};
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
 
   useEffect(() => {
     if (userId && examId) {
@@ -44,6 +63,13 @@ export default function TeoReportDetail() {
     dispatch(getInstitutionsThunk());
   }, [dispatch]);
 
+  // Hata kontrolünü burada yapıyoruz, user ve exam'dan önce!
+  if (!userResultDetail || !userResultDetail.data) {
+    return <div>Yükleniyor...</div>; // Ya da bir spinner koyabilirsiniz
+  }
+
+  // userResultDetail.data artık var, güvenle erişebiliriz
+  const { data } = userResultDetail;
   const user = data.user || {};
   const exam = data.exam || {};
 
@@ -98,7 +124,7 @@ export default function TeoReportDetail() {
         className="fw-semibold"
         style={{
           whiteSpace: "nowrap",
-          width: "120px", // Etiket hücresi için sabit genişlik
+          width: "120px",
           verticalAlign: "top",
           padding: "4px 8px",
         }}
@@ -113,29 +139,6 @@ export default function TeoReportDetail() {
     ? " Tebrikler, sınavı geçtiniz!"
     : " Üzgünüz, sınavda başarısız oldunuz.";
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
-    setSidebarOpen(!isMobile);
-  }, [isMobile]);
-  const selectWidth = 300;
-  if (!userResultDetail || !userResultDetail.data) {
-    return <div>Yükleniyor...</div>; // Ya da bir spinner koyabilirsiniz
-  }
   return (
     <div
       className="poolImg-container"
@@ -198,10 +201,10 @@ export default function TeoReportDetail() {
                 color: "white",
                 border: "none",
                 borderRadius: "4px",
-                padding: "6px 16px", // padding yatay biraz artırıldı
+                padding: "6px 16px",
                 cursor: "pointer",
                 fontSize: "1rem",
-                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+                whiteSpace: "nowrap",
               }}
             >
               Geri Dön

@@ -6,55 +6,60 @@ export default function EducationPageDurations({ education, pages }) {
   const dispatch = useDispatch();
   const [durations, setDurations] = useState([]);
   const [selectedPageIndex, setSelectedPageIndex] = useState(0);
+  const [saved, setSaved] = useState(false); // Kayıt sonrası form gizleme state'i
 
-  // Sayfalar yüklendiğinde veya değiştiğinde başlangıç sürelerini ayarlar
   useEffect(() => {
     if (pages && pages.length > 0) {
       const initialDurations = pages.map((_, index) => ({
         page: index + 1,
-        duration: "", // Süre başlangıçta boş string olabilir, input için uygun
+        duration: "",
       }));
       setDurations(initialDurations);
-      // İlk sayfayı seçili hale getir
       setSelectedPageIndex(0);
+      setSaved(false); // Yeni pages geldiğinde formu tekrar aç
     }
-  }, [pages]); // 'pages' prop'u değiştiğinde efekti yeniden çalıştır
+  }, [pages]);
 
-  // Süre input'unun değeri değiştiğinde çalışır
   const handleChange = (index, value) => {
     const updated = [...durations];
-    // Gelen değeri sayıya dönüştür. Eğer boş veya geçerli bir sayı değilse 0 veya boş bırak.
-    // parseFloat yerine parseInt daha güvenli olabilir çünkü süre genellikle tam sayı beklenir.
-    // Ancak ondalık süreler de mümkünse parseFloat kullanılmalı. Burada tam sayı varsayımıyla parseInt kullandım.
     const numericValue = value === "" ? "" : parseInt(value, 10);
-    // Eğer dönüştürme başarısız olursa (NaN), o zaman boş string tutulabilir.
     updated[index].duration = isNaN(numericValue) ? "" : numericValue;
     setDurations(updated);
   };
 
-  // Süreleri backend'e gönderir
   const handleSubmit = () => {
-    // Sadece geçerli sayısal süreleri gönder.
-    // Backend'e gönderilecek veride, duration'ı boş olan sayfaları 0 olarak göndermek isteyebilirsiniz.
     const durationsToSend = durations.map((item) => ({
       ...item,
-      duration: item.duration === "" ? 0 : Number(item.duration), // Backend'e göndermeden önce emin olmak için Number() kullanın
+      duration: item.duration === "" ? 0 : Number(item.duration),
     }));
 
-    dispatch(
-      addPageDurationThunk({ id: education.id, pages: durationsToSend })
-    );
-    console.log("Gönderilen süreler:", durationsToSend);
+    dispatch(addPageDurationThunk({ id: education.id, pages: durationsToSend }))
+      .unwrap()
+      .then(() => {
+        window.alert("Sayfa süreleri başarıyla güncellendi!");
+        setSaved(true); // Kaydettikten sonra formu gizle
+      })
+      .catch((error) => {
+        window.alert("Süre güncellenirken bir hata oluştu: " + error.message);
+      });
   };
+
+  if (saved) {
+    return (
+      <div className="alert alert-success mt-4" role="alert">
+        Sayfa süreleri başarıyla kaydedildi!
+      </div>
+    );
+  }
 
   return (
     <div className="container ">
       <div className="row">
-        {/* Sol taraf: Sayfa listesi + süre input + buton */}
+        {/* Sol taraf */}
         <div className="col-md-4">
           <div className="card shadow-sm p-4">
             <h5 className="mb-3" style={{ color: "#001b66", fontWeight: 600 }}>
-               Sayfa Listesi
+              Sayfa Listesi
             </h5>
 
             <ul className="list-group list-group-flush mb-4">
@@ -123,12 +128,12 @@ export default function EducationPageDurations({ education, pages }) {
                 (e.currentTarget.style.backgroundColor = "#001b66")
               }
             >
-               Kaydet
+              Kaydet
             </button>
           </div>
         </div>
 
-        {/* Sağ taraf: Seçilen sayfanın görseli */}
+        {/* Sağ taraf */}
         <div className="col-md-8">
           <div
             className="card shadow-sm d-flex justify-content-center align-items-center"

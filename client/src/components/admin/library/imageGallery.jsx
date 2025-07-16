@@ -239,7 +239,7 @@ export default function ImageGallery() {
             {filteredGalleries.length === 0 ? (
               <p>Filtreye uygun galeri bulunamadı.</p>
             ) : (
-              <div className="row row-cols-1 row-cols-md-2 g-4">
+              <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
                 {filteredGalleries.map((item) => (
                   <div key={item.id} className="col">
                     <div className="card h-100 shadow-sm">
@@ -248,6 +248,12 @@ export default function ImageGallery() {
                           src={item.image}
                           alt={item.name || `Galeri ${item.id}`}
                           className="card-img-top"
+                          style={{
+                            height: "200px",
+                            objectFit: "contain",
+                            padding: "10px",
+                            backgroundColor: "white",
+                          }}
                         />
                       )}
                       <div className="card-body d-flex flex-column">

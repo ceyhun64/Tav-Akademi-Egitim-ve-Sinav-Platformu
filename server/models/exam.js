@@ -34,7 +34,7 @@ const Exam = sequelize.define("exams", {
   },
   sure: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
   },
   attemp_limit: {
     type: DataTypes.INTEGER,

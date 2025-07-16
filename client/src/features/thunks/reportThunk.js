@@ -12,6 +12,11 @@ import {
   getTeoQuestionResult,
   getUserImgExamResult,
   getUserTeoExamResult,
+  getAssignImgExams,
+  getAssignTeoExams,
+  getAssignEducationSets,
+  deleteAssignEducationSet,
+  deleteAssignExam,
 } from "../services/reportService";
 
 export const getUserTeoResultsThunk = createAsyncThunk(
@@ -153,6 +158,62 @@ export const getUserTeoExamResultThunk = createAsyncThunk(
     try {
       const response = await getUserTeoExamResult();
       console.log("thunk:", response.data);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+export const getAssignImgExamsThunk = createAsyncThunk(
+  "report/getAssignImgExams",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getAssignImgExams();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+export const getAssignTeoExamsThunk = createAsyncThunk(
+  "report/getAssignTeoExams",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getAssignTeoExams();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+export const deleteAssignExamThunk = createAsyncThunk(
+  "report/deleteAssignExam",
+  async (examId, { rejectWithValue }) => {
+    try {
+      console.log("thunk examId:", examId);
+      const response = await deleteAssignExam(examId);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+export const getAssignEducationSetsThunk = createAsyncThunk(
+  "report/getAssignEducationSets",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getAssignEducationSets();
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+export const deleteAssignEducationSetThunk = createAsyncThunk(
+  "report/deleteAssignEducationSet",
+  async (educationSetId, { rejectWithValue }) => {
+    try {
+      const response = await deleteAssignEducationSet(educationSetId);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);

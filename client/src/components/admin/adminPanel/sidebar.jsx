@@ -15,7 +15,7 @@ export default function Sidebar() {
   const menuRef = useRef(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  //kitapçık dropdownları için state ve ref
+  // Kitapçık dropdownları için state ve ref
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0 });
   const toggleRef = useRef(null);
@@ -51,12 +51,66 @@ export default function Sidebar() {
     }, 1000);
   };
 
-  const toggleDropdown = () => setDropdownOpen((prev) => !prev);
-  const toggleExamDropdown = () => setExamDropdownOpen((prev) => !prev);
-  const toggleEducationDropdown = () =>
-    setEducationDropdownOpen((prev) => !prev);
-  const toggleReportDropdown = () => setReportDropdownOpen((prev) => !prev);
-  const toggleSettingsDropdown = () => setSettingsDropdownOpen((prev) => !prev);
+  // ... mevcut import'lar ve durum tanımlamaları ...
+
+  // Yeni Ortak Kapatma Fonksiyonu
+  const closeAllDropdowns = () => {
+    setDropdownOpen(false);
+    setExamDropdownOpen(false);
+    setEducationDropdownOpen(false);
+    setReportDropdownOpen(false);
+    setSettingsDropdownOpen(false);
+  };
+
+  // Her bir dropdown toggle fonksiyonunu güncelleyin
+  const toggleDropdown = () => {
+    if (dropdownOpen) {
+      // Bu açılır menü zaten açıksa, hepsini kapat
+      closeAllDropdowns();
+    } else {
+      // Aksi takdirde, diğerlerini kapat ve bunu aç
+      closeAllDropdowns();
+      setDropdownOpen(true);
+    }
+  };
+
+  const toggleExamDropdown = () => {
+    if (examDropdownOpen) {
+      closeAllDropdowns();
+    } else {
+      closeAllDropdowns();
+      setExamDropdownOpen(true);
+    }
+  };
+
+  const toggleEducationDropdown = () => {
+    if (educationDropdownOpen) {
+      closeAllDropdowns();
+    } else {
+      closeAllDropdowns();
+      setEducationDropdownOpen(true);
+    }
+  };
+
+  const toggleReportDropdown = () => {
+    if (reportDropdownOpen) {
+      closeAllDropdowns();
+    } else {
+      closeAllDropdowns();
+      setReportDropdownOpen(true);
+    }
+  };
+
+  const toggleSettingsDropdown = () => {
+    if (settingsDropdownOpen) {
+      closeAllDropdowns();
+    } else {
+      closeAllDropdowns();
+      setSettingsDropdownOpen(true);
+    }
+  };
+
+  // ... bileşen kodunuzun geri kalanı ...
 
   useEffect(() => {
     if (dropdownOpen && toggleRef.current) {
@@ -101,6 +155,7 @@ export default function Sidebar() {
   const handleLinkClick = () => {
     if (window.innerWidth <= 768) {
       setSidebarOpen(false);
+      closeAllDropdowns(); // Sidebar kapanırken tüm dropdownları da kapat
     }
   };
 
@@ -175,20 +230,7 @@ export default function Sidebar() {
               </Link>
             </li>
 
-            <li>
-              <Link
-                to="/admin/authorized"
-                onClick={handleLinkClick}
-                className={`sidebar-link d-flex align-items-center ${
-                  location.pathname === "/admin/authorized" ? "active-link" : ""
-                }`}
-              >
-                <i className="bi bi-shield-lock-fill me-2 fs-5"></i>{" "}
-                {/* Yetkili İşlemleri için koruma/kilit */}
-                Yetkili İşlemleri
-              </Link>
-            </li>
-
+          
             <li>
               <button
                 ref={toggleRef}
@@ -235,7 +277,7 @@ export default function Sidebar() {
                     ? "active-link"
                     : ""
                 }`}
-                onClick={() => setExamDropdownOpen((prev) => !prev)}
+                onClick={toggleExamDropdown}
               >
                 <span>
                   <i className="bi bi-pencil-square me-2 fs-5"></i> Sınav
@@ -302,7 +344,12 @@ export default function Sidebar() {
                 className={`sidebar-link d-flex align-items-center justify-content-between w-100 btn btn-toggle ${
                   location.pathname.startsWith("/admin/img-exam-report") ||
                   location.pathname.startsWith("/admin/teo-exam-report") ||
-                  location.pathname.startsWith("/admin/education-set-report")
+                  location.pathname.startsWith("/admin/education-set-report") ||
+                  location.pathname.startsWith("/admin/assign-img-exams") ||
+                  location.pathname.startsWith("/admin/assign-teo-exams") ||
+                  location.pathname.startsWith(
+                    "/admin/assign-education-set-report"
+                  )
                     ? "active-link"
                     : ""
                 }`}
@@ -813,6 +860,102 @@ export default function Sidebar() {
               <i className="bi bi-journal-check me-2"></i> Eğitim Seti Sonuçları
             </Link>
           </li>
+          <li>
+            <Link
+              to="/admin/assign-teo-exams"
+              className={`sidebar-sublink ${
+                location.pathname === "/admin/assign-teo-exams"
+                  ? "active-link"
+                  : ""
+              }`}
+              onClick={() => setReportDropdownOpen(false)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "0.5rem 1rem",
+                color: "#003399",
+                fontWeight: 400,
+                textDecoration: "none",
+                borderRadius: "4px",
+                transition: "background-color 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#001b66";
+                e.currentTarget.style.color = "#fff";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "#003399";
+              }}
+            >
+              <i className="bi bi-book me-2"></i>
+              Atanmış Teorik Sınavlar
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/admin/assign-img-exams"
+              className={`sidebar-sublink ${
+                location.pathname === "/admin/assign-img-exams"
+                  ? "active-link"
+                  : ""
+              }`}
+              onClick={() => setReportDropdownOpen(false)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "0.5rem 1rem",
+                color: "#003399",
+                fontWeight: 400,
+                textDecoration: "none",
+                borderRadius: "4px",
+                transition: "background-color 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#001b66";
+                e.currentTarget.style.color = "#fff";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "#003399";
+              }}
+            >
+              <i className="bi bi-ui-checks-grid me-2"></i>
+              Atanmış Uygulamalı Sınavlar
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/admin/assign-education-set-report"
+              className={`sidebar-sublink ${
+                location.pathname === "/admin/assign-education-set-report "
+                  ? "active-link"
+                  : ""
+              }`}
+              onClick={() => setReportDropdownOpen(false)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "0.5rem 1rem",
+                color: "#003399",
+                fontWeight: 400,
+                textDecoration: "none",
+                borderRadius: "4px",
+                transition: "background-color 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#001b66";
+                e.currentTarget.style.color = "#fff";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "#003399";
+              }}
+            >
+              <i className="bi bi-collection-play me-2"></i>
+              Atanmış Eğitim Setleri
+            </Link>
+          </li>
         </ul>
       )}
       {settingsDropdownOpen && (
@@ -892,6 +1035,7 @@ export default function Sidebar() {
               <i className="bi bi-images me-2"></i> Uygulamalı Soru Kategorileri
             </Link>
           </li>
+
           <li>
             <Link
               to="/admin/practice-exam"

@@ -12,6 +12,11 @@ import {
   getTeoQuestionResultThunk,
   getUserImgExamResultThunk,
   getUserTeoExamResultThunk,
+  getAssignImgExamsThunk,
+  getAssignTeoExamsThunk,
+  getAssignEducationSetsThunk,
+  deleteAssignEducationSetThunk,
+  deleteAssignExamThunk,
 } from "../thunks/reportThunk";
 
 const initialState = {
@@ -20,7 +25,10 @@ const initialState = {
   userTeoResults: [],
   userImgResults: [],
   userResultDetail: {},
-  
+  assignImgExams: [],
+  assignTeoExams: [],
+  assignEducationSets: [],
+
   userEducationResultDetail: {},
   userEducationSetsResult: [],
   questionCategoryResult: {},
@@ -192,6 +200,69 @@ const reportSlice = createSlice({
         state.imgResultByUser = action.payload;
       })
       .addCase(getUserImgExamResultThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      //Atanan sınavlar
+      .addCase(getAssignImgExamsThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(getAssignImgExamsThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.assignImgExams = action.payload;
+      })
+      .addCase(getAssignImgExamsThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(getAssignTeoExamsThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(getAssignTeoExamsThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.assignTeoExams = action.payload;
+      })
+      .addCase(getAssignTeoExamsThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(getAssignEducationSetsThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(getAssignEducationSetsThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.assignEducationSets = action.payload;
+      })
+      .addCase(getAssignEducationSetsThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      //Atanan sınavlar silme
+      .addCase(deleteAssignExamThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(deleteAssignExamThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.assignImgExams = action.payload;
+      })
+      .addCase(deleteAssignExamThunk.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      //Atanan eğitim setleri silme
+      .addCase(deleteAssignEducationSetThunk.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(deleteAssignEducationSetThunk.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.assignEducationSets = action.payload;
+      })
+      .addCase(deleteAssignEducationSetThunk.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       });

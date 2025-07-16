@@ -8,6 +8,7 @@ import {
   getGroupsThunk,
   getInstitutionsThunk,
 } from "../../../features/thunks/grpInstThunk";
+
 const Card = ({ title, color, children }) => (
   <div className="card mb-4 shadow-sm border-0">
     <div
@@ -26,27 +27,62 @@ const Card = ({ title, color, children }) => (
 
 export default function ImgReportDetail() {
   const { userId, examId } = useParams();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { userResultDetail } = useSelector((state) => state.report);
-  const { groups, institutions } = useSelector((state) => state.grpInst);
-  const data = userResultDetail?.data;
+
+  // All Hooks must be called unconditionally at the top level
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768); // Hook 1: useState (isMobile)
+
+  const { userResultDetail } = useSelector((state) => state.report); // Hook 2: useSelector
+  const { groups, institutions } = useSelector((state) => state.grpInst); // Hook 3: useSelector
+
+  // Data fetching effects
   useEffect(() => {
+    // Hook 4: useEffect
     if (userId && examId) {
       dispatch(getUserResultDetailThunk({ userId, examId }));
     }
   }, [dispatch, userId, examId]);
 
   useEffect(() => {
+    // Hook 5: useEffect
     dispatch(getGroupsThunk());
     dispatch(getInstitutionsThunk());
   }, [dispatch]);
 
+  // Effects related to UI state (mobile responsiveness)
+  useEffect(() => {
+    // Hook 6: useEffect
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // Hook 7: useEffect
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+
+  // --- Now, perform the loading check after all Hooks are called ---
+  if (!userResultDetail || !userResultDetail.data) {
+    return <p className="text-center mt-5">Yükleniyor...</p>;
+  }
+
+  // Now we are sure that userResultDetail.data exists, so we can safely destructure it.
+  const data = userResultDetail.data;
+
   const user = data.user || {};
   const exam = data.exam || {};
+
+  const selectWidth = 300; // This variable isn't used. Consider removing it if it's not needed.
 
   function calculateDuration(entryDate, entryTime, exitDate, exitTime) {
     const parseDateTime = (dateStr, timeStr) => {
@@ -75,6 +111,7 @@ export default function ImgReportDetail() {
 
     return result.join(" ");
   }
+
   const getGroupName = (id) => {
     const group = groups.find((g) => g.id === id);
     return group ? group.name : "-";
@@ -91,6 +128,7 @@ export default function ImgReportDetail() {
     data.exit_date,
     data.exit_time
   );
+
   const InfoRow = ({ label, value }) => (
     <tr>
       <td
@@ -112,24 +150,6 @@ export default function ImgReportDetail() {
     ? " Tebrikler, sınavı geçtiniz!"
     : " Üzgünüz, sınavda başarısız oldunuz.";
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
-    setSidebarOpen(!isMobile);
-  }, [isMobile]);
-  const selectWidth = 300;
-  if (!data) return <p className="text-center mt-5">Yükleniyor...</p>;
   return (
     <div
       className="poolImg-container"
@@ -192,10 +212,10 @@ export default function ImgReportDetail() {
                 color: "white",
                 border: "none",
                 borderRadius: "4px",
-                padding: "6px 16px", // padding yatay biraz artırıldı
+                padding: "6px 16px",
                 cursor: "pointer",
                 fontSize: "1rem",
-                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+                whiteSpace: "nowrap",
               }}
             >
               Geri Dön

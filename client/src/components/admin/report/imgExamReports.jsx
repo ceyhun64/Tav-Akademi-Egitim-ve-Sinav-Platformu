@@ -52,6 +52,20 @@ export default function ImgExamReports() {
   const [endDate, setEndDate] = useState("");
   const [filterKisi, setFilterKisi] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     dispatch(getUserImgResultsThunk());
@@ -61,6 +75,11 @@ export default function ImgExamReports() {
     dispatch(getInstitutionsThunk());
   }, [dispatch]);
 
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300;
   const results = userImgResults?.data || [];
   console.log("results:", results);
   // Lokasyon ve grup uniq listeleri
@@ -130,26 +149,7 @@ export default function ImgExamReports() {
       setSelectedIds([]);
     }
   };
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
-    setSidebarOpen(!isMobile);
-  }, [isMobile]);
-  const selectWidth = 300;
   if (results.length === 0) {
     return <p>Yükleniyor veya veri yok...</p>;
   }

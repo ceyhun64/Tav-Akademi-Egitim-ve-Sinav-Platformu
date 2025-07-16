@@ -1,4 +1,4 @@
-import React, { useEffect,useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { getUserEducationResultDetailThunk } from "../../../features/thunks/reportThunk";
@@ -27,9 +27,11 @@ const Card = ({ title, color, children }) => (
 export default function EducationReportDetail() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // All Hooks must be called unconditionally at the top level of the component
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
   const { userId, educationSetId } = useParams();
   const { userEducationResultDetail } = useSelector((state) => state.report);
   const { groups, institutions } = useSelector((state) => state.grpInst);
@@ -39,44 +41,12 @@ export default function EducationReportDetail() {
       dispatch(getUserEducationResultDetailThunk({ userId, educationSetId }));
     }
   }, [dispatch, userId, educationSetId]);
+
   useEffect(() => {
     dispatch(getGroupsThunk());
     dispatch(getInstitutionsThunk());
   }, [dispatch]);
 
- 
-
-  const data = userEducationResultDetail.data;
-
-  const user = data.user || {};
-  console.log(user);
-  console.log(data);
-
-  const getGroupName = (id) => {
-    const group = groups.find((g) => g.id === id);
-    return group ? group.name : "-";
-  };
-
-  const getInstitutionName = (id) => {
-    const inst = institutions.find((i) => i.id === id);
-    return inst ? inst.name : "-";
-  };
-  const InfoRow = ({ label, value }) => (
-    <tr>
-      <td
-        className="fw-semibold"
-        style={{
-          whiteSpace: "nowrap",
-          width: "120px", // Etiket hücresi için sabit genişlik
-          verticalAlign: "top",
-          padding: "4px 8px",
-        }}
-      >
-        {label}
-      </td>
-      <td style={{ padding: "4px 8px" }}>{value}</td>
-    </tr>
-  );
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -93,7 +63,47 @@ export default function EducationReportDetail() {
     // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
     setSidebarOpen(!isMobile);
   }, [isMobile]);
-  const selectWidth = 300;
+
+  const selectWidth = 300; // This variable isn't used. Consider removing it if it's not needed.
+
+  // --- Crucial Change: Add a loading check here ---
+  if (!userEducationResultDetail || !userEducationResultDetail.data) {
+    return <p className="text-center mt-5">Yükleniyor...</p>;
+  }
+
+  // Now, we are certain that userEducationResultDetail.data exists.
+  const data = userEducationResultDetail.data;
+  const user = data.user || {}; // Safely access user
+  // console.log(user); // You can keep these for debugging if needed
+  // console.log(data); // You can keep these for debugging if needed
+
+  const getGroupName = (id) => {
+    const group = groups.find((g) => g.id === id);
+    return group ? group.name : "-";
+  };
+
+  const getInstitutionName = (id) => {
+    const inst = institutions.find((i) => i.id === id);
+    return inst ? inst.name : "-";
+  };
+
+  const InfoRow = ({ label, value }) => (
+    <tr>
+      <td
+        className="fw-semibold"
+        style={{
+          whiteSpace: "nowrap",
+          width: "120px", // Etiket hücresi için sabit genişlik
+          verticalAlign: "top",
+          padding: "4px 8px",
+        }}
+      >
+        {label}
+      </td>
+      <td style={{ padding: "4px 8px" }}>{value}</td>
+    </tr>
+  );
+
   return (
     <div
       className="poolImg-container"
@@ -234,8 +244,6 @@ export default function EducationReportDetail() {
               />
             </Card>
           </div>
-
-         
         </div>
       </div>
     </div>

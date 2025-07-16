@@ -39,7 +39,22 @@ export default function EducationSetReports() {
     dispatch(getInstitutionsThunk());
   }, [dispatch]);
 
- 
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300;
   const filteredData = useMemo(() => {
     if (!userEducationSetsResult?.data) return [];
 
@@ -130,22 +145,6 @@ export default function EducationSetReports() {
     }
   };
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    setSidebarOpen(!isMobile);
-  }, [isMobile]);
-  const selectWidth = 300;
   if (!userEducationSetsResult || !userEducationSetsResult.data) {
     return <div>Yükleniyor...</div>;
   }

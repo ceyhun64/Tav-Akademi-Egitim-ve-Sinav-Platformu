@@ -5,26 +5,15 @@ const verifyToken = require("../middlewares/verifyToken");
 const authorize = require("../middlewares/authorize");
 
 // getir
-router.get(
-  "/",
-  verifyToken,
-  authorize(9),
-  authorize(14),
-  banSubsController.getBanSubs
-);
+router.get("/", verifyToken, banSubsController.getBanSubs);
 
 // sil
-router.delete(
-  "/:id",
-  verifyToken,
-  authorize(9),
-  banSubsController.deleteBanSubs
-);
+router.delete("/:id", verifyToken, banSubsController.deleteBanSubs);
 
 //ekle
-router.post("/", verifyToken, authorize(9), banSubsController.createBanSubs);
+router.post("/", verifyToken, banSubsController.createBanSubs);
 
 // güncelle
-router.put("/:id", verifyToken, authorize(9), banSubsController.updateBanSubs);
+router.put("/:id", verifyToken, banSubsController.updateBanSubs);
 
 module.exports = router;

@@ -57,12 +57,13 @@ export default function UploadFile() {
   };
 
   // Silme butonu tıklandığında seçilen id'leri gönder
-  const handleDelete = () => {
+  const handleDelete =async () => {
     if (selectedFileIds.length === 0) {
       alert("Lütfen silmek için dosya seçin.");
       return;
     }
-    dispatch(deleteUploadedFileThunk(selectedFileIds));
+    await dispatch(deleteUploadedFileThunk(selectedFileIds));
+    await dispatch(getUploadedFilesByManagerThunk());
     setSelectedFileIds([]); // Silme sonrası seçimi temizle
   };
 

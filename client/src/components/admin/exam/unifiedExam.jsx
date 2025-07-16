@@ -9,19 +9,17 @@ import {
 } from "../../../features/thunks/bookletThunk";
 import UserList from "./userList";
 import Sidebar from "../adminPanel/sidebar";
+import {
+  getQuestionCatThunk,
+  getDifLevelsThunk,
+} from "../../../features/thunks/queDifThunk";
 
 export default function UnifiedExamForm({ educationExam, onExamCreate }) {
-  const ORAN_FIELDS = [
-    { name: "temiz_bagaj_oran", label: "Temiz Bagaj" },
-    { name: "tanimsiz_bagaj_oran", label: "Tanımsız Bagaj" },
-    { name: "patlayicilar_oran", label: "Patlayıcılar" },
-    { name: "atesli_silahlar_oran", label: "Ateşli Silahlar" },
-    { name: "kesici_aletler_oran", label: "Kesici Aletler" },
-    { name: "tehlikeli_maddeler_oran", label: "Tehlikeli Maddeler" },
-  ];
   const dispatch = useDispatch();
   const { users, isLoading, error } = useSelector((state) => state.user);
   const [oranToplam, setOranToplam] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { questionCats, difLevels } = useSelector((state) => state.queDif);
 
   // Teorik ve Görüntü kitapçık listeleri için local state
   const [teoBooklets, setTeoBooklets] = useState([]);
@@ -52,8 +50,12 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
     orana_gore_ata: false,
     zorluk_seviyesi: "karışık",
     toplam_soru: 0,
-    ...Object.fromEntries(ORAN_FIELDS.map(({ name }) => [name, ""])),
+    ...Object.fromEntries(questionCats.map(({ id }) => [id, ""])),
   });
+  useEffect(() => {
+    dispatch(getQuestionCatThunk());
+    dispatch(getDifLevelsThunk());
+  }, [dispatch]);
 
   useEffect(() => {
     dispatch(getAllUsersThunk());
@@ -73,8 +75,8 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
   }, [formData.bookletId_teo, dispatch]);
   useEffect(() => {
     if (formData.orana_gore_ata) {
-      const toplam = ORAN_FIELDS.reduce(
-        (sum, { name }) => sum + parseFloat(formData[name] || 0),
+      const toplam = questionCats.reduce(
+        (sum, { id }) => sum + parseFloat(formData[id] || 0),
         0
       );
       setOranToplam(toplam);
@@ -82,6 +84,7 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
       setOranToplam(0);
     }
   }, [formData]);
+
   useEffect(() => {
     if (formData.bookletId_img) {
       dispatch(getBookletByIdThunk(formData.bookletId_img))
@@ -92,29 +95,6 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
       setSelectedImgBooklet(null);
     }
   }, [formData.bookletId_img, dispatch]);
-
-  useEffect(() => {
-    if (formData.orana_gore_ata) {
-      const {
-        temiz_bagaj_oran,
-        tanimsiz_bagaj_oran,
-        patlayicilar_oran,
-        atesli_silahlar_oran,
-        kesici_aletler_oran,
-        tehlikeli_maddeler_oran,
-      } = formData;
-
-      const toplam =
-        parseFloat(temiz_bagaj_oran || 0) +
-        parseFloat(tanimsiz_bagaj_oran || 0) +
-        parseFloat(patlayicilar_oran || 0) +
-        parseFloat(atesli_silahlar_oran || 0) +
-        parseFloat(kesici_aletler_oran || 0) +
-        parseFloat(tehlikeli_maddeler_oran || 0);
-
-      setOranToplam(toplam);
-    }
-  }, [formData]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -135,32 +115,56 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const dataToSend = {
+
+    // oran_gore_ata kontrolü ve alert
+    if (formData.orana_gore_ata && oranToplam !== 100) {
+      alert("Oranların toplamı 100 olmalıdır.");
+      return; // Oranlar hatalıysa işlemi durdur
+    }
+
+    // category_percentages oluşturma
+    const category_percentages = {};
+    questionCats.forEach((cat) => {
+      const id = cat.id.toString();
+      if (formData[id] !== undefined && formData[id] !== "") {
+        category_percentages[id] = Number(formData[id]);
+      }
+    });
+
+    const payload = {
       ...formData,
       educationExam, // prop'tan gelen değer
+      category_percentages, // Yeni eklenen oranlar
     };
 
-    try {
-      const unifiedExam = await dispatch(createUnifiedExamThunk(dataToSend))
-        .unwrap()
-        .then(() => {
-          alert("Sınav başarıyla oluşturuldu!");
-        })
-        .catch((err) => {
-          alert("Hata oluştu: " + err.message);
-        });
+    // formData'dan categoryId'ye karşılık gelen alanları temizleme
+    questionCats.forEach((cat) => {
+      const id = cat.id.toString();
+      delete payload[id];
+    });
 
-      // API'den gelen teoId ve imgId
+    setIsSubmitting(true); // Gönderim başlarken
+
+    try {
+      const unifiedExam = await dispatch(
+        createUnifiedExamThunk(payload) // Payload'ı güncellenmiş haliyle gönderiyoruz
+      ).unwrap();
+
+      alert("Sınav başarıyla oluşturuldu!");
+
       const { teoId, imgId } = unifiedExam.unified;
 
-      // Üst component'e gönder
       if (onExamCreate) {
         onExamCreate({ teoId, imgId });
       }
     } catch (error) {
+      alert("Hata oluştu: " + error.message);
       console.error("Birleşik sınav oluşturulurken hata:", error);
+    } finally {
+      setIsSubmitting(false); // Her durumda gizle
     }
   };
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -253,6 +257,14 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
             </button>
           </h1>
         </div>
+        {isSubmitting && (
+          <div className="loading-overlay">
+            <div className="loading-modal">
+              <p>İşlem Yapılıyor. Lütfen Bekleyiniz...</p>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} style={{ display: "grid", gap: "20px" }}>
           {/* Form sections container */}
           <div
@@ -288,6 +300,7 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
+                  autoComplete="off"
                   className="form-control"
                 />
               </div>
@@ -303,6 +316,7 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
                     name="start_date"
                     value={formData.start_date}
                     onChange={handleChange}
+                    autoComplete="off"
                     className="form-control"
                   />
                 </div>
@@ -314,6 +328,7 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
                     id="end_date"
                     type="date"
                     name="end_date"
+                    autoComplete="off"
                     value={formData.end_date}
                     onChange={handleChange}
                     className="form-control"
@@ -366,6 +381,7 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
                       id="start_time_teo"
                       type="time"
                       name="start_time_teo"
+                      autoComplete="off"
                       value={formData.start_time_teo}
                       onChange={handleChange}
                       className="form-control"
@@ -379,6 +395,7 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
                       id="end_time_teo"
                       type="time"
                       name="end_time_teo"
+                      autoComplete="off"
                       value={formData.end_time_teo}
                       onChange={handleChange}
                       className="form-control"
@@ -395,6 +412,8 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
                       onChange={handleChange}
                       className="form-select"
                     >
+                      <option value="0">Süresiz</option>
+
                       {Array.from({ length: 11 }, (_, i) => 5 + i).map(
                         (value) => (
                           <option key={value} value={value}>
@@ -473,6 +492,7 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
                       id="start_time_img"
                       type="time"
                       name="start_time_img"
+                      autoComplete="off"
                       value={formData.start_time_img}
                       onChange={handleChange}
                       className="form-control"
@@ -486,6 +506,7 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
                       id="end_time_img"
                       type="time"
                       name="end_time_img"
+                      autoComplete="off"
                       value={formData.end_time_img}
                       onChange={handleChange}
                       className="form-control"
@@ -502,6 +523,8 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
                       onChange={handleChange}
                       className="form-select"
                     >
+                      <option value="0">Süresiz</option>
+
                       {Array.from({ length: 11 }, (_, i) => 5 + i).map((v) => (
                         <option key={v} value={v}>
                           {v}
@@ -650,6 +673,7 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
                     className="form-check-input"
                     name="mail"
                     checked={formData.mail}
+                    autoComplete="off"
                     onChange={handleChange}
                     id="mail"
                   />
@@ -664,6 +688,7 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
                     className="form-check-input"
                     name="timed"
                     checked={formData.timed}
+                    autoComplete="off"
                     onChange={handleChange}
                     id="timed"
                   />
@@ -678,6 +703,7 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
                     className="form-check-input"
                     name="sonucu_gizle"
                     checked={formData.sonucu_gizle}
+                    autoComplete="off"
                     onChange={handleChange}
                     id="sonucu_gizle"
                   />
@@ -692,6 +718,7 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
                     className="form-check-input"
                     name="orana_gore_ata"
                     checked={formData.orana_gore_ata}
+                    autoComplete="off"
                     onChange={handleChange}
                     id="orana_gore_ata"
                   />
@@ -703,6 +730,7 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
             </div>
           </div>
 
+          {/* Oranlı Ayarlar */}
           {/* Oranlı Ayarlar */}
           {formData.orana_gore_ata && (
             <div className="p-4 mt-4 border rounded shadow-sm bg-light">
@@ -718,10 +746,11 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
                     className="form-select"
                   >
                     <option value="">Seçiniz</option>
-                    <option value="kolay">Kolay</option>
-                    <option value="orta">Orta</option>
-                    <option value="zor">Zor</option>
-                    <option value="karışık">Karışık</option>
+                    {difLevels.map((level) => (
+                      <option key={level.id} value={level.id}>
+                        {level.name} {/* Örneğin: Kolay, Orta, Zor */}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -731,6 +760,7 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
                     type="number"
                     name="toplam_soru"
                     value={formData.toplam_soru}
+                    autoComplete="off"
                     onChange={handleChange}
                     className="form-control"
                     min="0"
@@ -739,17 +769,16 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
               </div>
 
               <div className="row g-4 mt-3">
-                {ORAN_FIELDS.map(({ name, label }) => (
-                  <div key={name} className="col-md-4">
-                    <label className="form-label fw-semibold">
-                      {label} (%)
-                    </label>
+                {questionCats.map(({ id, name }) => (
+                  <div key={id} className="col-md-4">
+                    <label className="form-label fw-semibold">{name} (%)</label>
                     <input
                       type="number"
-                      name={name}
-                      value={formData[name]}
+                      name={id.toString()} // id'yi string yapıyoruz
+                      value={formData[id] || ""} // formData'dan id'ye göre alıyoruz
                       onChange={handleChange}
                       className="form-control"
+                      autoComplete="off"
                       min="0"
                       max="100"
                     />

@@ -10,6 +10,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@adobe/pdfservices-node-sdk": "^4.1.0",
+    "adm-zip": "^0.5.16",
     "archiver": "^7.0.1",
     "axios": "^1.9.0",
     "bcryptjs": "^3.0.2",
@@ -27,6 +29,7 @@
     "mysql2": "^3.14.1",
     "nodemailer": "^7.0.3",
     "nodemon": "^3.1.10",
+    "os": "^0.1.2",
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^1.1.1",
     "pdf2pic": "^3.2.0",

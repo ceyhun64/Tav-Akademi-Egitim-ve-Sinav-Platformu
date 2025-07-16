@@ -16,6 +16,25 @@ export default function TeoQuestionResult() {
   const { data } = teoQuestionResults || {};
   const [currentIndex, setCurrentIndex] = useState(0);
   console.log("teoQuestionResults", teoQuestionResults);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300;
   useEffect(() => {
     dispatch(getTeoQuestionResultThunk({ userId, examId }));
   }, [dispatch, userId, examId]);

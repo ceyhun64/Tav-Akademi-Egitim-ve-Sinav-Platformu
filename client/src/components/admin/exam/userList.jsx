@@ -192,13 +192,11 @@ export default function UserList({
                           display: "inline-block",
                           width: "10px",
                           height: "10px",
+                          marginLeft: "20px",
                           borderRadius: "50%",
-                          backgroundColor:
-                            u.durum === 1 ? "#4CAF50" : "#F44336",
-                          marginRight: "6px",
+                          backgroundColor: u.durum == 1 ? "#4CAF50" : "#F44336",
                         }}
                       />
-                      {u.durum === 1 ? "Aktif" : "Pasif"}
                     </td>
                   );
                 }

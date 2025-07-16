@@ -88,6 +88,9 @@ import Setup2FAPage from "./pages/user/setup2FA";
 import AdminVerify2FA from "./pages/admin/verify2FA";
 import AdminSetup2FA from "./pages/admin/setup2FA";
 import AdminCertificateInputs from "./pages/admin/certificateInputs";
+import AdminAssignTeoExams from "./pages/admin/assignTeoExams";
+import AdminAssignImgExams from "./pages/admin/assignImgExams";
+import AdminAssignEducationSetPage from "./pages/admin/assignEducationSet";
 
 import HomePage from "./pages/home/homePage";
 import About from "./pages/home/about";
@@ -304,7 +307,19 @@ function App() {
             path="/admin/certificate-inputs"
             element={<AdminCertificateInputs />}
           />
+          <Route
+            path="/admin/assign-teo-exams"
+            element={<AdminAssignTeoExams />}
+          />
 
+          <Route
+            path="/admin/assign-img-exams"
+            element={<AdminAssignImgExams />}
+          />
+          <Route
+            path="/admin/assign-education-set-report"
+            element={<AdminAssignEducationSetPage />}
+          />
           {/* </Route> */}
         </Routes>
       </div>

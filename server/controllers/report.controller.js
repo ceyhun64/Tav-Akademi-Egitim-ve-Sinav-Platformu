@@ -442,3 +442,104 @@ exports.getImgResultByUser = async (req, res) => {
     res.status(500).json({ message: "Sunucu hatası", error });
   }
 };
+
+exports.getAssignImgExams = async (req, res) => {
+  try {
+    const exams = await Exam.findAll({
+      where: {
+        exam_type: "img",
+      },
+    });
+    res.json(exams);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Sunucu hatası", error });
+  }
+};
+exports.deleteAssignExam = async (req, res) => {
+  try {
+    const { examId } = req.params; // examId'yi req.params'tan alıyoruz
+    const deletedExamUsersCount = await ExamUser.destroy({
+      where: {
+        examId: examId,
+      },
+    });
+
+    const deletedExamQuestionsCount = await ExamQuestions.destroy({
+      where: {
+        examId: examId,
+      },
+    });
+
+    const deletedExamsCount = await Exam.destroy({
+      where: {
+        id: examId,
+      },
+    });
+
+    if (deletedExamsCount > 0) {
+      res.json({
+        message: "Sınav ataması ve ilgili kayıtlar başarıyla silindi.",
+        examId: examId,
+      });
+    } else {
+      res.status(404).json({
+        message: "Belirtilen sınav bulunamadı veya daha önce silinmiş.",
+      });
+    }
+  } catch (error) {
+    console.error("Sınav ataması silinirken hata oluştu:", error); // Daha detaylı hata loglaması
+    res.status(500).json({ message: "Sunucu hatası", error: error.message }); // Hata mesajını istemciye gönderin
+  }
+};
+
+exports.getAssignTeoExams = async (req, res) => {
+  try {
+    const exams = await Exam.findAll({
+      where: {
+        exam_type: "teo",
+      },
+    });
+    res.json(exams);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Sunucu hatası", error });
+  }
+};
+exports.getAssignEducationSets = async (req, res) => {
+  try {
+    const educationSets = await EducationSet.findAll();
+    res.json(educationSets);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Sunucu hatası", error });
+  }
+};
+exports.deleteAssignEducationSet = async (req, res) => {
+  try {
+    const { educationSetId } = req.params;
+    const deletedEducationSetUsersCount = await EducationSetUser.destroy({
+      where: {
+        educationSetId: educationSetId,
+      },
+    });
+    const deletedEducationSetCount = await EducationSet.destroy({
+      where: {
+        id: educationSetId,
+      },
+    });
+    if (deletedEducationSetCount > 0) {
+      res.json({
+        message: "Eğitim seti ataması ve ilgili kayıtlar başarıyla silindi.",
+        educationSetId: educationSetId,
+      });
+    } else {
+      res.status(404).json({
+        message: "Belirtilen eğitim seti bulunamadı veya daha önce silinmiş.",
+      });
+    }
+  } catch (error) {
+    console.error("Eğitim seti ataması silinirken hata oluştu:", error); // Daha detaylı hata loglaması
+    res.status(500).json({ message: "Sunucu hatası", error: error.message }); // Hata mesajını istemciye gönderin
+  }
+};

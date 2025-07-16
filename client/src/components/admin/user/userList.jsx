@@ -1,4 +1,4 @@
-import React, { use, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   getGroupsThunk,
@@ -9,7 +9,7 @@ import provinces from "../../../data/provinces.json";
 import "./UserList.css"; // CSS dosyamızı ekliyoruz
 
 export default function UserList({
-  users,
+  users, // Bu prop artık tüm kullanıcı listesini temsil edecek
   selectedUser,
   selectedUserIds,
   onUserClick,
@@ -22,15 +22,18 @@ export default function UserList({
   const { groups, institutions } = useSelector((state) => state.grpInst);
   const { roles } = useSelector((state) => state.role);
 
+  // Sayfalama state'leri
+  const [itemsPerPage, setItemsPerPage] = useState(50); // Varsayılan olarak 50
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Grup, Kurum ve Rol verilerini çekmek için useEffect'ler
   useEffect(() => {
     dispatch(getGroupsThunk());
     dispatch(getInstitutionsThunk());
+    dispatch(getRolesThunk()); // Rolleri de burada çekebiliriz, ayrı bir useEffect yerine
   }, [dispatch]);
 
-  useEffect(() => {
-    dispatch(getRolesThunk());
-  }, [dispatch]);
-
+  // Yardımcı fonksiyonlar (mevcut halleriyle bırakıldı)
   const getGroupName = (id) => {
     const group = groups.find((g) => g.id === id || g.id === Number(id));
     return group ? group.name : "-";
@@ -40,10 +43,12 @@ export default function UserList({
     const inst = institutions.find((i) => i.id === id || i.id === Number(id));
     return inst ? inst.name : "-";
   };
+
   const getRoleName = (id) => {
     const role = roles.find((r) => r.id === id || r.id === Number(id));
     return role ? role.name : "-";
   };
+
   const getProvinceNameById = (provinceId) => {
     const province = provinces.find((p) => p.value === Number(provinceId));
     return province ? province.text : "-";
@@ -61,6 +66,7 @@ export default function UserList({
     return "-";
   };
 
+  // Tümünü seçme/kaldırma mantığı (mevcut)
   const allSelected =
     users.length > 0 && selectedUserIds.length === users.length;
 
@@ -68,14 +74,72 @@ export default function UserList({
     if (allSelected) {
       setSelectedUserIds([]);
     } else {
-      const allIds = users.map((u) => u.id);
-      setSelectedUserIds(allIds);
+      // Sadece o sayfadaki değil, tüm kullanıcıları seçmek isterseniz:
+      // const allIds = users.map((u) => u.id);
+      //setSelectedUserIds(allIds);
+
+      // Sadece görüntülenen sayfadaki kullanıcıları seçmek isterseniz:
+      const currentUsersIds = currentUsers.map((u) => u.id);
+      setSelectedUserIds(currentUsersIds);
     }
   };
 
+  // --- YENİ EKLENEN VEYA GÜNCELLENEN KISIMLAR ---
+
+  // Toplam sayfa sayısı
+  const totalPages = Math.ceil(users.length / itemsPerPage);
+
+  // Mevcut sayfada gösterilecek kullanıcılar
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Sayfa numarası değiştirme fonksiyonu
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    // Yeni sayfaya geçildiğinde seçili kullanıcıları sıfırlayabiliriz
+    setSelectedUserIds([]);
+  };
+
+  // Sayfalama düğmeleri için dinamik dizi oluşturma
+  const pageNumbers = [];
+  for (let i = 1; i <= totalPages; i++) {
+    pageNumbers.push(i);
+  }
+
   return (
     <div>
-      <div className="userlist-container">
+      {/* Sayfa başına personel seçimi */}
+      <div style={{ marginBottom: "15px", textAlign: "right" }}>
+        <label htmlFor="itemsPerPageSelect" style={{ marginRight: "10px" }}>
+          Sayfa Başına Personel:
+        </label>
+        <select
+          id="itemsPerPageSelect"
+          value={itemsPerPage}
+          onChange={(e) => {
+            setItemsPerPage(Number(e.target.value));
+            setCurrentPage(1); // Yeni sayfa başına öğe sayısı seçildiğinde ilk sayfaya dön
+            setSelectedUserIds([]); // Seçili öğeleri de sıfırla
+          }}
+          style={{
+            padding: "5px",
+            borderRadius: "5px",
+            border: "1px solid #ccc",
+          }}
+        >
+          <option value={10}>10</option>
+          <option value={20}>20</option>
+          <option value={30}>30</option>
+          <option value={40}>40</option>
+          <option value={50}>50</option>
+          <option value={100}>100</option>
+          <option value={150}>150</option>
+        </select>
+      </div>
+
+      {/* Tablo */}
+      <div className="userlist-container position-relative">
         <table
           className="table table-sm table-hover table-bordered userlist-table"
           style={{ fontSize: "0.75rem" }}
@@ -88,7 +152,7 @@ export default function UserList({
               <th className="px-1 py-1 checkbox-col">
                 <input
                   type="checkbox"
-                  checked={allSelected}
+                  checked={allSelected} // allSelected, tüm 'users' için mi, yoksa 'currentUsers' için mi kontrol edilecek? Aşağıdaki 'Notlar' bölümüne bakın.
                   onChange={handleSelectAll}
                   style={{ width: "14px", height: "14px" }}
                 />
@@ -113,7 +177,8 @@ export default function UserList({
           </thead>
 
           <tbody>
-            {users?.map((user) => {
+            {/* currentUsers'ı map ediyoruz, users'ı değil */}
+            {currentUsers?.map((user) => {
               const isSelected = selectedUser && selectedUser.id === user.id;
               return (
                 <tr
@@ -196,6 +261,69 @@ export default function UserList({
           </tbody>
         </table>
       </div>
+
+      {/* Sayfalama Kontrolleri */}
+      {totalPages > 1 && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "20px",
+            gap: "8px", // Düğmeler arası boşluk
+            flexWrap: "wrap", // Küçük ekranlarda taşmayı önler
+          }}
+        >
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="btn btn-outline-secondary btn-sm"
+            style={{
+              borderRadius: "6px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              transition: "background-color 0.3s, box-shadow 0.3s",
+              marginRight: "0",
+            }}
+          >
+            Önceki
+          </button>
+          {pageNumbers.map((number) => (
+            <button
+              key={number}
+              onClick={() => handlePageChange(number)}
+              className={`btn btn-sm ${
+                currentPage === number ? "btn-primary" : "btn-outline-primary"
+              }`}
+              style={{
+                borderRadius: "6px",
+                boxShadow:
+                  currentPage === number
+                    ? "0 2px 8px rgba(0,123,255,0.4)"
+                    : "0 1px 3px rgba(0,0,0,0.1)",
+                transition: "background-color 0.3s, box-shadow 0.3s",
+                margin: "0",
+                minWidth: "36px",
+                padding: "0 12px",
+                fontWeight: currentPage === number ? "600" : "400",
+              }}
+            >
+              {number}
+            </button>
+          ))}
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="btn btn-outline-secondary btn-sm"
+            style={{
+              borderRadius: "6px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              transition: "background-color 0.3s, box-shadow 0.3s",
+              marginLeft: "0",
+            }}
+          >
+            Sonraki
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -133,3 +133,53 @@ export const getUserTeoExamResult = async () => {
     throw error;
   }
 };
+
+export const getAssignImgExams = async () => {
+  try {
+    const response = await axiosInstance.get(`/report/assign-img-exams`);
+    return response;
+  } catch (error) {
+    console.error("Görsel sınavları alırken hata:", error);
+    throw error;
+  }
+};
+export const deleteAssignExam = async (examId) => {
+  try {
+    const response = await axiosInstance.delete(
+      `/report/delete-assign-exam/${examId}`
+    );
+    return response;
+  } catch (error) {
+    console.error("Görsel sınavı silerken hata:", error);
+    throw error;
+  }
+};
+export const getAssignTeoExams = async () => {
+  try {
+    const response = await axiosInstance.get(`/report/assign-teo-exams`);
+    return response;
+  } catch (error) {
+    console.error("Teorik sınavları alırken hata:", error);
+    throw error;
+  }
+};
+export const getAssignEducationSets = async () => {
+  try {
+    const response = await axiosInstance.get(`/report/assign-education-sets`);
+    return response;
+  } catch (error) {
+    console.error("Eğitim setlerini alırken hata:", error);
+    throw error;
+  }
+};
+export const deleteAssignEducationSet = async (educationSetId) => {
+  try {
+    const response = await axiosInstance.delete(
+      `/report/delete-assign-education-set/${educationSetId}`
+    );
+    return response;
+  } catch (error) {
+    console.error("Eğitim setini silerken hata:", error);
+    throw error;
+  }
+};

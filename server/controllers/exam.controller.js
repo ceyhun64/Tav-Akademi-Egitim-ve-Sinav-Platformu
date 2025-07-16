@@ -144,7 +144,6 @@ exports.create_img_exam = async (req, res) => {
       toplam_soru,
       category_percentages, // { "1": 20, "2": 30, ... }
     } = req.body;
-    console.log("req.body:", req.body);
 
     const booklet = await Booklet.findOne({ where: { id: bookletId } });
 
@@ -384,17 +383,14 @@ exports.create_unified_exam = async (req, res, next) => {
       method,
       userIds,
       orana_gore_ata,
-      zorluk_seviyesi,
+      zorluk_seviyesi, // difLevelId'ye karşılık geliyor
       toplam_soru,
-      temiz_bagaj_oran,
-      tanimsiz_bagaj_oran,
-      patlayicilar_oran,
-      atesli_silahlar_oran,
-      kesici_aletler_oran,
-      tehlikeli_maddeler_oran,
+      category_percentages, // Frontend'den gelen category_percentages objesi
       educationExam,
     } = req.body;
-    console.log("sure_teo", sure_teo);
+
+    console.log("req.body:", req.body); // Debug için eklendi
+    console.log("sure_teo:", sure_teo); // Debug için eklendi
 
     let examTeo = null;
     let examImg = null;
@@ -403,6 +399,7 @@ exports.create_unified_exam = async (req, res, next) => {
     if (bookletId_teo) {
       const bookletTeo = await Booklet.findOne({
         where: { id: bookletId_teo },
+        transaction: t, // Transaction eklendi
       });
       if (!bookletTeo) throw new Error("Teorik booklet bulunamadı");
       const question_count_teo = bookletTeo.question_count;
@@ -449,6 +446,7 @@ exports.create_unified_exam = async (req, res, next) => {
     if (bookletId_img) {
       const bookletImg = await Booklet.findOne({
         where: { id: bookletId_img },
+        transaction: t, // Transaction eklendi
       });
       if (!bookletImg) throw new Error("Görüntü booklet bulunamadı");
 
@@ -477,29 +475,45 @@ exports.create_unified_exam = async (req, res, next) => {
       );
 
       let imgQs = [];
-      if (orana_gore_ata) {
-        const cats = [
-          { k: "Temiz Bagaj", o: temiz_bagaj_oran },
-          { k: "Tanımsız Bagaj", o: tanimsiz_bagaj_oran },
-          { k: "Patlayıcılar ve El Bombaları", o: patlayicilar_oran },
-          { k: "Ateşli Silahlar ve Parçaları", o: atesli_silahlar_oran },
-          { k: "Kesici Aletler ve El Aletleri", o: kesici_aletler_oran },
-          { k: "Tehlikeli Maddeler ve Sıvılar", o: tehlikeli_maddeler_oran },
-        ];
-        for (const { k, o } of cats) {
-          const count = Math.round((toplam_soru * o) / 100);
-          if (!count) continue;
-          const qbatch = await PoolImg.findAll({
-            where: {
-              bookletId: bookletId_img,
-              difLevel: zorluk_seviyesi,
-              imageCategory: k,
-            },
-            limit: count,
-            order: method === "random" ? sequelize.random() : [["id", "ASC"]],
-            transaction: t,
-          });
-          imgQs.push(...qbatch);
+
+      if (orana_gore_ata === true) {
+        // Frontend'den gelen category_percentages objesini kullanıyoruz
+        if (
+          !category_percentages ||
+          Object.keys(category_percentages).length === 0
+        ) {
+          throw new Error("Kategori yüzdeleri boş olamaz.");
+        }
+
+        const totalPercent = Object.values(category_percentages).reduce(
+          (sum, val) => sum + Number(val),
+          0
+        );
+
+        // Küsüratlı sayılar nedeniyle oluşabilecek küçük farkları tolere etmek için
+        // toplamın 99.9 ile 100.1 arasında olup olmadığını kontrol edebiliriz.
+        // Ancak, kesin 100 olması isteniyorsa `totalPercent !== 100` kalabilir.
+        if (totalPercent < 99.9 || totalPercent > 100.1) {
+          throw new Error("Kategori yüzdelerinin toplamı 100 olmalıdır.");
+        }
+
+        for (const [categoryId, percentage] of Object.entries(
+          category_percentages
+        )) {
+          const count = Math.round((toplam_soru * Number(percentage)) / 100); // percentage'ı Number'a çevir
+          if (count > 0) {
+            const questions = await PoolImg.findAll({
+              where: {
+                bookletId: bookletId_img,
+                difLevelId: zorluk_seviyesi,
+                questionCategoryId: categoryId, // category_percentages'tan gelen ID'yi kullan
+              },
+              limit: count,
+              order: method === "random" ? sequelize.random() : [["id", "ASC"]],
+              transaction: t,
+            });
+            imgQs.push(...questions);
+          }
         }
       } else {
         imgQs = await PoolImg.findAll({
@@ -541,12 +555,12 @@ exports.create_unified_exam = async (req, res, next) => {
 
     // Mail atma işlemi
     if (mail && userIds?.length) {
-      const users = await User.findAll({
+      const usersToMail = await User.findAll({
         where: { id: userIds },
         transaction: t,
       });
       const dateStr = new Date().toLocaleDateString("tr-TR");
-      for (const u of users) {
+      for (const u of usersToMail) {
         await sendMail({
           to: u.email,
           subject: "Tav Akademi – Yeni Sınav Ataması",
@@ -574,7 +588,7 @@ exports.create_unified_exam = async (req, res, next) => {
     });
   } catch (err) {
     await t.rollback();
-    console.error(err);
+    console.error("create_unified_exam hatası:", err); // Hata mesajını daha spesifik hale getirdim
     next(err);
   }
 };

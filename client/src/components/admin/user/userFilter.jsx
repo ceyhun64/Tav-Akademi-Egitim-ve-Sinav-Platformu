@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   getGroupsThunk,
   getInstitutionsThunk,
 } from "../../../features/thunks/grpInstThunk";
-import { useEffect } from "react";
-import "./UserFilter.css"
+import provinces from "../../../data/provinces.json";
+import "./UserFilter.css";
 
 export default function UserFilter({ filters, onChange, uniqueValues }) {
   const dispatch = useDispatch();
@@ -16,47 +16,21 @@ export default function UserFilter({ filters, onChange, uniqueValues }) {
     dispatch(getInstitutionsThunk());
   }, [dispatch]);
 
-  const ilcelerForSelectedIl = filters.il
-    ? uniqueValues.ilceler?.filter((ilce) => ilce.il_adi === filters.il)
+  // Seçilen ilin objesini bul
+  const selectedProvince = provinces.find(
+    (p) => p.value === Number(filters.il)
+  );
+
+  // İlçeler (districts) sadece seçilen ilin districts'i olacak
+  const districtsForSelectedProvince = selectedProvince
+    ? selectedProvince.districts
     : [];
 
   return (
     <div className="card p-3 mb-3 shadow-sm">
       <h5>Filtrele</h5>
-      {/* user-filter-row classı eklendi */}
       <div className="row user-filter-row">
-        <div className="col-md-4 col-6 mb-2">
-          <input
-            type="text"
-            name="sicil"
-            className="form-control"
-            placeholder="Sicil No"
-            value={filters.sicil}
-            onChange={onChange}
-          />
-        </div>
-
-        <div className="col-md-4 col-6 mb-2">
-          <input
-            type="text"
-            name="ad"
-            className="form-control"
-            placeholder="Ad"
-            value={filters.ad}
-            onChange={onChange}
-          />
-        </div>
-
-        <div className="col-md-4 col-6 mb-2">
-          <input
-            type="text"
-            name="soyad"
-            className="form-control"
-            placeholder="Soyad"
-            value={filters.soyad}
-            onChange={onChange}
-          />
-        </div>
+        {/* Diğer inputlar aynı */}
 
         <div className="col-md-4 col-6 mb-2">
           <select
@@ -66,9 +40,9 @@ export default function UserFilter({ filters, onChange, uniqueValues }) {
             onChange={onChange}
           >
             <option value="">Tüm İller</option>
-            {uniqueValues.il?.map((il) => (
-              <option key={il} value={il}>
-                {il}
+            {provinces.map((province) => (
+              <option key={province.value} value={province.value}>
+                {province.text}
               </option>
             ))}
           </select>
@@ -83,13 +57,15 @@ export default function UserFilter({ filters, onChange, uniqueValues }) {
             disabled={!filters.il}
           >
             <option value="">Tüm İlçeler</option>
-            {ilcelerForSelectedIl?.map((ilce) => (
-              <option key={ilce.ilce_adi} value={ilce.ilce_adi}>
-                {ilce.ilce_adi}
+            {districtsForSelectedProvince.map((district) => (
+              <option key={district.value} value={district.value}>
+                {district.text}
               </option>
             ))}
           </select>
         </div>
+
+        {/* Lokasyon ve grup seçimleri aynı */}
 
         <div className="col-md-4 col-6 mb-2">
           <select

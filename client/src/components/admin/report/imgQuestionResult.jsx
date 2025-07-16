@@ -15,18 +15,6 @@ export default function ImgQuestionResult() {
   const { imgQuestionResults } = useSelector((state) => state.report);
   const { data } = imgQuestionResults || {};
   const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    dispatch(getImgQuestionResultThunk({ userId, examId }));
-  }, [dispatch, userId, examId]);
-  console.log(imgQuestionResults);
-
-  const answers = data.userImgAnswers;
-  const user = answers[0]?.user;
-  const exam = answers[0]?.exam;
-  const userExam = data.userExams?.[0]; // Skor gibi sınav performans verileri
-
-  const currentQuestion = answers[currentIndex];
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -46,6 +34,17 @@ export default function ImgQuestionResult() {
     setSidebarOpen(!isMobile);
   }, [isMobile]);
   const selectWidth = 300;
+  useEffect(() => {
+    dispatch(getImgQuestionResultThunk({ userId, examId }));
+  }, [dispatch, userId, examId]);
+  console.log(imgQuestionResults);
+
+  const answers = data.userImgAnswers;
+  const user = answers[0]?.user;
+  const exam = answers[0]?.exam;
+  const userExam = data.userExams?.[0]; // Skor gibi sınav performans verileri
+
+  const currentQuestion = answers[currentIndex];
 
   if (!data?.userImgAnswers || !data.userImgAnswers.length) {
     return <p className="text-center mt-5">Yükleniyor...</p>;

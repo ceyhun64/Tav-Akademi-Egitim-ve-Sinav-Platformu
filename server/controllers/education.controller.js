@@ -4,17 +4,154 @@ const {
   EduAndEduSet,
   EducationUser,
 } = require("../models/index");
-const fs = require("fs");
-const { fromPath } = require("pdf2pic");
-const { PDFDocument } = require("pdf-lib");
-const { fromBuffer } = require("pdf2pic");
-
-const cloudinary = require("cloudinary").v2;
-const axios = require("axios");
-const path = require("path");
-const { v4: uuidv4 } = require("uuid");
 const logActivity = require("../helpers/logActivity");
+// Tekli dosya yükleme (her sayfa için farklı süre)
+const {
+  ServicePrincipalCredentials,
+  PDFServices,
+  MimeType,
+  ExportPDFToImagesJob,
+  ExportPDFToImagesTargetFormat,
+  ExportPDFToImagesOutputType,
+  ExportPDFToImagesParams,
+  ExportPDFToImagesResult,
+  SDKError,
+  ServiceUsageError,
+  ServiceApiError,
+} = require("@adobe/pdfservices-node-sdk");
+const os = require("os");
+const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
+const cloudinary = require("cloudinary").v2;
+// Yardımcı: URL olup olmadığını kontrol eder
+function isUrl(str) {
+  return str.startsWith("http://") || str.startsWith("https://");
+}
 
+// Yardımcı: URL'den PDF'yi indirip geçici dosya oluşturur
+async function downloadToTempFile(url) {
+  const tempPath = path.join(os.tmpdir(), `download_${Date.now()}.pdf`);
+  const writer = fs.createWriteStream(tempPath);
+  const response = await axios({
+    url,
+    method: "GET",
+    responseType: "stream",
+  });
+
+  await new Promise((resolve, reject) => {
+    response.data.pipe(writer);
+    writer.on("finish", resolve);
+    writer.on("error", reject);
+  });
+
+  return tempPath;
+}
+exports.uploadSingleFile = async (req, res) => {
+  let readStream;
+  let tempFilePath;
+
+  try {
+    const { name, duration, type } = req.body;
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ message: "Dosya yüklenmedi." });
+    }
+
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (ext !== ".pdf") {
+      return res
+        .status(400)
+        .json({ message: "Sadece PDF dosyaları destekleniyor." });
+    }
+
+    // Adobe Credentials
+    const credentials = new ServicePrincipalCredentials({
+      clientId: "bff289c0382e4c81a70ea65fc4a9f896",
+      clientSecret: "p8e-pi8g_A-wmbHxSj08okSNidei5bHasSWK",
+    });
+
+    const pdfServices = new PDFServices({ credentials });
+
+    // Cloudinary URL'den dosya indir (gerekirse)
+    let filePath = file.path;
+    if (isUrl(filePath)) {
+      tempFilePath = await downloadToTempFile(filePath);
+      filePath = tempFilePath;
+    }
+
+    // Dosyayı stream olarak oku
+    readStream = fs.createReadStream(filePath);
+    const inputAsset = await pdfServices.upload({
+      readStream,
+      mimeType: MimeType.PDF,
+    });
+
+    const params = new ExportPDFToImagesParams({
+      targetFormat: ExportPDFToImagesTargetFormat.JPEG,
+      outputType: ExportPDFToImagesOutputType.LIST_OF_PAGE_IMAGES,
+    });
+
+    const job = new ExportPDFToImagesJob({ inputAsset, params });
+    const pollingURL = await pdfServices.submit({ job });
+    const result = await pdfServices.getJobResult({
+      pollingURL,
+      resultType: ExportPDFToImagesResult,
+    });
+
+    const resultAssets = result.result.assets;
+    const tempDir = path.join(__dirname, "..", "tmp");
+    fs.mkdirSync(tempDir, { recursive: true });
+
+    const pageImageUrls = [];
+
+    for (let i = 0; i < resultAssets.length; i++) {
+      const imageAsset = resultAssets[i];
+      const tempImagePath = path.join(
+        tempDir,
+        `page_${Date.now()}_${i + 1}.jpeg`
+      );
+
+      const streamAsset = await pdfServices.getContent({ asset: imageAsset });
+      const outputStream = fs.createWriteStream(tempImagePath);
+
+      await new Promise((resolve, reject) => {
+        streamAsset.readStream
+          .pipe(outputStream)
+          .on("finish", resolve)
+          .on("error", reject);
+      });
+
+      const uploadResult = await cloudinary.uploader.upload(tempImagePath, {
+        folder: "education_pages",
+      });
+
+      pageImageUrls.push(uploadResult.secure_url);
+      fs.unlinkSync(tempImagePath);
+    }
+
+    // Eğitim kaydını oluştur
+    const newEducation = await Education.create({
+      name,
+      duration,
+      type,
+      file_url: file.path, // orijinal path (Cloudinary URL olabilir)
+      num_pages: pageImageUrls.length,
+      page_image_urls: pageImageUrls,
+    });
+
+    res.status(201).json({ newEducation, pages: pageImageUrls });
+  } catch (error) {
+    console.error("Tekli dosya yükleme hatası:", error);
+    res.status(500).json({ message: "Sunucu hatası." });
+  } finally {
+    readStream?.destroy();
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+      fs.unlinkSync(tempFilePath); // Geçici indirilmiş PDF'yi temizle
+    }
+  }
+};
 // Galeriyi getir
 exports.getAllEducations = async (req, res) => {
   try {
@@ -75,73 +212,6 @@ exports.getEducationByType = async (req, res) => {
   }
 };
 
-// Tekli dosya yükleme (her sayfa için farklı süre)
-
-exports.uploadSingleFile = async (req, res) => {
-  try {
-    const { name, duration, type } = req.body;
-    const file = req.file;
-
-    if (!file) {
-      return res.status(400).json({ message: "Dosya yüklenmedi." });
-    }
-
-    const fileUrl = file.secure_url || file.path;
-    const ext = path.extname(file.originalname).toLowerCase();
-    let numPages = 0;
-    let pageImages = [];
-
-    if (ext === ".pdf") {
-      const response = await axios.get(fileUrl, {
-        responseType: "arraybuffer",
-      });
-      const pdfBuffer = Buffer.from(response.data);
-
-      const pdfDoc = await PDFDocument.load(pdfBuffer);
-      numPages = pdfDoc.getPageCount();
-
-      const convert = fromBuffer(pdfBuffer, {
-        density: 200,
-        format: "jpeg",
-        width: 1000,
-        height: 1414,
-        saveFilename: "page",
-        savePath: "./tmp", // Render destekli geçici klasör
-      });
-
-      for (let i = 1; i <= numPages; i++) {
-        const result = await convert(i); // i = page number
-        const uploadRes = await cloudinary.uploader.upload(result.path, {
-          folder: "education_pages",
-        });
-        pageImages.push(uploadRes.secure_url);
-
-        // Temizle
-        fs.unlinkSync(result.path);
-      }
-    }
-
-    const newEducation = await Education.create({
-      name,
-      duration,
-      type,
-      file_url: fileUrl,
-      num_pages: numPages,
-    });
-
-    await logActivity({
-      userId: req.user.id,
-      action: `${req.user.name} adlı kullanıcı '${name}' adlı eğitimi oluşturdu.`,
-      category: "Education",
-    });
-
-    res.status(201).json({ newEducation, pages: pageImages });
-  } catch (error) {
-    console.error("Tekli dosya yükleme hatası:", error);
-    res.status(500).json({ message: "Sunucu hatası." });
-  }
-};
-
 // Sayfa süresi ekleme
 exports.addPageDuration = async (req, res) => {
   try {
@@ -177,11 +247,11 @@ exports.addPageDuration = async (req, res) => {
       { where: { id } }
     );
 
-    await logActivity({
-      userId: req.user.id,
-      action: `${req.user.name} adlı kullanıcı '${id}' ID'li eğitimin sayfa sürelerini güncelledi.`,
-      category: "Education",
-    });
+    // await logActivity({
+    //   userId: req.user.id,
+    //   action: `${req.user.name} adlı kullanıcı '${id}' ID'li eğitimin sayfa sürelerini güncelledi.`,
+    //   category: "Education",
+    // });
     // Başarılı yanıt gönderir
     res.status(200).json(educationPages);
   } catch (error) {
@@ -222,11 +292,11 @@ exports.uploadMultipleFiles = async (req, res) => {
         })
       )
     );
-    await logActivity({
-      userId: req.user.id,
-      action: `${req.user.name} adlı kullanıcı '${newEducations.length}' adet eğitim dosyası yükledi.`,
-      category: "Education",
-    });
+    // await logActivity({
+    //   userId: req.user.id,
+    //   action: `${req.user.name} adlı kullanıcı '${newEducations.length}' adet eğitim dosyası yükledi.`,
+    //   category: "Education",
+    // });
 
     res.status(201).json(newEducations); // Başarılı sonuç
   } catch (error) {

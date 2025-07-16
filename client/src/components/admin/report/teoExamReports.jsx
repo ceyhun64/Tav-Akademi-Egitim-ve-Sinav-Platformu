@@ -52,7 +52,26 @@ export default function TeoExamReports() {
   const [endDate, setEndDate] = useState("");
   const [filterKisi, setFilterKisi] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
+  const selectWidth = 300;
   useEffect(() => {
     dispatch(getUserTeoResultsThunk());
   }, [dispatch]);
@@ -137,26 +156,6 @@ export default function TeoExamReports() {
     }
   };
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
-    setSidebarOpen(!isMobile);
-  }, [isMobile]);
-  const selectWidth = 300;
   if (results.length === 0) {
     return <p>Yükleniyor veya veri yok...</p>;
   }

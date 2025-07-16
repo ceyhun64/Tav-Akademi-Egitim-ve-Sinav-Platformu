@@ -21,6 +21,7 @@ export default function CreateImgExam({ onCreated }) {
   const { users, isLoading, error } = useSelector((state) => state.user);
   const { booklets, booklet } = useSelector((state) => state.booklet);
   const { questionCats, difLevels } = useSelector((state) => state.queDif);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [oranToplam, setOranToplam] = useState(0);
   const [formData, setFormData] = useState({
@@ -98,10 +99,7 @@ export default function CreateImgExam({ onCreated }) {
       return;
     }
 
-    // questionCats dizisinden kategori id'lerini string olarak al
     const categoryIds = questionCats.map((cat) => cat.id.toString());
-
-    // formData'dan kategori yüzdelerini topla
     const category_percentages = {};
     categoryIds.forEach((id) => {
       if (formData[id] !== undefined && formData[id] !== "") {
@@ -109,16 +107,15 @@ export default function CreateImgExam({ onCreated }) {
       }
     });
 
-    // formData'yı kopyala ve category_percentages ekle
     const payload = {
       ...formData,
       category_percentages,
     };
-
-    // Dilersen kategori key'lerini payload'dan silebilirsin, backend buna gerek duymuyorsa:
     categoryIds.forEach((id) => {
       delete payload[id];
     });
+
+    setIsSubmitting(true); // Yüklenme başlıyor
 
     try {
       const result = await dispatch(createImgExamThunk(payload)).unwrap();
@@ -126,8 +123,11 @@ export default function CreateImgExam({ onCreated }) {
       onCreated?.(result.id);
     } catch (err) {
       alert("Sınav oluşturulamadı: " + err.message);
+    } finally {
+      setIsSubmitting(false); // Yüklenme bitiyor
     }
   };
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -221,6 +221,13 @@ export default function CreateImgExam({ onCreated }) {
             </button>
           </h1>
         </div>
+        {isSubmitting && (
+          <div className="loading-overlay">
+            <div className="loading-modal">
+              <p>İşlem Yapılıyor. Lütfen Bekleyiniz...</p>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} style={{ display: "grid", gap: "20px" }}>
           {/* Form sections container with two columns */}
@@ -270,6 +277,7 @@ export default function CreateImgExam({ onCreated }) {
                   value={formData.name}
                   onChange={handleChange}
                   required
+                  autoComplete="off"
                   style={{
                     width: "100%",
                     padding: "10px",
@@ -301,6 +309,7 @@ export default function CreateImgExam({ onCreated }) {
                     value={formData[name]}
                     onChange={handleChange}
                     required
+                    autoComplete="off"
                     style={{
                       width: "100%",
                       padding: "10px",
@@ -356,6 +365,7 @@ export default function CreateImgExam({ onCreated }) {
                   value={formData.sure}
                   onChange={handleChange}
                   required
+                  autoComplete="off"
                   style={{
                     width: "100%",
                     padding: "10px",
@@ -365,6 +375,8 @@ export default function CreateImgExam({ onCreated }) {
                     backgroundColor: "#fff",
                   }}
                 >
+                                    <option value="0">Süresiz</option>
+
                   {/* 5'ten 15'e kadar 1'erli artış */}
                   {Array.from({ length: 11 }, (_, i) => 5 + i).map((value) => (
                     <option key={value} value={value}>

@@ -130,6 +130,22 @@ export default function AssignEducationSet() {
               ></i>
             )}
             Eğitim Seti Ata
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                marginLeft: isMobile ? "auto" : "30px",
+                backgroundColor: "#001b66",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "6px 16px", // padding yatay biraz artırıldı
+                cursor: "pointer",
+                fontSize: "1rem",
+                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+              }}
+            >
+              Geri Dön
+            </button>
           </h1>
         </div>
         <form

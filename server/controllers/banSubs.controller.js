@@ -59,9 +59,7 @@ exports.updateBanSubs = async (req, res) => {
 
     await logActivity({
       userId: req.user.id,
-      action: `${getUserDisplayName(
-        req.user
-      )} adlı kullanıcı '${name}' adlı yasaklı maddeyi güncelledi.`,
+      action: `${req.user.name} adlı kullanıcı tarafından ${name} adlı yasaklı madde düzenlendi`,
       category: "BanSubs",
     });
 

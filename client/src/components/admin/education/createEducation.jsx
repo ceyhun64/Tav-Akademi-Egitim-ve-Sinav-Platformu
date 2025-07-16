@@ -72,15 +72,19 @@ export default function CreateEducation() {
       const formData = new FormData();
       formData.append("file", singleFile);
       formData.append("name", name);
-      // Eğer duration boşsa 0 olarak ayarla, aksi takdirde mevcut değeri kullan
       formData.append("duration", duration === "" ? "0" : duration);
       formData.append("type", type);
 
       const result = await dispatch(uploadSingleThunk(formData)).unwrap();
       console.log("Yükleme başarılı:", result);
       setEducation(result);
-      setId(result.newEducation.id); // Assuming newEducation has the id
+      setId(result.newEducation.id);
       setMessage("Tekli dosya başarıyla yüklendi!");
+
+      // Mesajı 3 saniye sonra temizle
+      setTimeout(() => {
+        setMessage("");
+      }, 3000);
     } catch (error) {
       setMessage(
         "Tekli dosya yüklenirken bir hata oluştu: " +
@@ -211,6 +215,22 @@ export default function CreateEducation() {
               ></i>
             )}
             Eğitim Oluştur
+            <button
+              onClick={() => window.history.back()}
+              style={{
+                marginLeft: isMobile ? "auto" : "30px",
+                backgroundColor: "#001b66",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "6px 16px", // padding yatay biraz artırıldı
+                cursor: "pointer",
+                fontSize: "1rem",
+                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+              }}
+            >
+              Geri Dön
+            </button>
           </h1>
         </div>
         {message && (

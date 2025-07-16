@@ -20,7 +20,42 @@ export default function PoolTeo() {
   const { difLevels = [] } = useSelector((state) => state.queDif);
 
   const [selectedBooklet, setSelectedBooklet] = useState("");
-  const [expandedRow, setExpandedRow] = useState(null);
+  // Sayfalama state'leri
+  const [itemsPerPage, setItemsPerPage] = useState(10); // Varsayılan olarak 10 soru
+  const [currentPage, setCurrentPage] = useState(1);
+  const [expandedRow, setExpandedRow] = useState(null); // Detayları göstermek için
+
+  // Toplam sayfa sayısı
+  const totalPages = Math.ceil(poolTeos.length / itemsPerPage);
+
+  // Mevcut sayfada gösterilecek sorular
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentQuestions = poolTeos.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Sayfa numarası değiştirme fonksiyonu
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    setExpandedRow(null); // Yeni sayfaya geçildiğinde açık olan satırları kapat
+  };
+
+  // Sayfalama düğmeleri için dinamik dizi oluşturma
+  const pageNumbers = [];
+  // Çok fazla sayfa varsa, sadece belirli bir aralığı göster (örn: 5 sayfa)
+  const maxPageButtons = 5;
+  let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
+  let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
+
+  if (endPage - startPage + 1 < maxPageButtons) {
+    startPage = Math.max(1, endPage - maxPageButtons + 1);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pageNumbers.push(i);
+  }
+  
+
+  // Satır genişletme/daraltma
 
   useEffect(() => {
     dispatch(getTeoBookletsThunk());
@@ -142,10 +177,10 @@ export default function PoolTeo() {
                 color: "white",
                 border: "none",
                 borderRadius: "4px",
-                padding: "6px 16px", // padding yatay biraz artırıldı
+                padding: "6px 16px",
                 cursor: "pointer",
                 fontSize: "1rem",
-                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+                whiteSpace: "nowrap",
               }}
             >
               Geri Dön
@@ -316,6 +351,54 @@ export default function PoolTeo() {
           </div>
         </div>
 
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "10px 16px",
+            backgroundColor: "#f5f7fa",
+            borderBottom: "1px solid #ddd",
+            color: "#001b66",
+            fontWeight: 600,
+            fontSize: "1rem",
+            flexWrap: "wrap",
+            gap: "10px",
+          }}
+        >
+          {/* Sayfa başına soru seçimi */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <label htmlFor="itemsPerPageSelect">Sayfa Başına Soru:</label>
+            <select
+              id="itemsPerPageSelect"
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+                setExpandedRow(null);
+              }}
+              style={{
+                padding: "5px 8px",
+                borderRadius: "5px",
+                border: "1px solid #ccc",
+                backgroundColor: "#fff",
+                fontSize: "0.95rem",
+              }}
+            >
+              {[5, 10, 20, 30, 40, 50].map((count) => (
+                <option key={count} value={count}>
+                  {count}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Toplam soru sayısı */}
+          <div style={{ whiteSpace: "nowrap" }}>
+            Toplam Soru: {poolTeos.length}
+          </div>
+        </div>
+
         {poolTeos.length === 0 ? (
           <p
             className="text-muted"
@@ -348,7 +431,7 @@ export default function PoolTeo() {
                   <th
                     style={{ width: 50, textAlign: "center", padding: "12px" }}
                   ></th>
-                  <th style={{ width: 70, padding: "12px" }}>ID</th>
+                  <th style={{ width: 70, padding: "12px" }}>Sıra</th>
                   {/* Görüntü sütunu, sadece masaüstü */}
                   {!isMobile && (
                     <th style={{ width: 130, padding: "12px" }}>Görüntü</th>
@@ -367,7 +450,7 @@ export default function PoolTeo() {
                 </tr>
               </thead>
               <tbody>
-                {poolTeos.map((item) => (
+                {currentQuestions.map((item, index) => (
                   <React.Fragment key={item.id}>
                     <tr
                       style={{
@@ -420,8 +503,8 @@ export default function PoolTeo() {
                           )}
                         </button>
                       </td>
-                      <td>{item.id}</td>
-                      {/* Görüntü hücresi, sadece masaüstü */}
+                      {/* Sıra numarası olarak index değil, sayfa ve index birleşimi kullanılıyor */}
+                      <td>{indexOfFirstItem + index + 1}</td>
                       {!isMobile && (
                         <td>
                           {item.image ? (
@@ -529,31 +612,46 @@ export default function PoolTeo() {
                             padding: "16px 20px",
                           }}
                         >
-                          <div>
-                            <strong>Şıklar:</strong>
-                            <ul
-                              style={{
-                                paddingLeft: "1.5rem",
-                                margin: "0.3rem 0 0.7rem",
-                                listStyleType: "disc",
-                              }}
-                            >
-                              <li>A: {item.a}</li>
-                              <li>B: {item.b}</li>
-                              <li>C: {item.c}</li>
-                              <li>D: {item.d}</li>
-                              <li>E: {item.e}</li>
-                            </ul>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "10px",
+                            }}
+                          >
+                            <div>
+                              <strong>Şıklar:</strong>
+                              <ul
+                                style={{
+                                  paddingLeft: "1.5rem",
+                                  margin: "0.5rem 0 1rem",
+                                  color: "#001b66",
+                                  fontWeight: 600,
+                                  letterSpacing: "0.02em",
+                                }}
+                              >
+                                <li>A: {item.a}</li>
+                                <li>B: {item.b}</li>
+                                <li>C: {item.c}</li>
+                                <li>D: {item.d}</li>
+                                <li>E: {item.e}</li>
+                              </ul>
+                            </div>
+
                             <p>
                               <strong>Doğru Cevap:</strong>{" "}
-                              <span style={{ fontWeight: "700" }}>
-                                {item.answer?.toUpperCase() || "-"}
+                              <span
+                                style={{ color: "#001b66", fontWeight: "700" }}
+                              >
+                                {item.answer?.toUpperCase()}
                               </span>
                             </p>
+
                             <p>
                               <strong>Zorluk Seviyesi:</strong>{" "}
                               {getDifLevelName(item.difLevelId)}
                             </p>
+
                             <p>
                               <strong>Kitapçık:</strong>{" "}
                               {getBookletName(item.bookletId)}
@@ -566,6 +664,69 @@ export default function PoolTeo() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Sayfalama Kontrolleri */}
+        {totalPages > 1 && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginTop: "20px",
+              gap: "8px",
+              flexWrap: "wrap",
+            }}
+          >
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="btn btn-outline-secondary btn-sm"
+              style={{
+                borderRadius: "6px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                transition: "background-color 0.3s, box-shadow 0.3s",
+                marginRight: "0",
+              }}
+            >
+              Önceki
+            </button>
+            {pageNumbers.map((number) => (
+              <button
+                key={number}
+                onClick={() => handlePageChange(number)}
+                className={`btn btn-sm ${
+                  currentPage === number ? "btn-primary" : "btn-outline-primary"
+                }`}
+                style={{
+                  borderRadius: "6px",
+                  boxShadow:
+                    currentPage === number
+                      ? "0 2px 8px rgba(0,123,255,0.4)"
+                      : "0 1px 3px rgba(0,0,0,0.1)",
+                  transition: "background-color 0.3s, box-shadow 0.3s",
+                  margin: "0",
+                  minWidth: "36px",
+                  padding: "0 12px",
+                  fontWeight: currentPage === number ? "600" : "400",
+                }}
+              >
+                {number}
+              </button>
+            ))}
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="btn btn-outline-secondary btn-sm"
+              style={{
+                borderRadius: "6px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                transition: "background-color 0.3s, box-shadow 0.3s",
+                marginLeft: "0",
+              }}
+            >
+              Sonraki
+            </button>
           </div>
         )}
       </div>

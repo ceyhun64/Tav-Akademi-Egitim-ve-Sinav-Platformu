@@ -20,6 +20,25 @@ const PermissionSelector = ({
     },
     [isPermissionEditable, setSelectedPermissions]
   );
+  const handleSave = () => {
+    if (onSave) {
+      const result = onSave();
+
+      // Eğer `onSave` async bir fonksiyonsa
+      if (result instanceof Promise) {
+        result
+          .then(() => {
+            window.alert("Yetkiler başarıyla kaydedildi.");
+          })
+          .catch(() => {
+            window.alert("Kaydederken bir hata oluştu.");
+          });
+      } else {
+        // Sync ise direkt uyarı ver
+        window.alert("Yetkiler başarıyla kaydedildi.");
+      }
+    }
+  };
 
   const renderCategory = ([categoryName, permissionNames]) => {
     const filtered = permissions.filter((p) =>
@@ -68,13 +87,13 @@ const PermissionSelector = ({
       {Object.entries(categories).map(renderCategory)}
 
       <button
-        onClick={onSave}
+        onClick={handleSave}
         disabled={!isPermissionEditable}
         className={`btn mt-3 ${
           isPermissionEditable ? "btn-primary" : "btn-secondary"
         } shadow-sm rounded-3 d-flex align-items-center gap-2`}
       >
-        <i className="bi bi-save2" style={{color:"white"}}></i>
+        <i className="bi bi-save2" style={{ color: "white" }}></i>
         Kaydet
       </button>
     </div>

@@ -8,19 +8,6 @@ export default function EducationSetDetail() {
   const { id } = useParams();
   const dispatch = useDispatch();
   const { educationSet } = useSelector((state) => state.educationSet);
-
-  const eduDetail = educationSet?.educationSet;
-  const eduEducations = educationSet?.educations;
-  const eduTeoExams = educationSet?.teoExams;
-  const eduImgExams = educationSet?.imgExams;
-
-  useEffect(() => {
-    dispatch(getEducationSetByIdThunk(id));
-  }, [dispatch, id]);
-
-  if (!eduDetail) {
-    return <p>Yükleniyor...</p>;
-  }
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -41,6 +28,19 @@ export default function EducationSetDetail() {
     setSidebarOpen(!isMobile);
   }, [isMobile]);
   const selectWidth = 300;
+  const eduDetail = educationSet?.educationSet;
+  const eduEducations = educationSet?.educations;
+  const eduTeoExams = educationSet?.teoExams;
+  const eduImgExams = educationSet?.imgExams;
+
+  useEffect(() => {
+    dispatch(getEducationSetByIdThunk(id));
+  }, [dispatch, id]);
+
+  if (!eduDetail) {
+    return <p>Yükleniyor...</p>;
+  }
+
   return (
     <div
       className="poolImg-container"

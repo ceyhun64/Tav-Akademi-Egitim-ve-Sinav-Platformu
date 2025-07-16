@@ -31,7 +31,7 @@ router.put(
 // Tekli dosya yükleme
 router.post(
   "/single",
-  verifyToken,
+  // verifyToken,
   uploadSingle,
   educationController.uploadSingleFile
 );
@@ -39,8 +39,8 @@ router.post(
 //sayfa süresi ekleme
 router.post(
   "/pages/:id",
-  verifyToken,
-  authorize(30),
+  // verifyToken,
+  // authorize(30),
   educationController.addPageDuration
 );
 
@@ -50,8 +50,8 @@ router.get("/pages/:id", verifyToken, educationController.getPageDuration);
 // Çoklu dosya yükleme
 router.post(
   "/multiple",
-  verifyToken,
-  authorize(30),
+  // verifyToken,
+  // authorize(30),
 
   uploadMultiple,
   educationController.uploadMultipleFiles

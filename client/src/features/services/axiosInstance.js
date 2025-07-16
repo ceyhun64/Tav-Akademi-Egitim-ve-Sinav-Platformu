@@ -1,8 +1,7 @@
 import axios from "axios";
 import emitter from "./eventEmitter"; // event emitter’ı import et
 
-const API_URL = `${import.meta.env.VITE_API_URL}`;
-console.log("API URL:", import.meta.env.VITE_API_URL);
+const API_URL = `https://tav-akademi-egitim-ve-sinav-platformu-1.onrender.com/api`;
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -12,7 +11,6 @@ axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     const sessionId = localStorage.getItem("sessionId");
-
 
     console.log("Token:", token);
     console.log("Session ID:", sessionId);

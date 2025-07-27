@@ -569,7 +569,7 @@ exports.passwordEmail = async (req, res) => {
   );
 
   // Şifre sıfırlama linki
-  const resetLink = `${process.env.FRONTEND_URL}/update-password/${token}`;
+  const resetLink = `https://tav-akademi-egitim-ve-sinav-platfor-rho.vercel.app/update-password/${token}`;
 
   // Mail gönderme
   const mailOptions = {

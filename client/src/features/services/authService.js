@@ -1,7 +1,7 @@
 import axios from "axios";
 import axiosInstance from "./axiosInstance";
 
-const API_URL = `http://localhost:3000/api/auth`;
+const API_URL = `https://tav-akademi-egitim-ve-sinav-platformu-1.onrender.com/api/auth`;
 // https://tav-akademi-egitim-ve-sinav-platformu-1.onrender.com/api/auth
 
 // login api isteği
@@ -128,11 +128,7 @@ export const passwordEmail = async (email) => {
 };
 
 // password güncelleme api isteği
-export const updatePassword = async (
-  token,
-  yenisifre,
-  tekraryenisifre
-) => {
+export const updatePassword = async (token, yenisifre, tekraryenisifre) => {
   try {
     const res = await axios.put(`${API_URL}/update-password/${token}`, {
       yenisifre,

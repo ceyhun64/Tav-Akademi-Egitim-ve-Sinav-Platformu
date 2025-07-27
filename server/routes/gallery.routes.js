@@ -9,7 +9,6 @@ const authorize = require("../middlewares/authorize");
 router.get(
   "/",
   verifyToken,
-  authorize(4),
   imageGaleryController.getAllGalleries
 );
 
@@ -17,7 +16,6 @@ router.get(
 router.get(
   "/:id",
   verifyToken,
-  authorize(4),
   imageGaleryController.getGalleryById
 );
 
@@ -25,7 +23,6 @@ router.get(
 router.get(
   "/cat/:imageCatId",
   verifyToken,
-  authorize(4),
   imageGaleryController.getGalleryByCategory
 );
 
@@ -33,7 +30,6 @@ router.get(
 router.get(
   "/sub/:imageSubCatId",
   verifyToken,
-  authorize(4),
   imageGaleryController.getGalleryBySubCategory
 );
 
@@ -42,7 +38,6 @@ router.post(
   "/single",
   verifyToken,
   uploadSingle,
-  authorize(4),
   imageGaleryController.uploadSingleImage
 );
 
@@ -51,7 +46,6 @@ router.post(
   "/multiple",
   verifyToken,
   uploadMultiple,
-  authorize(4),
   imageGaleryController.uploadMultipleImages
 );
 
@@ -59,7 +53,6 @@ router.post(
 router.delete(
   "/:id",
   verifyToken,
-  authorize(4),
   imageGaleryController.deleteGallery
 );
 
@@ -68,7 +61,6 @@ router.put(
   "/:id",
   verifyToken,
   uploadSingle,
-  authorize(4),
   imageGaleryController.updateGallery
 );
 

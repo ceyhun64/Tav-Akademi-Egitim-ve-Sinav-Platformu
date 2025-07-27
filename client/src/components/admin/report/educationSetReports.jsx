@@ -21,6 +21,9 @@ export default function EducationSetReports() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(
+    window.innerWidth >= 768 && window.innerWidth < 1350
+  );
   const [filterLokasyon, setFilterLokasyon] = useState("");
   const [filterGrup, setFilterGrup] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -41,16 +44,17 @@ export default function EducationSetReports() {
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1350);
+      if (width >= 768) {
+        setSidebarOpen(true); // büyük ekranlarda sidebar açık
       }
     };
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
   useEffect(() => {
     setSidebarOpen(!isMobile);
   }, [isMobile]);
@@ -162,7 +166,6 @@ export default function EducationSetReports() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -201,7 +204,7 @@ export default function EducationSetReports() {
                 style={{ fontSize: "1.6rem" }}
               ></i>
             )}
-            Uygulamalı Sınav Sonuçları
+            Eğitim Seti Sonuçları
             <button
               onClick={() => window.history.back()}
               style={{
@@ -228,14 +231,12 @@ export default function EducationSetReports() {
               placeholder: "Kişi Ara (Ad / Soyad / Sicil)",
               value: filterKisi,
               onChange: (e) => setFilterKisi(e.target.value),
-              colClass: "col-12 col-md-3",
             },
             {
               type: "select",
               options: [{ id: "", name: "Tüm Lokasyonlar" }, ...institutions],
               value: filterLokasyon,
               onChange: (e) => setFilterLokasyon(e.target.value),
-              colClass: "col-12 col-md-3",
               keyField: "id",
               labelField: "name",
             },
@@ -244,7 +245,6 @@ export default function EducationSetReports() {
               options: [{ id: "", name: "Tüm Gruplar" }, ...groups],
               value: filterGrup,
               onChange: (e) => setFilterGrup(e.target.value),
-              colClass: "col-12 col-md-2",
               keyField: "id",
               labelField: "name",
             },
@@ -253,59 +253,71 @@ export default function EducationSetReports() {
               placeholder: "Başlangıç Tarihi",
               value: startDate,
               onChange: (e) => setStartDate(e.target.value),
-              colClass: "col-12 col-md-2",
             },
             {
               type: "date",
               placeholder: "Bitiş Tarihi",
               value: endDate,
               onChange: (e) => setEndDate(e.target.value),
-              colClass: "col-12 col-md-2",
             },
-          ].map((input, idx) => (
-            <div key={idx} className={input.colClass}>
-              {input.type === "select" ? (
-                <select
-                  className="form-select"
-                  value={input.value}
-                  onChange={input.onChange}
-                  style={{
-                    boxShadow: "0 2px 8px rgb(0 51 153 / 0.15)",
-                    borderRadius: "8px",
-                    border: "1px solid #cbd5e0",
-                    transition: "border-color 0.25s ease",
-                  }}
-                  onFocus={(e) => (e.target.style.borderColor = "#003399")}
-                  onBlur={(e) => (e.target.style.borderColor = "#cbd5e0")}
-                >
-                  {input.options.map((opt) => (
-                    <option
-                      key={opt[input.keyField]}
-                      value={opt[input.keyField]}
-                    >
-                      {opt[input.labelField]}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type={input.type}
-                  className="form-control"
-                  placeholder={input.placeholder}
-                  value={input.value}
-                  onChange={input.onChange}
-                  style={{
-                    boxShadow: "0 2px 8px rgb(0 51 153 / 0.15)",
-                    borderRadius: "8px",
-                    border: "1px solid #cbd5e0",
-                    transition: "border-color 0.25s ease",
-                  }}
-                  onFocus={(e) => (e.target.style.borderColor = "#003399")}
-                  onBlur={(e) => (e.target.style.borderColor = "#cbd5e0")}
-                />
-              )}
-            </div>
-          ))}
+          ].map((input, idx) => {
+            // Ekran boyutuna göre kolon sınıfını belirle
+            let colClass = "col-12"; // mobil default
+            if (isTablet) {
+              colClass = "col-6"; // 2 sütun
+            } else if (!isMobile) {
+              // masaüstü
+              if (idx === 0) colClass = "col-12 col-md-3";
+              else if (idx === 1) colClass = "col-12 col-md-3";
+              else if (idx === 2) colClass = "col-12 col-md-2";
+              else colClass = "col-12 col-md-2";
+            }
+
+            return (
+              <div key={idx} className={colClass}>
+                {input.type === "select" ? (
+                  <select
+                    className="form-select"
+                    value={input.value}
+                    onChange={input.onChange}
+                    style={{
+                      boxShadow: "0 2px 8px rgb(0 51 153 / 0.15)",
+                      borderRadius: "8px",
+                      border: "1px solid #cbd5e0",
+                      transition: "border-color 0.25s ease",
+                    }}
+                    onFocus={(e) => (e.target.style.borderColor = "#003399")}
+                    onBlur={(e) => (e.target.style.borderColor = "#cbd5e0")}
+                  >
+                    {input.options.map((opt) => (
+                      <option
+                        key={opt[input.keyField]}
+                        value={opt[input.keyField]}
+                      >
+                        {opt[input.labelField]}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type={input.type}
+                    className="form-control"
+                    placeholder={input.placeholder}
+                    value={input.value}
+                    onChange={input.onChange}
+                    style={{
+                      boxShadow: "0 2px 8px rgb(0 51 153 / 0.15)",
+                      borderRadius: "8px",
+                      border: "1px solid #cbd5e0",
+                      transition: "border-color 0.25s ease",
+                    }}
+                    onFocus={(e) => (e.target.style.borderColor = "#003399")}
+                    onBlur={(e) => (e.target.style.borderColor = "#cbd5e0")}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Seçilenler varsa silme butonu */}
@@ -393,6 +405,13 @@ export default function EducationSetReports() {
                       <th style={{ padding: "6px 8px" }}>Soyad</th>
                       <th style={{ padding: "6px 8px" }}>Puan</th>
                     </>
+                  ) : isTablet ? (
+                    <>
+                      <th style={{ padding: "6px 8px" }}>Ad</th>
+                      <th style={{ padding: "6px 8px" }}>Soyad</th>
+                      <th style={{ padding: "6px 8px" }}>Puan</th>
+                      <th style={{ padding: "6px 8px" }}>Tamamlandı</th>
+                    </>
                   ) : (
                     [
                       "Lokasyon",
@@ -426,6 +445,7 @@ export default function EducationSetReports() {
                   )}
                 </tr>
               </thead>
+
               <tbody>
                 {filteredData.length > 0 ? (
                   filteredData.map((item, index) => {
@@ -486,6 +506,21 @@ export default function EducationSetReports() {
                               {item.exam_theoretical_score ?? "-"}
                             </td>
                           </>
+                        ) : isTablet ? (
+                          <>
+                            <td style={{ textAlign: "center" }}>
+                              {user.ad || user.kullanici_adi || "-"}
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              {user.soyad || "-"}
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              {item.exam_theoretical_score ?? "-"}
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              {item.finished ? "Evet" : "Hayır"}
+                            </td>
+                          </>
                         ) : (
                           <>
                             <td style={{ textAlign: "center" }}>
@@ -538,7 +573,7 @@ export default function EducationSetReports() {
                 ) : (
                   <tr>
                     <td
-                      colSpan={isMobile ? 3 : 14}
+                      colSpan={isMobile ? 3 : isTablet ? 4 : 14}
                       style={{ textAlign: "center" }}
                     >
                       Veri bulunamadı

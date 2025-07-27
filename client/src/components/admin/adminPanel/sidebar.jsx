@@ -11,37 +11,155 @@ export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      } else {
+        setSidebarOpen(false); // küçük ekranda sidebar kapalı başlasın
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    // İlk renderda da doğru durumu ayarla
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const { ad } = useSelector((state) => state.auth);
-  const menuRef = useRef(null);
+
+  // Tüm sidebar için genel ref (hamburger menü ve ana sidebar içeriği için)
+  const sidebarRef = useRef(null); // Yeni ekledik, menuref yerine bunu kullanacağız
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Kitapçık dropdownları için state ve ref
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0 });
-  const toggleRef = useRef(null);
+  const toggleRef = useRef(null); // Kitapçık butonu ref'i
+  const dropdownMenuRef = useRef(null); // Kitapçık dropdown menüsü ref'i
 
   // Sınav dropdownları için state ve ref
   const [examDropdownOpen, setExamDropdownOpen] = useState(false);
-  const examToggleRef = useRef(null);
+  const examToggleRef = useRef(null); // Sınav butonu ref'i
   const [examDropdownPosition, setExamDropdownPosition] = useState({ top: 0 });
+  const examDropdownMenuRef = useRef(null); // Sınav dropdown menüsü ref'i
 
   // Eğitim dropdownları için state ve ref
   const [educationDropdownOpen, setEducationDropdownOpen] = useState(false);
-  const educationToggleRef = useRef(null);
+  const educationToggleRef = useRef(null); // Eğitim butonu ref'i
   const [educationDropdownPosition, setEducationDropdownPosition] = useState({
     top: 0,
   });
+  const educationDropdownMenuRef = useRef(null); // Eğitim dropdown menüsü ref'i
 
+  // Rapor dropdownları için state ve ref
   const [reportDropdownOpen, setReportDropdownOpen] = useState(false);
-  const reportToggleRef = useRef(null);
+  const reportToggleRef = useRef(null); // Rapor butonu ref'i
   const [reportDropdownPosition, setReportDropdownPosition] = useState({
     top: 0,
   });
+  const reportDropdownMenuRef = useRef(null); // Rapor dropdown menüsü ref'i
+
+  // Ayarlar dropdownları için state ve ref
   const [settingsDropdownOpen, setSettingsDropdownOpen] = useState(false);
-  const settingsToggleRef = useRef(null);
+  const settingsToggleRef = useRef(null); // Ayarlar butonu ref'i
   const [settingsDropdownPosition, setSettingsDropdownPosition] = useState({
     top: 0,
   });
+  const settingsDropdownMenuRef = useRef(null); // Ayarlar dropdown menüsü ref'i
+
+  // Ortak Kapatma Fonksiyonu
+  const closeAllDropdowns = () => {
+    setDropdownOpen(false);
+    setExamDropdownOpen(false);
+    setEducationDropdownOpen(false);
+    setReportDropdownOpen(false);
+    setSettingsDropdownOpen(false);
+  };
+
+  // Yeni handleClickOutside fonksiyonu
+  useEffect(() => {
+    function handleClickOutside(event) {
+      // Tıklanan elementin bir Link (<a> etiketi) olup olmadığını kontrol et
+      // Eğer bir Link'e tıklandıysa, bu tıklamayı dış tıklama olarak ele alma
+      // ve linkin kendi navigasyonunu yapmasına izin ver.
+      if (event.target.closest("a[href]")) {
+        return;
+      }
+
+      // Sidebar'ın dışına tıklandıysa ve sidebar açıksa kapat
+      if (
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target) &&
+        sidebarOpen &&
+        window.innerWidth < 768 // Sadece mobil görünümde sidebar'ı dış tıklama ile kapat
+      ) {
+        setSidebarOpen(false);
+        closeAllDropdowns();
+        return; // Sidebar'ı kapattıysak, diğer dropdown kontrolüne geçmeyelim
+      }
+
+      // Herhangi bir dropdown butonu veya menüsüne tıklanmadıysa, tüm dropdownları kapat
+      // Bu kısım, bir Link'e tıklandığında atlanacaktır
+      if (
+        (dropdownOpen &&
+          toggleRef.current &&
+          !toggleRef.current.contains(event.target) &&
+          dropdownMenuRef.current &&
+          !dropdownMenuRef.current.contains(event.target)) ||
+        (examDropdownOpen &&
+          examToggleRef.current &&
+          !examToggleRef.current.contains(event.target) &&
+          examDropdownMenuRef.current &&
+          !examDropdownMenuRef.current.contains(event.target)) ||
+        (educationDropdownOpen &&
+          educationToggleRef.current &&
+          !educationToggleRef.current.contains(event.target) &&
+          educationDropdownMenuRef.current &&
+          !educationDropdownMenuRef.current.contains(event.target)) ||
+        (reportDropdownOpen &&
+          reportToggleRef.current &&
+          !reportToggleRef.current.contains(event.target) &&
+          reportDropdownMenuRef.current &&
+          !reportDropdownMenuRef.current.contains(event.target)) ||
+        (settingsDropdownOpen &&
+          settingsToggleRef.current &&
+          !settingsToggleRef.current.contains(event.target) &&
+          settingsDropdownMenuRef.current &&
+          !settingsDropdownMenuRef.current.contains(event.target))
+      ) {
+        closeAllDropdowns();
+      }
+    }
+
+    // Dropdownlardan herhangi biri açıksa veya sidebar açıksa event listener ekle
+    // Sadece mousedown olayını dinlemeye devam ediyoruz.
+    if (
+      dropdownOpen ||
+      examDropdownOpen ||
+      educationDropdownOpen ||
+      reportDropdownOpen ||
+      settingsDropdownOpen ||
+      sidebarOpen
+    ) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [
+    dropdownOpen,
+    examDropdownOpen,
+    educationDropdownOpen,
+    reportDropdownOpen,
+    settingsDropdownOpen,
+    sidebarOpen,
+    closeAllDropdowns, // closeAllDropdowns useCallback ile sarıldığı için bağımlılık olarak eklenmeli
+    isMobile, // isMobile durumunu da bağımlılık olarak ekliyoruz
+  ]);
 
   const handleLogout = async () => {
     await dispatch(logoutThunk());
@@ -51,26 +169,13 @@ export default function Sidebar() {
     }, 1000);
   };
 
-  // ... mevcut import'lar ve durum tanımlamaları ...
-
-  // Yeni Ortak Kapatma Fonksiyonu
-  const closeAllDropdowns = () => {
-    setDropdownOpen(false);
-    setExamDropdownOpen(false);
-    setEducationDropdownOpen(false);
-    setReportDropdownOpen(false);
-    setSettingsDropdownOpen(false);
-  };
-
   // Her bir dropdown toggle fonksiyonunu güncelleyin
   const toggleDropdown = () => {
     if (dropdownOpen) {
-      // Bu açılır menü zaten açıksa, hepsini kapat
       closeAllDropdowns();
     } else {
-      // Aksi takdirde, diğerlerini kapat ve bunu aç
-      closeAllDropdowns();
-      setDropdownOpen(true);
+      closeAllDropdowns(); // Diğerlerini kapat
+      setDropdownOpen(true); // Bunu aç
     }
   };
 
@@ -109,8 +214,6 @@ export default function Sidebar() {
       setSettingsDropdownOpen(true);
     }
   };
-
-  // ... bileşen kodunuzun geri kalanı ...
 
   useEffect(() => {
     if (dropdownOpen && toggleRef.current) {
@@ -152,38 +255,35 @@ export default function Sidebar() {
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
   // Sidebar açıkken linke tıklayınca sidebar kapansın
-  const handleLinkClick = () => {
+  const handleLinkClick = (event) => {
+    // `event` parametresini alın
     if (window.innerWidth <= 768) {
-      setSidebarOpen(false);
-      closeAllDropdowns(); // Sidebar kapanırken tüm dropdownları da kapat
+      // Mobil görünümde ise
+      setSidebarOpen(false); // Sidebar'ı kapat
+      closeAllDropdowns(); // Tüm dropdown'ları kapat
     }
+    // Not: Link'in kendi varsayılan davranışını (yani `to` prop'una gitmeyi) engellemeyin.
+    // React Router Link'i zaten doğru şekilde yönlendirecektir.
+    // event.preventDefault() KULLANMAYIN!
   };
 
   useEffect(() => {
-    if (settingsDropdownOpen && settingsToggleRef.current && menuRef.current) {
+    if (
+      settingsDropdownOpen &&
+      settingsToggleRef.current &&
+      sidebarRef.current
+    ) {
       const buttonRect = settingsToggleRef.current.getBoundingClientRect();
-      const menuHeight = menuRef.current.offsetHeight;
+      // Dropdown'ın sidebar içinde mi yoksa dışarıda mı konumlanacağına karar ver
+      const sidebarWidth = sidebarRef.current.offsetWidth;
+      const calculatedLeft = buttonRect.right + 8; // Sidebar'ın sağından biraz boşluk
 
       setSettingsDropdownPosition({
-        top:
-          buttonRect.top - menuHeight + settingsToggleRef.current.offsetHeight,
-        left: buttonRect.right + 8, // istersen sabit 285 de olur
+        top: buttonRect.top, // Butonun üst hizasında başlasın
+        left: calculatedLeft,
       });
     }
-  }, [settingsDropdownOpen]);
-
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [settingsDropdownOpen, sidebarRef.current]);
 
   return (
     <>
@@ -198,7 +298,11 @@ export default function Sidebar() {
         <div></div>
       </button>
 
-      <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
+      {/* Sidebar - sidebarRef'i buraya atadık */}
+      <aside
+        ref={sidebarRef}
+        className={`sidebar ${sidebarOpen ? "open" : ""}`}
+      >
         <div className="sidebar-header d-flex align-items-center justify-content-center p-4">
           <Link
             to="/admin-panel"
@@ -224,20 +328,16 @@ export default function Sidebar() {
                   location.pathname === "/admin/register" ? "active-link" : ""
                 }`}
               >
-                <i className="bi bi-people-fill me-2 fs-5"></i>{" "}
-                {/* Kullanıcı İşlemleri için kullanıcı grubu */}
-                Kullanıcı İşlemleri
+                <i className="bi bi-people-fill me-2 fs-5"></i> Kullanıcı
+                İşlemleri
               </Link>
             </li>
 
-          
             <li>
               <button
                 ref={toggleRef}
                 type="button"
-                className={`sidebar-link d-flex align-items-center justify-content-between w-100 btn btn-toggle ${
-                  location.pathname.startsWith("/booklets") ? "active-link" : ""
-                }`}
+                className={`sidebar-link d-flex align-items-center justify-content-between w-100 btn btn-toggle `}
                 onClick={toggleDropdown}
               >
                 <span>
@@ -262,9 +362,7 @@ export default function Sidebar() {
                     : ""
                 }`}
               >
-                <i className="bi bi-collection-fill me-2 fs-5"></i>{" "}
-                {/* Kütüphane için koleksiyon */}
-                Kütüphane
+                <i className="bi bi-collection-fill me-2 fs-5"></i> Kütüphane
               </Link>
             </li>
 
@@ -272,11 +370,7 @@ export default function Sidebar() {
               <button
                 ref={examToggleRef}
                 type="button"
-                className={`sidebar-link d-flex align-items-center justify-content-between w-100 btn btn-toggle ${
-                  location.pathname.startsWith("/sinav-atamasi")
-                    ? "active-link"
-                    : ""
-                }`}
+                className={`sidebar-link d-flex align-items-center justify-content-between w-100 btn btn-toggle`}
                 onClick={toggleExamDropdown}
               >
                 <span>
@@ -298,13 +392,7 @@ export default function Sidebar() {
               <button
                 ref={educationToggleRef}
                 type="button"
-                className={`sidebar-link d-flex align-items-center justify-content-between w-100 btn btn-toggle ${
-                  location.pathname.startsWith("/admin/education") ||
-                  location.pathname.startsWith("/admin/education-set") ||
-                  location.pathname.startsWith("/admin/assign-education-set")
-                    ? "active-link"
-                    : ""
-                }`}
+                className={`sidebar-link d-flex align-items-center justify-content-between w-100 btn btn-toggle `}
                 onClick={toggleEducationDropdown}
               >
                 <span>
@@ -331,9 +419,8 @@ export default function Sidebar() {
                     : ""
                 }`}
               >
-                <i className="bi bi-award-fill me-2 fs-5"></i>{" "}
-                {/* Sertifika işlemleri için ödül */}
-                Sertifika İşlemleri
+                <i className="bi bi-award-fill me-2 fs-5"></i> Sertifika
+                İşlemleri
               </Link>
             </li>
 
@@ -341,18 +428,7 @@ export default function Sidebar() {
               <button
                 ref={reportToggleRef}
                 type="button"
-                className={`sidebar-link d-flex align-items-center justify-content-between w-100 btn btn-toggle ${
-                  location.pathname.startsWith("/admin/img-exam-report") ||
-                  location.pathname.startsWith("/admin/teo-exam-report") ||
-                  location.pathname.startsWith("/admin/education-set-report") ||
-                  location.pathname.startsWith("/admin/assign-img-exams") ||
-                  location.pathname.startsWith("/admin/assign-teo-exams") ||
-                  location.pathname.startsWith(
-                    "/admin/assign-education-set-report"
-                  )
-                    ? "active-link"
-                    : ""
-                }`}
+                className={`sidebar-link d-flex align-items-center justify-content-between w-100 btn btn-toggle `}
                 onClick={toggleReportDropdown}
               >
                 <span>
@@ -372,13 +448,7 @@ export default function Sidebar() {
               <button
                 ref={settingsToggleRef}
                 type="button"
-                className={`sidebar-link d-flex align-items-center justify-content-between w-100 btn btn-toggle ${
-                  location.pathname.startsWith("/admin/education") ||
-                  location.pathname.startsWith("/admin/education-set") ||
-                  location.pathname.startsWith("/admin/assign-education-set")
-                    ? "active-link"
-                    : ""
-                }`}
+                className={`sidebar-link d-flex align-items-center justify-content-between w-100 btn btn-toggle `}
                 onClick={toggleSettingsDropdown}
               >
                 <span>
@@ -398,7 +468,7 @@ export default function Sidebar() {
         </nav>
 
         <div className="sidebar-footer p-3 mt-auto">
-          <div className="welcome-text mb-3">
+          <div className="welcome-text mb-1">
             Hoşgeldin,{" "}
             <strong style={{ color: "#001b66" }}>{ad || "Yönetici"}</strong>
           </div>
@@ -407,48 +477,39 @@ export default function Sidebar() {
             style={{
               fontWeight: 600,
               borderRadius: "30px",
-              padding: "8px 28px",
-              marginLeft: "30px",
-              border: "2px solid #dc3545",
-              backgroundColor: "transparent",
-              color: "#dc3545",
-              boxShadow: "0 4px 6px rgba(220, 53, 69, 0.3)",
-              transition: "all 0.3s ease",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
+              padding: isMobile ? "4px 12px" : "8px 28px",
+              border: "1px solid #660000ff",
+              backgroundColor: "#ffffff",
+              color: "#660000ff",
               cursor: "pointer",
-              fontSize: "1rem",
+              fontSize: isMobile ? "0.8rem" : "inherit",
+              margin: isMobile ? "0.3rem auto 0.5rem auto" : "0 0 1rem 0",
+              display: isMobile ? "block" : "inline-block",
+              width: isMobile ? "fit-content" : "auto", // Buton genişliği içeriğe göre
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#dc3545";
-              e.currentTarget.style.color = "#fff";
-              e.currentTarget.style.boxShadow =
-                "0 6px 12px rgba(220, 53, 69, 0.6)";
+              e.target.style.backgroundColor = "#b71717ff";
+              e.target.style.color = "#ffffff";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "transparent";
-              e.currentTarget.style.color = "#dc3545";
-              e.currentTarget.style.boxShadow =
-                "0 4px 6px rgba(220, 53, 69, 0.3)";
+              e.target.style.backgroundColor = "#ffffff";
+              e.target.style.color = "#b91a1aff";
             }}
           >
-            <i
-              className="bi bi-box-arrow-right"
-              style={{ fontSize: "1.2rem" }}
-            ></i>
             Çıkış Yap
           </button>
         </div>
       </aside>
 
+      {/* Her bir submenu-dropdown'a useRef atıyoruz */}
       {dropdownOpen && (
         <ul
+          ref={dropdownMenuRef} // Yeni ref
           className="submenu-dropdown list-unstyled"
           style={{
             position: "fixed",
             top: dropdownPosition.top + "px",
-            left: isMobile ? "160px" : "285px", // Sidebar genişliği + boşluk
+            left: isMobile ? "160px" : "285px",
             width: "220px",
             backgroundColor: "#fff",
             border: "1px solid #ddd",
@@ -466,7 +527,7 @@ export default function Sidebar() {
               className={`sidebar-sublink ${
                 location.pathname === "/admin/pool-teo" ? "active-link" : ""
               }`}
-              onClick={() => setDropdownOpen(false)}
+              onClick={handleLinkClick} // Linke tıklanınca da kapatma
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -495,7 +556,7 @@ export default function Sidebar() {
               className={`sidebar-sublink ${
                 location.pathname === "/admin/pool-img" ? "active-link" : ""
               }`}
-              onClick={() => setDropdownOpen(false)}
+              onClick={handleLinkClick} // Linke tıklanınca da kapatma
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -522,11 +583,12 @@ export default function Sidebar() {
       )}
       {examDropdownOpen && (
         <ul
+          ref={examDropdownMenuRef} // Yeni ref
           className="submenu-dropdown list-unstyled"
           style={{
             position: "fixed",
             top: examDropdownPosition.top + "px",
-            left: isMobile ? "160px" : "285px", // Sidebar genişliği + boşluk
+            left: isMobile ? "160px" : "285px",
             width: "220px",
             backgroundColor: "#fff",
             border: "1px solid #ddd",
@@ -546,7 +608,7 @@ export default function Sidebar() {
                   ? "active-link"
                   : ""
               }`}
-              onClick={() => setExamDropdownOpen(false)}
+              onClick={handleLinkClick}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -577,7 +639,7 @@ export default function Sidebar() {
                   ? "active-link"
                   : ""
               }`}
-              onClick={() => setExamDropdownOpen(false)}
+              onClick={handleLinkClick}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -608,7 +670,7 @@ export default function Sidebar() {
                   ? "active-link"
                   : ""
               }`}
-              onClick={() => setExamDropdownOpen(false)}
+              onClick={handleLinkClick}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -636,11 +698,12 @@ export default function Sidebar() {
       {/* Eğitim Ataması Dropdown */}
       {educationDropdownOpen && (
         <ul
+          ref={educationDropdownMenuRef} // Yeni ref
           className="submenu-dropdown list-unstyled"
           style={{
             position: "fixed",
             top: educationDropdownPosition.top + "px",
-            left: isMobile ? "160px" : "285px", // Sidebar genişliği + boşluk
+            left: isMobile ? "160px" : "285px",
             width: "220px",
             backgroundColor: "#fff",
             border: "1px solid #ddd",
@@ -651,8 +714,7 @@ export default function Sidebar() {
             margin: 0,
             listStyle: "none",
           }}
-          onMouseLeave={() => setEducationDropdownOpen(false)}
-          onMouseEnter={() => setEducationDropdownOpen(true)}
+          // onMouseLeave ve onMouseEnter kaldırıldı, handleClickOutside yönetecek
         >
           <li>
             <Link
@@ -660,7 +722,7 @@ export default function Sidebar() {
               className={`sidebar-sublink ${
                 location.pathname === "/admin/education" ? "active-link" : ""
               }`}
-              onClick={() => setEducationDropdownOpen(false)}
+              onClick={handleLinkClick}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -691,7 +753,7 @@ export default function Sidebar() {
                   ? "active-link"
                   : ""
               }`}
-              onClick={() => setEducationDropdownOpen(false)}
+              onClick={handleLinkClick}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -722,7 +784,7 @@ export default function Sidebar() {
                   ? "active-link"
                   : ""
               }`}
-              onClick={() => setEducationDropdownOpen(false)}
+              onClick={handleLinkClick}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -742,18 +804,20 @@ export default function Sidebar() {
                 e.currentTarget.style.color = "#003399";
               }}
             >
-              <i class="bi bi-arrow-right-square-fill me-2"></i> Eğitim Seti Ata
+              <i className="bi bi-arrow-right-square-fill me-2"></i> Eğitim Seti
+              Ata
             </Link>
           </li>
         </ul>
       )}
       {reportDropdownOpen && (
         <ul
+          ref={reportDropdownMenuRef} // Yeni ref
           className="submenu-dropdown list-unstyled"
           style={{
             position: "fixed",
             top: reportDropdownPosition.top + "px",
-            left: isMobile ? "160px" : "285px", // Sidebar genişliği + boşluk
+            left: isMobile ? "160px" : "285px",
             width: "220px",
             backgroundColor: "#fff",
             border: "1px solid #ddd",
@@ -773,7 +837,7 @@ export default function Sidebar() {
                   ? "active-link"
                   : ""
               }`}
-              onClick={() => setReportDropdownOpen(false)}
+              onClick={handleLinkClick}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -805,7 +869,7 @@ export default function Sidebar() {
                   ? "active-link"
                   : ""
               }`}
-              onClick={() => setReportDropdownOpen(false)}
+              onClick={handleLinkClick}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -837,7 +901,7 @@ export default function Sidebar() {
                   ? "active-link"
                   : ""
               }`}
-              onClick={() => setReportDropdownOpen(false)}
+              onClick={handleLinkClick}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -868,7 +932,7 @@ export default function Sidebar() {
                   ? "active-link"
                   : ""
               }`}
-              onClick={() => setReportDropdownOpen(false)}
+              onClick={handleLinkClick}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -900,7 +964,7 @@ export default function Sidebar() {
                   ? "active-link"
                   : ""
               }`}
-              onClick={() => setReportDropdownOpen(false)}
+              onClick={handleLinkClick}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -924,48 +988,16 @@ export default function Sidebar() {
               Atanmış Uygulamalı Sınavlar
             </Link>
           </li>
-          <li>
-            <Link
-              to="/admin/assign-education-set-report"
-              className={`sidebar-sublink ${
-                location.pathname === "/admin/assign-education-set-report "
-                  ? "active-link"
-                  : ""
-              }`}
-              onClick={() => setReportDropdownOpen(false)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                padding: "0.5rem 1rem",
-                color: "#003399",
-                fontWeight: 400,
-                textDecoration: "none",
-                borderRadius: "4px",
-                transition: "background-color 0.3s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#001b66";
-                e.currentTarget.style.color = "#fff";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-                e.currentTarget.style.color = "#003399";
-              }}
-            >
-              <i className="bi bi-collection-play me-2"></i>
-              Atanmış Eğitim Setleri
-            </Link>
-          </li>
         </ul>
       )}
       {settingsDropdownOpen && (
         <ul
-          ref={menuRef}
+          ref={settingsDropdownMenuRef}
           className="submenu-dropdown list-unstyled"
           style={{
             position: "fixed",
-            top: `${settingsDropdownPosition.top}px`,
-            left: isMobile ? "160px" : "285px", // Sidebar genişliği + boşluk
+            top: `${settingsDropdownPosition.top - 400}px`, // 400 piksel yukarı kaydır
+            left: isMobile ? "160px" : "285px",
             width: "220px",
             backgroundColor: "#fff",
             border: "1px solid #ddd",

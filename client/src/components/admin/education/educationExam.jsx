@@ -66,7 +66,6 @@ export default function EducationExam({ formData, handleChange }) {
             backgroundColor: "#fff",
             borderRadius: "12px",
             padding: "20px",
-            boxShadow: "0 8px 24px rgba(0,27,102,0.08)",
             border: "1px solid #e0e6ed",
           }}
         >

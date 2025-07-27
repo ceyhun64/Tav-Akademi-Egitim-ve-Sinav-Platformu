@@ -76,7 +76,6 @@ export default function CreateEducation() {
       formData.append("type", type);
 
       const result = await dispatch(uploadSingleThunk(formData)).unwrap();
-      console.log("Yükleme başarılı:", result);
       setEducation(result);
       setId(result.newEducation.id);
       setMessage("Tekli dosya başarıyla yüklendi!");
@@ -105,19 +104,22 @@ export default function CreateEducation() {
     }
 
     setIsLoading(true); // Yükleme başladı
-    try {
-      const formData = new FormData();
-      multipleFiles.forEach((file) => {
-        formData.append("files", file);
-      });
-      formData.append("name", name);
-      // Eğer duration boşsa 0 olarak ayarla, aksi takdirde mevcut değeri kullan
-      formData.append("duration", duration === "" ? "0" : duration);
-      formData.append("type", type);
+    setMessage(""); // Mesajı temizle
 
-      await dispatch(uploadMultiplesThunk(formData)).unwrap();
+    try {
+      // Çoklu dosya için tekli yüklemeyi sırayla çağır
+      for (const file of multipleFiles) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("name", name);
+        formData.append("duration", duration === "" ? "0" : duration);
+        formData.append("type", type);
+
+        await dispatch(uploadSingleThunk(formData)).unwrap();
+      }
+
       setMessage("Birden fazla dosya başarıyla yüklendi!");
-      // Yükleme sonrası form alanlarını sıfırlayabilir veya yönlendirme yapabilirsiniz
+      // Yükleme sonrası form alanlarını sıfırla
       setMultipleFiles([]);
       setPreviewMultiple([]);
       setName("");
@@ -125,7 +127,7 @@ export default function CreateEducation() {
       setType("");
     } catch (error) {
       setMessage(
-        "Birden fazla dosya yüklenirken bir hata oluştu: " +
+        "Dosya yüklenirken bir hata oluştu: " +
           (error.message || "Bilinmeyen Hata")
       );
       console.error("Çoklu dosya yükleme hatası:", error);
@@ -175,7 +177,6 @@ export default function CreateEducation() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -321,7 +322,7 @@ export default function CreateEducation() {
           <button
             onClick={handleSingleUpload}
             className="btn btn-primary "
-            style={{ width: "10%" }}
+            style={{ width: "120px" }}
             disabled={isLoading}
           >
             Yükle
@@ -348,10 +349,15 @@ export default function CreateEducation() {
                   style={{ maxHeight: "200px" }}
                 />
               )}
+              {(singleFile?.type === "application/vnd.ms-powerpoint" ||
+                singleFile?.type ===
+                  "application/vnd.openxmlformats-officedocument.presentationml.presentation") && (
+                <p className="text-muted">PowerPoint dosyası seçildi.</p>
+              )}
             </div>
           )}
 
-          {type === "pdf" &&
+          {(type === "pdf" || type === "ppt" || type === "pptx") &&
             singleFile &&
             education &&
             education.newEducation && (
@@ -370,7 +376,7 @@ export default function CreateEducation() {
               type="file"
               multiple
               className="form-control"
-              accept=".jpg,.jpeg,.png,.webp,.ppt,.pptx"
+              accept=".jpg,.jpeg,.png,.webp,.pdf,.ppt,.pptx,.mp4,.mov,.avi"
               onChange={handleMultipleFileChange}
               disabled={isLoading}
             />
@@ -379,24 +385,66 @@ export default function CreateEducation() {
             onClick={handleMultipleUpload}
             className="btn btn-primary"
             disabled={isLoading}
+            style={{ width: "120px" }}
           >
             Yükle
           </button>
           {previewMultiple.length > 0 && (
             <div className="mt-3 d-flex flex-wrap gap-2 justify-content-center">
-              {previewMultiple.map((src, index) => (
-                <img
-                  key={index}
-                  src={src}
-                  alt={`Önizleme ${index}`}
-                  className="img-thumbnail" // Bootstrap küçük resim stili
-                  style={{
-                    width: "150px",
-                    height: "150px",
-                    objectFit: "cover",
-                  }}
-                />
-              ))}
+              {previewMultiple.map((src, index) => {
+                const file = multipleFiles[index];
+                if (!file) return null;
+
+                if (file.type.startsWith("image/")) {
+                  return (
+                    <img
+                      key={index}
+                      src={src}
+                      alt={`Önizleme ${index}`}
+                      className="img-thumbnail"
+                      style={{
+                        width: "150px",
+                        height: "150px",
+                        objectFit: "cover",
+                      }}
+                    />
+                  );
+                } else if (file.type.startsWith("video/")) {
+                  return (
+                    <video
+                      key={index}
+                      src={src}
+                      controls
+                      className="img-thumbnail"
+                      style={{
+                        width: "150px",
+                        height: "150px",
+                        objectFit: "cover",
+                      }}
+                    />
+                  );
+                } else if (file.type === "application/pdf") {
+                  return (
+                    <div
+                      key={index}
+                      className="d-flex align-items-center justify-content-center border bg-light"
+                      style={{ width: "150px", height: "150px" }}
+                    >
+                      <p className="text-muted mb-0">PDF dosyası seçildi.</p>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div
+                      key={index}
+                      className="d-flex align-items-center justify-content-center border bg-light"
+                      style={{ width: "150px", height: "150px" }}
+                    >
+                      <p className="text-muted mb-0">Desteklenmeyen dosya</p>
+                    </div>
+                  );
+                }
+              })}
             </div>
           )}
         </div>

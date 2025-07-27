@@ -598,9 +598,9 @@ exports.passwordEmail = async (req, res) => {
 // Şifre güncelleme (şifre değiştir butonuna tıklandığında mail gönderir , maildeki link buraya yönlendirir)
 exports.updatePassword = async (req, res) => {
   const { token } = req.params; // URL'den gelen token
-  const { sifre, yenisifre, tekraryenisifre } = req.body;
+  const { yenisifre, tekraryenisifre } = req.body;
 
-  if (!sifre || !yenisifre || !tekraryenisifre) {
+  if (!yenisifre || !tekraryenisifre) {
     return res.status(400).json({ message: "Lütfen tüm alanları doldurun." });
   }
 
@@ -613,12 +613,6 @@ exports.updatePassword = async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ message: "Kullanıcı bulunamadı." });
-    }
-
-    // Eski şifreyi kontrol et
-    const isMatch = await bcrypt.compare(sifre, user.sifre);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Mevcut şifre hatalı." });
     }
 
     // Yeni şifreleri karşılaştır

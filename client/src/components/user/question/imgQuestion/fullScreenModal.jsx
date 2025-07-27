@@ -16,17 +16,24 @@ export default function FullscreenModal({ onClose, children }) {
         alignItems: "center",
         zIndex: 10000,
         cursor: "pointer",
+        padding: "20px", // kenarlardan boşluk için
+        overflow: "auto", // içerik büyükse kaydır
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: "100%",
-          height: "100%",
           position: "relative",
+          backgroundColor: "#fff",
+          borderRadius: "8px",
+          maxWidth: "90vw",
+          maxHeight: "90vh",
+          width: "auto",
+          height: "auto",
+          boxShadow: "0 0 15px rgba(0,0,0,0.5)",
           display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
+          flexDirection: "column",
+          cursor: "default",
         }}
       >
         {/* Kapatma butonu */}
@@ -34,8 +41,8 @@ export default function FullscreenModal({ onClose, children }) {
           onClick={onClose}
           style={{
             position: "absolute",
-            top: 20,
-            right: 20,
+            top: 10,
+            right: 10,
             background: "rgba(0,0,0,0.5)",
             border: "none",
             color: "white",
@@ -48,6 +55,7 @@ export default function FullscreenModal({ onClose, children }) {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
+            zIndex: 10,
           }}
           aria-label="Kapat"
           title="Kapat"
@@ -55,14 +63,13 @@ export default function FullscreenModal({ onClose, children }) {
           &times;
         </button>
 
-        {/* İçerik tam ekran */}
+        {/* İçerik alanı */}
         <div
           style={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
+            padding: "20px",
+            overflow: "auto",
+            maxHeight: "85vh",
+            maxWidth: "85vw",
           }}
         >
           {children}

@@ -54,11 +54,8 @@ export default function BothTeoQuestion() {
   const { bothTeoQuestions, duration, otherExamId, name } = useSelector(
     (state) => state.question
   );
-  console.log("Sınav süresi (duration):", duration);
 
   const [theoreticalFinished, setTheoreticalFinished] = useState(false);
-
-  console.log("otherExamId:", otherExamId);
 
   const [teoQuestions, setTeoQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -324,8 +321,6 @@ export default function BothTeoQuestion() {
     setIsPaused(false);
     requestFullscreen();
   };
-  console.log("theoreticalFinished:", theoreticalFinished);
-  console.log("otherExamId:", otherExamId);
 
   return (
     <div style={containerStyle} ref={examContainerRef}>
@@ -411,7 +406,7 @@ export default function BothTeoQuestion() {
           !examEnded && (
             <div className="row">
               {/* Soru Kartı */}
-              <div className="col-lg-9 mb-4 shadow-sm border-0 question-card-wrapper">
+              <div className="col-lg-9 mb-4  question-card-wrapper">
                 <div className="card shadow-sm border-0 h-100 d-flex flex-column">
                   <div
                     className="card-header bg-white d-flex justify-content-between align-items-center border-bottom"

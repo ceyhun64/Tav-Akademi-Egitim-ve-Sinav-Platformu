@@ -55,6 +55,43 @@ export default function CreateImgExam({ onCreated }) {
     dispatch(getAllUsersThunk());
     dispatch(getBookletByTypeThunk("img"));
   }, [dispatch]);
+  useEffect(() => {
+    if (
+      formData.start_date &&
+      formData.end_date &&
+      new Date(formData.start_date) > new Date(formData.end_date)
+    ) {
+      alert(
+        "Bitiş tarihi, başlangıç tarihinden önce olamaz. Lütfen düzeltiniz"
+      );
+    }
+  }, [formData.start_date, formData.end_date]);
+  useEffect(() => {
+    const { start_date, end_date, start_time, end_time } = formData;
+
+    // Gerekli tüm alanlar girilmiş olmalı
+    if (!start_date || !end_date || !start_time || !end_time) return;
+
+    // Sadece tarihler aynıysa saatleri karşılaştır
+    if (start_date === end_date) {
+      const [startHour, startMinute] = start_time.split(":").map(Number);
+      const [endHour, endMinute] = end_time.split(":").map(Number);
+
+      const startTotalMinutes = startHour * 60 + startMinute;
+      const endTotalMinutes = endHour * 60 + endMinute;
+
+      if (startTotalMinutes >= endTotalMinutes) {
+        alert(
+          "Bitiş saati, başlangıç saatinden sonra olmalıdır. Lütfen düzeltiniz"
+        );
+      }
+    }
+  }, [
+    formData.start_date,
+    formData.end_date,
+    formData.start_time,
+    formData.end_time,
+  ]);
 
   useEffect(() => {
     if (formData.bookletId) {
@@ -163,7 +200,6 @@ export default function CreateImgExam({ onCreated }) {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -375,7 +411,7 @@ export default function CreateImgExam({ onCreated }) {
                     backgroundColor: "#fff",
                   }}
                 >
-                                    <option value="0">Süresiz</option>
+                  <option value="0">Süresiz</option>
 
                   {/* 5'ten 15'e kadar 1'erli artış */}
                   {Array.from({ length: 11 }, (_, i) => 5 + i).map((value) => (
@@ -403,6 +439,9 @@ export default function CreateImgExam({ onCreated }) {
                   onChange={handleChange}
                   className="custom-select"
                 >
+                  {/* Süresiz seçeneği */}
+                  <option value="0">Süresiz</option>
+
                   {/* 1'den 10'a kadar 1'erli artış */}
                   {Array.from({ length: 10 }, (_, i) => i + 1).map((value) => (
                     <option key={value} value={value}>

@@ -10,6 +10,17 @@ export default function UpcomingExam() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1500);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1500);
+     
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
 
   useEffect(() => {
     dispatch(getExamByUserIdThunk());
@@ -20,7 +31,11 @@ export default function UpcomingExam() {
       const today = dayjs().startOf("day");
 
       const filtered = exams
-        .filter((exam) => dayjs(exam.start_date).isAfter(today))
+        .filter(
+          (exam) =>
+            dayjs(exam.start_date).isSame(today, "day") ||
+            dayjs(exam.start_date).isAfter(today)
+        )
         .map((exam) => {
           const examDate = dayjs(exam.start_date);
           const daysLeft = examDate.diff(today, "day");
@@ -50,8 +65,9 @@ export default function UpcomingExam() {
     const matchesSearch = exam.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
+    // Burada exam_type yerine exam.category kullandık
     const matchesCategory =
-      filterCategory === "all" || exam.exam_type === filterCategory;
+      filterCategory === "all" || exam.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -202,13 +218,6 @@ export default function UpcomingExam() {
                           ></i>
                           {daysLeft} gün kaldı
                         </p>
-                        <p className="card-text text-muted mb-1">
-                          <strong>Kategori:</strong>{" "}
-                          {exam.category || "Belirtilmemiş"}
-                        </p>
-                        <p className="card-text">
-                          {exam.description || "Açıklama yok."}
-                        </p>
                       </div>
                     </div>
                   </div>
@@ -220,17 +229,27 @@ export default function UpcomingExam() {
         {/* Sol - Takvim */}
         <div className="col-md-4 mb-4">
           <div className="card shadow-sm border-0">
-            <div className="card-body text-center">
+            <div className="card-body d-flex flex-column align-items-center">
               <i
                 className="bi bi-calendar3 text-primary fs-2 mb-2"
                 style={{ color: "#001b66" }}
               ></i>
 
-              <p className="mb-3 fw-semibold" style={{ color: "#001b66" }}>
+              <h5
+                className="fw-bold text-center mb-2"
+                style={{ color: "#001b66" }}
+              >
+                Sınav Takvimi
+              </h5>
+
+              <p
+                className="fw-semibold text-center"
+                style={{ color: "#001b66", width: "100%", marginLeft: isMobile ? "auto" : "180px" }}
+              >
                 Bugün: {today.format("dddd, DD MMMM YYYY")}
               </p>
 
-              <div className="d-flex flex-wrap justify-content-center gap-2">
+              <div className="d-flex flex-wrap justify-content-center gap-2 mt-3">
                 {daysArray.map((day) => {
                   const isToday = day.isSame(today, "day");
                   const dayStr = day.format("YYYY-MM-DD");
@@ -266,7 +285,7 @@ export default function UpcomingExam() {
                             position: "absolute",
                             bottom: "2px",
                             right: "4px",
-                            color: "#d6336c", // Kırmızı-pembe ton
+                            color: "#d6336c",
                           }}
                           title="Sınav Günü"
                         ></i>

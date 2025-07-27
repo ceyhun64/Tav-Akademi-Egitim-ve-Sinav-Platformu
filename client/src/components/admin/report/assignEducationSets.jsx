@@ -24,18 +24,54 @@ export default function AssignEducationSets() {
     dispatch(getAssignEducationSetsThunk()); // Dispatch your specific thunk
   }, [dispatch]);
 
-  // Handle window resize for mobile view
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Seçilen sınav id'leri (checkbox)
+  const [selectedIds, setSelectedIds] = useState([]);
+
+  // Filtrelenmiş sınavlar (arama ile)
+  const filteredResults = assignEducationSets.filter((exam) =>
+    exam.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Tümünü seç / seçimi kaldır
+  const handleSelectAll = () => {
+    if (
+      selectedIds.length === filteredResults.length &&
+      filteredResults.length > 0
+    ) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredResults.map((exam) => exam.id));
+    }
+  };
+
+  // Tek bir checkbox değiştiğinde
+  const handleCheckboxChange = (examId) => {
+    setSelectedIds((prev) =>
+      prev.includes(examId)
+        ? prev.filter((id) => id !== examId)
+        : [...prev, examId]
+    );
+  };
+
+  const [isTablet, setIsTablet] = useState(
+    window.innerWidth >= 768 && window.innerWidth < 1350
+  );
+
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // Open sidebar on larger screens
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1350);
+      if (width >= 768) {
+        setSidebarOpen(true); // büyük ekranlarda sidebar açık
       }
     };
+
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
   useEffect(() => {
     setSidebarOpen(!isMobile);
   }, [isMobile]);
@@ -57,6 +93,22 @@ export default function AssignEducationSets() {
         });
     }
   };
+  const handleBulkDelete = () => {
+    if (
+      selectedIds.length > 0 &&
+      window.confirm("Seçili sınavları silmek istediğinize emin misiniz?")
+    ) {
+      Promise.all(
+        selectedIds.map((id) => dispatch(deleteAssignExamThunk(id)).unwrap())
+      )
+        .then(() => {
+          dispatch(getAssignTeoExamsThunk());
+          alert("Seçilen sınavlar başarıyla silindi.");
+          setSelectedIds([]);
+        })
+        .catch((err) => alert("Toplu silmede hata oluştu: " + err.message));
+    }
+  };
 
   return (
     <div
@@ -72,7 +124,6 @@ export default function AssignEducationSets() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -130,6 +181,44 @@ export default function AssignEducationSets() {
             </button>
           </h1>
         </div>
+        {/* Arama ve Toplu Seçim Alanı */}
+        <div className="mb-3 d-flex justify-content-between align-items-center flex-wrap">
+          <input
+            type="text"
+            placeholder="Sınav adıyla ara..."
+            className="form-control"
+            style={{
+              maxWidth: "280px",
+              marginBottom: isMobile ? "0.75rem" : "0.5rem",
+            }}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+
+          {/* Tablet ve üstü: buton sağda */}
+          {!isMobile && (
+            <div>
+              <button
+                className="btn btn-danger btn-sm ms-3"
+                onClick={handleBulkDelete}
+              >
+                Seçilenleri Sil
+              </button>
+            </div>
+          )}
+
+          {/* Mobil: buton altta ve tam genişlik */}
+          {isMobile && (
+            <div style={{ width: "100%" }}>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={handleBulkDelete}
+              >
+                Seçilenleri Sil
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Table Container with new styling */}
         <div
@@ -154,8 +243,8 @@ export default function AssignEducationSets() {
                 width: "100%",
                 fontSize: "12px",
                 userSelect: "none",
-                tableLayout: "fixed", // Distribute columns equally
-                textAlign: "center", // <-- EKLENDİ
+                tableLayout: "fixed",
+                textAlign: "center",
               }}
             >
               <thead
@@ -165,13 +254,47 @@ export default function AssignEducationSets() {
                   className="text-center align-middle"
                   style={{ fontWeight: "600", color: "#334155" }}
                 >
-                  {/* Table Headers based on mobile/desktop view */}
+                  {/* ✅ Sadece bir checkbox sütunu */}
+                  <th style={{ width: "3%", padding: "6px 8px" }} title="Seçim">
+                    <input
+                      type="checkbox"
+                      onChange={handleSelectAll}
+                      checked={
+                        selectedIds.length === filteredResults.length &&
+                        filteredResults.length > 0
+                      }
+                      id="selectAllCheckbox"
+                    />
+                  </th>
+
                   {isMobile ? (
                     <>
                       <th style={{ padding: "6px 8px" }}>Set Adı</th>
                       <th style={{ padding: "6px 8px" }}>Teorik Sınav</th>
                       <th style={{ padding: "6px 8px" }}>Uyg. Sınav</th>
                     </>
+                  ) : isTablet ? (
+                    [
+                      { header: "Eğitim Seti Adı", width: "35%" },
+                      { header: "Teorik Sınav ID", width: "20%" },
+                      { header: "Uygulamalı Sınav ID", width: "20%" },
+                      { header: "Tarih", width: "15%" },
+                      { header: "İşlemler", width: "10%" },
+                    ].map((col, i) => (
+                      <th
+                        key={i}
+                        style={{
+                          whiteSpace: "nowrap",
+                          padding: "6px 8px",
+                          width: col.width,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                        title={col.header}
+                      >
+                        {col.header}
+                      </th>
+                    ))
                   ) : (
                     [
                       { header: "ID", width: "5%" },
@@ -183,13 +306,7 @@ export default function AssignEducationSets() {
                     ].map((col, i) => (
                       <th
                         key={i}
-                        className={
-                          // No specific text-end columns for this table based on provided data
-                          // You can add conditions here if numeric data needs right alignment
-                          ["Oluşturulma Tarihi"].includes(col.header)
-                            ? "text-center" // Dates often look good centered
-                            : "text-center"
-                        }
+                        className="text-center"
                         style={{
                           whiteSpace: "nowrap",
                           padding: "6px 8px",
@@ -205,6 +322,7 @@ export default function AssignEducationSets() {
                   )}
                 </tr>
               </thead>
+
               <tbody>
                 {assignEducationSets.map((eduSet) => (
                   <tr
@@ -224,6 +342,15 @@ export default function AssignEducationSets() {
                       (e.currentTarget.style.backgroundColor = "#fff")
                     }
                   >
+                    {/* ✅ Sadece bir checkbox hücresi */}
+                    <td style={{ padding: "6px 8px", verticalAlign: "middle" }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(eduSet.id)}
+                        onChange={() => handleCheckboxChange(eduSet.id)}
+                      />
+                    </td>
+
                     {isMobile ? (
                       <>
                         <td style={{ textAlign: "center", padding: "6px 8px" }}>
@@ -236,29 +363,47 @@ export default function AssignEducationSets() {
                           {eduSet.imgExamId || "-"}
                         </td>
                       </>
-                    ) : (
+                    ) : isTablet ? (
                       <>
-                        <td style={{ padding: "6px 8px" }}>{eduSet.id}</td>
                         <td style={{ padding: "6px 8px" }}>{eduSet.name}</td>
                         <td style={{ padding: "6px 8px" }}>
-                          {eduSet.teoExamId || "-"}
+                          {eduSet.teoExamId}
                         </td>
                         <td style={{ padding: "6px 8px" }}>
-                          {eduSet.imgExamId || "-"}
+                          {eduSet.imgExamId}
                         </td>
-                        <td style={{ padding: "6px 8px", textAlign: "center" }}>
-                          {" "}
-                          {/* Centered for dates */}
+                        <td style={{ padding: "6px 8px" }}>
                           {new Date(eduSet.createdAt).toLocaleDateString()}
                         </td>
-                        <td style={{ padding: "6px 8px", textAlign: "center" }}>
+                        <td style={{ padding: "6px 8px" }}>
                           <button
                             className="btn btn-danger btn-sm"
                             onClick={() => handleDelete(eduSet.id)}
                           >
                             Sil
                           </button>
-                          {/* Diğer işlemler (düzenleme vb.) buraya eklenebilir */}
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td style={{ padding: "6px 8px" }}>{eduSet.id}</td>
+                        <td style={{ padding: "6px 8px" }}>{eduSet.name}</td>
+                        <td style={{ padding: "6px 8px" }}>
+                          {eduSet.teoExamId}
+                        </td>
+                        <td style={{ padding: "6px 8px" }}>
+                          {eduSet.imgExamId}
+                        </td>
+                        <td style={{ padding: "6px 8px" }}>
+                          {new Date(eduSet.createdAt).toLocaleDateString()}
+                        </td>
+                        <td style={{ padding: "6px 8px" }}>
+                          <button
+                            className="btn btn-danger btn-sm"
+                            onClick={() => handleDelete(eduSet.id)}
+                          >
+                            Sil
+                          </button>
                         </td>
                       </>
                     )}

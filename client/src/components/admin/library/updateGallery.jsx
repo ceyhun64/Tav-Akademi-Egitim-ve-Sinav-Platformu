@@ -32,7 +32,6 @@ export default function UpdateGallery() {
     const fetchGallery = async () => {
       try {
         const data = await dispatch(getGalleryByIdThunk(id)).unwrap();
-        console.log("Görsel verisi:", data);
         setSelectedCategoryId(data.imageCatId || null);
         setSelectedSubCategoryId(data.imageSubCatId || null);
 

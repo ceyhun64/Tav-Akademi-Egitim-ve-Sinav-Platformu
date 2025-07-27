@@ -39,8 +39,8 @@ const certificateRoutes = require("./routes/certificate.routes");
 const practiceExamRoutes = require("./routes/practiceExam.routes");
 
 const corsOptions = {
-  origin: "https://tav-akademi-egitim-ve-sinav-platfor-rho.vercel.app",
-         //https://tav-akademi-egitim-ve-sinav-platfor-rho.vercel.app/
+  origin: "*",
+  //https://tav-akademi-egitim-ve-sinav-platfor-rho.vercel.app
   methods: ["GET", "POST", "PUT", "DELETE"],
 };
 

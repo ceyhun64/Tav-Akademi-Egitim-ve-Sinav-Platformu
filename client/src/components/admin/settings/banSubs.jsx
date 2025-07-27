@@ -28,10 +28,10 @@ export default function BanSubs() {
     const trimmedName = formData.name.trim().toLowerCase();
     if (!trimmedName) return;
 
-    // Aynı isim var mı kontrolü (id kontrolü eklenerek güncellemede hata engellenir)
+    // Check for duplicate names, excluding the current item if updating
     const duplicate = banSubs.find(
       (item) =>
-        item.name.toLowerCase() === trimmedName && item.id !== formData.id // sadece güncellenmeyenler için kontrol
+        item.name.toLowerCase() === trimmedName && item.id !== formData.id
     );
 
     if (duplicate) {
@@ -56,8 +56,7 @@ export default function BanSubs() {
 
   const handleDelete = (id) => {
     if (window.confirm("Silmek istediğine emin misin?")) {
-      const result = dispatch(deleteBanSubsThunk(id)).unwrap();
-      console.log(result);
+      dispatch(deleteBanSubsThunk(id)).unwrap();
     }
   };
 
@@ -66,13 +65,18 @@ export default function BanSubs() {
   );
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(
+    window.innerWidth >= 768 && window.innerWidth < 1350
+  );
+
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1350);
+      if (width >= 768) {
+        setSidebarOpen(true); // Sidebar is open on larger screens
       }
     };
 
@@ -81,97 +85,93 @@ export default function BanSubs() {
   }, []);
 
   useEffect(() => {
-    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    // On initial load, sidebar is open on large screens, closed on small
     setSidebarOpen(!isMobile);
   }, [isMobile]);
-  const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
 
   return (
-    <div
-      className="poolImg-container"
-      style={{ overflowX: "hidden", padding: "1rem" }}
-    >
-      {/* Sidebar */}
-      <div
-        style={{
-          padding: "1rem",
-          position: "fixed",
-          left: 0,
-          top: 0,
-          backgroundColor: "white",
-          color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
-          overflowY: "auto",
-          zIndex: 99999,
-        }}
-      >
-        <Sidebar />
-      </div>
-
-      {/* Ana İçerik */}
-      <div
-        className="poolImg-content"
-        style={{ marginLeft: isMobile ? "0px" : "260px" }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "2.5rem",
-          }}
-        >
-          <h1
-            className="mb-4 mt-2 ms-5"
-            style={{
-              color: "#003399",
-              fontSize: "28px",
-              fontWeight: "700",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.6rem",
-              userSelect: "none",
-            }}
-          >
-            {!isMobile && (
-              <i
-                className="bi bi-journal-bookmark-fill"
-                style={{ fontSize: "1.6rem" }}
-              ></i>
-            )}
-            Yasaklı Maddeler
-            <button
-              onClick={() => window.history.back()}
-              style={{
-                marginLeft: isMobile ? "auto" : "30px",
-                backgroundColor: "#001b66",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                padding: "6px 16px", // padding yatay biraz artırıldı
-                cursor: "pointer",
-                fontSize: "1rem",
-                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
-              }}
-            >
-              Geri Dön
-            </button>
-          </h1>
-        </div>
-
+  <div
+       className="poolImg-container"
+       style={{ overflowX: "hidden", padding: "1rem" }}
+     >
+       {/* Sidebar */}
+       <div
+         style={{
+           padding: "1rem",
+           position: "fixed",
+           left: 0,
+           top: 0,
+           backgroundColor: "white",
+           color: "#fff",
+           overflowY: "auto",
+           zIndex: 99999,
+         }}
+       >
+         <Sidebar />
+       </div>
+ 
+       {/* Ana İçerik */}
+       <div
+         className="poolImg-content"
+         style={{ marginLeft: isMobile ? "0px" : "260px" }}
+       >
+         <div
+           style={{
+             display: "flex",
+             justifyContent: "space-between",
+             alignItems: "center",
+             marginBottom: "2.5rem",
+           }}
+         >
+           <h1
+             className="mb-4 mt-2 ms-5"
+             style={{
+               color: "#003399",
+               fontSize: "28px",
+               fontWeight: "700",
+               display: "flex",
+               alignItems: "center",
+               gap: "0.6rem",
+               userSelect: "none",
+             }}
+           >
+             {!isMobile && (
+               <i
+                 className="bi bi-journal-bookmark-fill"
+                 style={{ fontSize: "1.6rem" }}
+               ></i>
+             )}
+             Yasaklı Maddeler 
+             <button
+               onClick={() => window.history.back()}
+               style={{
+                 marginLeft: isMobile ? "auto" : "30px",
+                 backgroundColor: "#001b66",
+                 color: "white",
+                 border: "none",
+                 borderRadius: "4px",
+                 padding: "6px 16px", // padding yatay biraz artırıldı
+                 cursor: "pointer",
+                 fontSize: "1rem",
+                 whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+               }}
+             >
+               Geri Dön
+             </button>
+           </h1>
+         </div>
         <div
           className="card shadow-sm"
           style={{
-            maxWidth: "1200px", // genişliği artırdım
-            width: "1100px", // genişliği tam ekran yapıyor
-            margin: "0 auto", // ortaya hizalama
-            borderRadius: "16px", // biraz daha yuvarlak köşeler
-            padding: "2rem", // içerik için padding artırıldı
-            boxShadow: "0 8px 20px rgba(0, 51, 153, 0.15)", // daha belirgin gölge
+            maxWidth: isMobile ? "95%" : "1200px", // Max width for card
+            width: "auto", // Let content determine width for mobile,
+            margin: isMobile ? "0 auto 1rem auto" : "0 auto", // Center and add bottom margin on mobile
+            borderRadius: "16px",
+            padding: isMobile ? "1rem" : "2rem", // Adjust padding for mobile
+            boxShadow: "0 8px 20px rgba(0, 51, 153, 0.15)",
             backgroundColor: "#fff",
           }}
         >
-          {" "}
           <div className="card-body">
             <h2 className="card-title mb-4">Yasaklı Maddeler</h2>
 
@@ -224,10 +224,20 @@ export default function BanSubs() {
                 {filteredItems.map((item) => (
                   <li
                     key={item.id}
-                    className="list-group-item d-flex justify-content-between align-items-center"
+                    className="list-group-item d-flex justify-content-between align-items-center flex-wrap" // Added flex-wrap for small screens
                   >
-                    {item.name}
-                    <div>
+                    <span style={{ marginBottom: isMobile ? "0.5rem" : "0" }}>
+                      {item.name}
+                    </span>{" "}
+                    {/* Add margin for better spacing on mobile */}
+                    <div
+                      style={{
+                        width: isMobile ? "100%" : "auto",
+                        textAlign: isMobile ? "right" : "left",
+                      }}
+                    >
+                      {" "}
+                      {/* Adjust button alignment on mobile */}
                       <button
                         className="btn btn-sm btn-outline-warning me-2"
                         onClick={() => handleEdit(item)}

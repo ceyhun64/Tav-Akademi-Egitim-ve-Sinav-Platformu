@@ -6,10 +6,9 @@ import {
 } from "../../../features/thunks/grpInstThunk";
 import { getRolesThunk } from "../../../features/thunks/roleThunk";
 import provinces from "../../../data/provinces.json";
-import "./UserList.css"; // CSS dosyamızı ekliyoruz
 
 export default function UserList({
-  users, // Bu prop artık tüm kullanıcı listesini temsil edecek
+  users,
   selectedUser,
   selectedUserIds,
   onUserClick,
@@ -17,23 +16,22 @@ export default function UserList({
   onDeleteSelected,
   onToggleDurum,
   setSelectedUserIds,
+  isMobile,
+  isTablet,
 }) {
   const dispatch = useDispatch();
   const { groups, institutions } = useSelector((state) => state.grpInst);
   const { roles } = useSelector((state) => state.role);
 
-  // Sayfalama state'leri
-  const [itemsPerPage, setItemsPerPage] = useState(50); // Varsayılan olarak 50
+  const [itemsPerPage, setItemsPerPage] = useState(50);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Grup, Kurum ve Rol verilerini çekmek için useEffect'ler
   useEffect(() => {
     dispatch(getGroupsThunk());
     dispatch(getInstitutionsThunk());
-    dispatch(getRolesThunk()); // Rolleri de burada çekebiliriz, ayrı bir useEffect yerine
+    dispatch(getRolesThunk());
   }, [dispatch]);
 
-  // Yardımcı fonksiyonlar (mevcut halleriyle bırakıldı)
   const getGroupName = (id) => {
     const group = groups.find((g) => g.id === id || g.id === Number(id));
     return group ? group.name : "-";
@@ -66,7 +64,6 @@ export default function UserList({
     return "-";
   };
 
-  // Tümünü seçme/kaldırma mantığı (mevcut)
   const allSelected =
     users.length > 0 && selectedUserIds.length === users.length;
 
@@ -74,43 +71,43 @@ export default function UserList({
     if (allSelected) {
       setSelectedUserIds([]);
     } else {
-      // Sadece o sayfadaki değil, tüm kullanıcıları seçmek isterseniz:
-      // const allIds = users.map((u) => u.id);
-      //setSelectedUserIds(allIds);
-
-      // Sadece görüntülenen sayfadaki kullanıcıları seçmek isterseniz:
       const currentUsersIds = currentUsers.map((u) => u.id);
       setSelectedUserIds(currentUsersIds);
     }
   };
 
-  // --- YENİ EKLENEN VEYA GÜNCELLENEN KISIMLAR ---
-
-  // Toplam sayfa sayısı
   const totalPages = Math.ceil(users.length / itemsPerPage);
-
-  // Mevcut sayfada gösterilecek kullanıcılar
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentUsers = users.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Sayfa numarası değiştirme fonksiyonu
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
-    // Yeni sayfaya geçildiğinde seçili kullanıcıları sıfırlayabiliriz
     setSelectedUserIds([]);
   };
 
-  // Sayfalama düğmeleri için dinamik dizi oluşturma
   const pageNumbers = [];
   for (let i = 1; i <= totalPages; i++) {
     pageNumbers.push(i);
   }
 
+  // Genel hücre padding ve font-size için ortak style objesi
+  const cellStyle = {
+    padding: isMobile || isTablet ? "4px 6px" : "6px 8px",
+    fontSize: isMobile || isTablet ? "0.65rem" : "0.75rem",
+    whiteSpace: "nowrap", // satır içi kaymayı engelle
+  };
+
   return (
     <div>
       {/* Sayfa başına personel seçimi */}
-      <div style={{ marginBottom: "15px", textAlign: "right" }}>
+      <div
+        style={{
+          marginBottom: "15px",
+          textAlign: "right",
+          fontSize: isMobile || isTablet ? "0.8rem" : "1rem",
+        }}
+      >
         <label htmlFor="itemsPerPageSelect" style={{ marginRight: "10px" }}>
           Sayfa Başına Personel:
         </label>
@@ -119,13 +116,14 @@ export default function UserList({
           value={itemsPerPage}
           onChange={(e) => {
             setItemsPerPage(Number(e.target.value));
-            setCurrentPage(1); // Yeni sayfa başına öğe sayısı seçildiğinde ilk sayfaya dön
-            setSelectedUserIds([]); // Seçili öğeleri de sıfırla
+            setCurrentPage(1);
+            setSelectedUserIds([]);
           }}
           style={{
             padding: "5px",
             borderRadius: "5px",
             border: "1px solid #ccc",
+            fontSize: isMobile || isTablet ? "0.8rem" : "1rem",
           }}
         >
           <option value={10}>10</option>
@@ -138,58 +136,121 @@ export default function UserList({
         </select>
       </div>
 
-      {/* Tablo */}
-      <div className="userlist-container position-relative">
+      {/* Tablo container - yatay scroll için */}
+      <div
+        className="userlist-container position-relative"
+        style={{
+          overflowX: "auto",
+          fontSize: isMobile ? "0.6rem" : isTablet ? "0.7rem" : "0.75rem",
+                    maxWidth:"1100px"
+
+        }}
+      >
         <table
           className="table table-sm table-hover table-bordered userlist-table"
-          style={{ fontSize: "0.75rem" }}
+          style={{
+            fontSize: isMobile ? "0.6rem" : isTablet ? "0.7rem" : "0.75rem",
+            minWidth: isMobile ? "800px" : isTablet ? "950px" : "1000px",
+            whiteSpace: "nowrap",
+            marginBottom: "0",
+          }}
         >
           <thead
             className="table-light"
-            style={{ position: "sticky", top: 0, zIndex: 1 }}
+            style={{
+              position: "sticky",
+              top: 0,
+              zIndex: 1,
+              fontSize: isMobile ? "0.6rem" : isTablet ? "0.7rem" : "0.75rem",
+            }}
           >
             <tr>
-              <th className="px-1 py-1 checkbox-col">
+              <th
+                className="px-1 py-1 checkbox-col"
+                style={{ ...cellStyle, width: "30px" }}
+              >
                 <input
                   type="checkbox"
-                  checked={allSelected} // allSelected, tüm 'users' için mi, yoksa 'currentUsers' için mi kontrol edilecek? Aşağıdaki 'Notlar' bölümüne bakın.
+                  checked={allSelected}
                   onChange={handleSelectAll}
                   style={{ width: "14px", height: "14px" }}
                 />
               </th>
-              <th className="px-1 py-1 durum-col text-center">Durum</th>
-              <th className="px-1 py-1 rol-col">Rol</th>
-              <th className="px-1 py-1 lokasyon-col">Lokasyon</th>
-              <th className="px-1 py-1 grup-col">Grup</th>
-              <th className="px-1 py-1 cinsiyet-col">Cinsiyet</th>
-              <th className="px-1 py-1 sicil-col">Sicil No</th>
-              <th className="px-1 py-1 tcno-col">T.C. Kimlik No</th>
-              <th className="px-1 py-1 ad-col">Ad</th>
-              <th className="px-1 py-1 soyad-col">Soyad</th>
-              <th className="px-1 py-1 kullanici-adi-col">Kullanıcı Adı</th>
-              <th className="px-1 py-1 phone-col">Telefon</th>
-              <th className="px-1 py-1 email-col">Email</th>
-              <th className="px-1 py-1 ise-giris-col">İşe Giriş</th>
-              <th className="px-1 py-1 il-col">İl</th>
-              <th className="px-1 py-1 ilce-col">İlçe</th>
-              <th className="px-1 py-1 adres-col">Adres</th>
+              <th
+                className="px-1 py-1 durum-col text-center"
+                style={{ ...cellStyle, width: "40px", textAlign: "center" }}
+              >
+                Durum
+              </th>
+              <th className="px-1 py-1 rol-col" style={{ ...cellStyle }}>
+                Rol
+              </th>
+              <th className="px-1 py-1 lokasyon-col" style={{ ...cellStyle }}>
+                Lokasyon
+              </th>
+              <th className="px-1 py-1 grup-col" style={{ ...cellStyle }}>
+                Grup
+              </th>
+              <th className="px-1 py-1 cinsiyet-col" style={{ ...cellStyle }}>
+                Cinsiyet
+              </th>
+              <th className="px-1 py-1 sicil-col" style={{ ...cellStyle }}>
+                Sicil No
+              </th>
+              <th className="px-1 py-1 tcno-col" style={{ ...cellStyle }}>
+                T.C. Kimlik No
+              </th>
+              <th className="px-1 py-1 ad-col" style={{ ...cellStyle }}>
+                Ad
+              </th>
+              <th className="px-1 py-1 soyad-col" style={{ ...cellStyle }}>
+                Soyad
+              </th>
+              <th
+                className="px-1 py-1 kullanici-adi-col"
+                style={{ ...cellStyle }}
+              >
+                Kullanıcı Adı
+              </th>
+              <th className="px-1 py-1 phone-col" style={{ ...cellStyle }}>
+                Telefon
+              </th>
+              <th className="px-1 py-1 email-col" style={{ ...cellStyle }}>
+                Email
+              </th>
+              <th className="px-1 py-1 ise-giris-col" style={{ ...cellStyle }}>
+                İşe Giriş
+              </th>
+              <th className="px-1 py-1 il-col" style={{ ...cellStyle }}>
+                İl
+              </th>
+              <th className="px-1 py-1 ilce-col" style={{ ...cellStyle }}>
+                İlçe
+              </th>
+              <th className="px-1 py-1 adres-col" style={{ ...cellStyle }}>
+                Adres
+              </th>
             </tr>
           </thead>
 
           <tbody>
-            {/* currentUsers'ı map ediyoruz, users'ı değil */}
             {currentUsers?.map((user) => {
               const isSelected = selectedUser && selectedUser.id === user.id;
               return (
                 <tr
                   key={user.id}
                   className={isSelected ? "table-primary" : ""}
-                  style={{ cursor: "pointer", lineHeight: 1.1 }}
+                  style={{
+                    cursor: "pointer",
+                    lineHeight: 1.2,
+                    height: isMobile ? "30px" : "auto",
+                  }}
                   onClick={() => onUserClick(user.id)}
                 >
                   <td
                     onClick={(e) => e.stopPropagation()}
                     className="px-1 py-1 checkbox-col"
+                    style={{ ...cellStyle, width: "30px" }}
                   >
                     <input
                       type="checkbox"
@@ -201,6 +262,7 @@ export default function UserList({
                   <td
                     onClick={(e) => e.stopPropagation()}
                     className="text-center px-1 py-1 durum-col"
+                    style={{ ...cellStyle, textAlign: "center", width: "40px" }}
                   >
                     <span
                       style={{
@@ -216,45 +278,53 @@ export default function UserList({
                         onToggleDurum(user.id, user.durum === 1 ? 0 : 1)
                       }
                       title={user.durum === 1 ? "Aktif" : "Pasif"}
-                    />
+                    ></span>
                   </td>
-                  <td className="px-1 py-1 role-col">
-                    {user.roleId ? getRoleName(user.roleId) : "-"}
+                  <td className="px-1 py-1 rol-col" style={cellStyle}>
+                    {getRoleName(user.roleId) || "-"}
                   </td>
-                  <td className="px-1 py-1 lokasyon-col">
-                    {user.lokasyonId
-                      ? getInstitutionName(user.lokasyonId)
-                      : "-"}
+                  <td className="px-1 py-1 lokasyon-col" style={cellStyle}>
+                    {getInstitutionName(user.lokasyonId) || "-"}
                   </td>
-                  <td className="px-1 py-1 grup-col">
-                    {user.grupId ? getGroupName(user.grupId) : "-"}
+                  <td className="px-1 py-1 grup-col" style={cellStyle}>
+                    {getGroupName(user.grupId) || "-"}
                   </td>
-                  <td className="px-1 py-1 cinsiyet-col">
+                  <td className="px-1 py-1 cinsiyet-col" style={cellStyle}>
                     {user.cinsiyet || "-"}
                   </td>
-                  <td className="px-1 py-1 sicil-col">{user.sicil || "-"}</td>
-                  <td className="px-1 py-1 tcno-col">{user.tcno || "-"}</td>
-                  <td className="px-1 py-1 ad-col">{user.ad || "-"}</td>
-                  <td className="px-1 py-1 soyad-col">{user.soyad || "-"}</td>
-                  <td className="px-1 py-1 kullanici-adi-col">
+                  <td className="px-1 py-1 sicil-col" style={cellStyle}>
+                    {user.sicil || "-"}
+                  </td>
+                  <td className="px-1 py-1 tcno-col" style={cellStyle}>
+                    {user.tcno || "-"}
+                  </td>
+                  <td className="px-1 py-1 ad-col" style={cellStyle}>
+                    {user.ad || "-"}
+                  </td>
+                  <td className="px-1 py-1 soyad-col" style={cellStyle}>
+                    {user.soyad || "-"}
+                  </td>
+                  <td className="px-1 py-1 kullanici-adi-col" style={cellStyle}>
                     {user.kullanici_adi || "-"}
                   </td>
-
-                  <td className="px-1 py-1 phone-col">{user.telefon || "-"}</td>
-                  <td className="px-1 py-1 email-col">{user.email || "-"}</td>
-                  <td className="px-1 py-1 ise-giris-col">
-                    {user.ise_giris_tarihi
-                      ? new Date(user.ise_giris_tarihi).toLocaleDateString()
-                      : "-"}
+                  <td className="px-1 py-1 phone-col" style={cellStyle}>
+                    {user.telefon || "-"}
                   </td>
-                  <td className="px-1 py-1 il-col">
-                    {getProvinceNameById(user.il)}
+                  <td className="px-1 py-1 email-col" style={cellStyle}>
+                    {user.email || "-"}
                   </td>
-                  <td className="px-1 py-1 ilce-col">
-                    {getDistrictNameById(user.ilce)}
+                  <td className="px-1 py-1 ise-giris-col" style={cellStyle}>
+                    {user.ise_giris_tarihi || "-"}
                   </td>
-
-                  <td className="px-1 py-1 adres-col">{user.adres || "-"}</td>
+                  <td className="px-1 py-1 il-col" style={cellStyle}>
+                    {getProvinceNameById(user.il) || "-"}
+                  </td>
+                  <td className="px-1 py-1 ilce-col" style={cellStyle}>
+                    {getDistrictNameById(user.ilce) || "-"}
+                  </td>
+                  <td className="px-1 py-1 adres-col" style={cellStyle}>
+                    {user.adres || "-"}
+                  </td>
                 </tr>
               );
             })}
@@ -262,68 +332,54 @@ export default function UserList({
         </table>
       </div>
 
-      {/* Sayfalama Kontrolleri */}
-      {totalPages > 1 && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: "20px",
-            gap: "8px", // Düğmeler arası boşluk
-            flexWrap: "wrap", // Küçük ekranlarda taşmayı önler
-          }}
+      {/* Pagination */}
+      <nav
+        aria-label="Page navigation"
+        style={{ marginTop: "10px", textAlign: "center" }}
+      >
+        <ul
+          className="pagination justify-content-center"
+          style={{ marginBottom: 0 }}
         >
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="btn btn-outline-secondary btn-sm"
-            style={{
-              borderRadius: "6px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              transition: "background-color 0.3s, box-shadow 0.3s",
-              marginRight: "0",
-            }}
-          >
-            Önceki
-          </button>
-          {pageNumbers.map((number) => (
+          <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
             <button
-              key={number}
-              onClick={() => handlePageChange(number)}
-              className={`btn btn-sm ${
-                currentPage === number ? "btn-primary" : "btn-outline-primary"
-              }`}
-              style={{
-                borderRadius: "6px",
-                boxShadow:
-                  currentPage === number
-                    ? "0 2px 8px rgba(0,123,255,0.4)"
-                    : "0 1px 3px rgba(0,0,0,0.1)",
-                transition: "background-color 0.3s, box-shadow 0.3s",
-                margin: "0",
-                minWidth: "36px",
-                padding: "0 12px",
-                fontWeight: currentPage === number ? "600" : "400",
-              }}
+              className="page-link"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
             >
-              {number}
+              Önceki
             </button>
+          </li>
+
+          {pageNumbers.map((num) => (
+            <li
+              key={num}
+              className={`page-item ${currentPage === num ? "active" : ""}`}
+            >
+              <button
+                className="page-link"
+                onClick={() => handlePageChange(num)}
+              >
+                {num}
+              </button>
+            </li>
           ))}
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="btn btn-outline-secondary btn-sm"
-            style={{
-              borderRadius: "6px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              transition: "background-color 0.3s, box-shadow 0.3s",
-              marginLeft: "0",
-            }}
+
+          <li
+            className={`page-item ${
+              currentPage === totalPages ? "disabled" : ""
+            }`}
           >
-            Sonraki
-          </button>
-        </div>
-      )}
+            <button
+              className="page-link"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Sonraki
+            </button>
+          </li>
+        </ul>
+      </nav>
     </div>
   );
 }

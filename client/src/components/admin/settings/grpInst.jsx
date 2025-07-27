@@ -112,18 +112,23 @@ export default function GrpInst() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(
+    window.innerWidth >= 768 && window.innerWidth < 1350
+  );
+
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1350);
+      if (width >= 768) {
+        setSidebarOpen(true); // büyük ekranlarda sidebar açık
       }
     };
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
   useEffect(() => {
     // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
     setSidebarOpen(!isMobile);
@@ -143,7 +148,6 @@ export default function GrpInst() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -188,17 +192,28 @@ export default function GrpInst() {
         <div
           className="row"
           style={{
-            maxWidth: "1200px", // genişliği artırdım
-            width: "1100px", // genişliği tam ekran yapıyor
-            margin: "0 auto", // ortaya hizalama
-            borderRadius: "16px", // biraz daha yuvarlak köşeler
-            padding: "2rem", // içerik için padding artırıldı
-            boxShadow: "0 8px 20px rgba(0, 51, 153, 0.15)", // daha belirgin gölge
+            maxWidth: isMobile || isTablet ? "100%" : "1200px",
+            width: "100%",
+            margin: "0 auto",
+            borderRadius: "16px",
+            padding: "2rem",
+            boxShadow: "0 8px 20px rgba(0, 51, 153, 0.15)",
             backgroundColor: "#fff",
+
+            display: "flex",
+            flexDirection: isMobile || isTablet ? "column" : "row",
+            gap: "2rem",
           }}
         >
-          {/* === INSTITUTIONS === */}
-          <div className="col-md-6 mb-4">
+          <div
+            style={{
+              flex: "1 1 0",
+              width: isMobile || isTablet ? "100%" : "50%",
+              marginBottom: isMobile || isTablet ? "2rem" : "0",
+              boxSizing: "border-box",
+            }}
+          >
+            {" "}
             <div className="card shadow-sm">
               <div className="card-body">
                 <h4 className="card-title mb-3">Kurumlar</h4>
@@ -268,7 +283,14 @@ export default function GrpInst() {
           </div>
 
           {/* === GROUPS === */}
-          <div className="col-md-6 mb-4">
+          <div
+            style={{
+              flex: "1 1 0",
+              width: isMobile || isTablet ? "100%" : "50%",
+              boxSizing: "border-box",
+            }}
+          >
+            {" "}
             <div className="card shadow-sm">
               <div className="card-body">
                 <h4 className="card-title mb-3">Gruplar</h4>

@@ -7,7 +7,7 @@ export default function LogActivity() {
   const dispatch = useDispatch();
   const [groupedData, setGroupedData] = useState({});
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [startDate, setStartDate] = useState(""); // yyyy-mm-dd formatında
+  const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
   useEffect(() => {
@@ -29,14 +29,11 @@ export default function LogActivity() {
     }
   }, [logData]);
 
-  // Seçilen kategoriye göre logları filtrele
   const filteredLogs =
     groupedData[selectedCategory]?.filter((item) => {
       const itemDate = new Date(item.timestamp).setHours(0, 0, 0, 0);
-
       const start = startDate ? new Date(startDate).setHours(0, 0, 0, 0) : null;
       const end = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : null;
-
       if (start && itemDate < start) return false;
       if (end && itemDate > end) return false;
       return true;
@@ -45,11 +42,19 @@ export default function LogActivity() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(
+    window.innerWidth >= 768 && window.innerWidth < 1350
+  );
+
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1350);
+      if (width >= 768) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
       }
     };
 
@@ -58,10 +63,21 @@ export default function LogActivity() {
   }, []);
 
   useEffect(() => {
-    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
     setSidebarOpen(!isMobile);
   }, [isMobile]);
-  const selectWidth = 300;
+
+  // Sidebar genişliğini responsive yapalım
+  const sidebarWidth = isMobile ? 0 : isTablet ? 200 : 260;
+
+  // İçerik margin-left responsive
+  const contentMarginLeft = sidebarOpen ? sidebarWidth : 0;
+
+  // Kart genişliği responsive
+  const cardMaxWidth = isMobile ? "95%" : isTablet ? "800px" : "1200px";
+
+  // Font size responsive
+  const fontSize = isMobile ? "0.85rem" : "1rem";
+
   return (
     <div
       className="poolImg-container"
@@ -76,7 +92,6 @@ export default function LogActivity() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -87,21 +102,25 @@ export default function LogActivity() {
       {/* Ana İçerik */}
       <div
         className="poolImg-content"
-        style={{ marginLeft: isMobile ? "0px" : "260px" }}
+        style={{
+          marginLeft: contentMarginLeft,
+          transition: "margin-left 0.3s ease",
+          padding: isMobile ? "0.5rem" : "1rem 2rem",
+        }}
       >
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "2.5rem",
+            marginBottom: isMobile ? "1.5rem" : "2.5rem",
           }}
         >
           <h1
             className=" mt-2 ms-5"
             style={{
               color: "#003399",
-              fontSize: "28px",
+              fontSize: isMobile ? "20px" : "28px",
               fontWeight: "700",
               display: "flex",
               alignItems: "center",
@@ -112,32 +131,36 @@ export default function LogActivity() {
             {!isMobile && (
               <i
                 className="bi bi-journal-bookmark-fill"
-                style={{ fontSize: "1.6rem" }}
+                style={{ fontSize: isMobile ? "1.2rem" : "1.6rem" }}
               ></i>
             )}
             İşlem Kayıtları
           </h1>
         </div>
-        {/* Kategori seçimi */}
+
+        {/* Kategori seçimi ve filtre kartı */}
         <div
           className="card shadow-sm"
           style={{
-            maxWidth: "1200px", // genişliği artırdım
-            width: "1100px", // genişliği tam ekran yapıyor
-            margin: "0 auto", // ortaya hizalama
-            borderRadius: "16px", // biraz daha yuvarlak köşeler
-            padding: "2rem", // içerik için padding artırıldı
-            boxShadow: "0 8px 20px rgba(0, 51, 153, 0.15)", // daha belirgin gölge
+            maxWidth: cardMaxWidth,
+            width: "100%",
+            margin: "0 auto",
+            borderRadius: "16px",
+            padding: isMobile ? "1rem" : "2rem",
+            boxShadow: "0 8px 20px rgba(0, 51, 153, 0.15)",
             backgroundColor: "#fff",
           }}
         >
-          {" "}
           <div className="mb-3">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="form-select"
               aria-label="Kategori seçimi"
+              style={{
+                fontSize,
+                padding: isMobile ? "6px" : "10px",
+              }}
             >
               {Object.keys(groupedData).map((category) => (
                 <option key={category} value={category}>
@@ -146,6 +169,7 @@ export default function LogActivity() {
               ))}
             </select>
           </div>
+
           {/* Tarih filtreleri */}
           <div className="row mb-4 g-3">
             <div className="col-md-6">
@@ -158,6 +182,7 @@ export default function LogActivity() {
                 className="form-control"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
+                style={{ fontSize }}
               />
             </div>
 
@@ -171,9 +196,11 @@ export default function LogActivity() {
                 className="form-control"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
+                style={{ fontSize }}
               />
             </div>
           </div>
+
           {/* Filtrelenmiş log tablosu */}
           {filteredLogs.length > 0 ? (
             <div
@@ -181,7 +208,7 @@ export default function LogActivity() {
               style={{
                 borderRadius: "16px",
                 overflow: "auto",
-                maxWidth: "1200px",
+                maxWidth: "100%",
                 maxHeight: "800px",
                 boxShadow: "0 4px 20px rgb(0 0 0 / 0.07)",
                 backgroundColor: "#fff",
@@ -194,9 +221,9 @@ export default function LogActivity() {
                 style={{
                   borderCollapse: "separate",
                   borderSpacing: "0 8px",
-                  minWidth: "100%", // %100 genişlik (mobilde sığmazsa yatay kaydırma)
+                  minWidth: "100%",
                   userSelect: "none",
-                  fontSize: isMobile ? "0.85rem" : "1rem",
+                  fontSize,
                 }}
               >
                 <thead

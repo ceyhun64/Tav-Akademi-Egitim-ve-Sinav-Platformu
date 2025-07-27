@@ -85,7 +85,6 @@ export default function CreateGallery() {
         backgroundColor: "#fff",
         borderRadius: "12px",
         padding: "20px",
-        boxShadow: "0 6px 15px rgba(0, 27, 102, 0.1)",
         marginTop: "30px",
       }}
     >

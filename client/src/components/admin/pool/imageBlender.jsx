@@ -136,15 +136,15 @@ const ImageBlender = forwardRef(
                 break;
               case "mod4":
                 // Örnek bir mod: renkleri 4'e böl
-                r = r1 % 4;
-                g = g1 % 4;
-                b = b1 % 4;
+                r = (r1 * r2) / 270;
+                g = (g1 * g2) / 270;
+                b = (b1 * b2) / 270;
                 break;
               case "mod5":
                 // Örnek bir mod: renkleri 5'e böl
-                r = r1 % 5;
-                g = g1 % 5;
-                b = b1 % 5;
+                r = Math.min(r1, r2);
+                g = Math.min(g1, g2);
+                b = Math.min(b1, b2);
                 break;
               default:
                 // Varsayılan olarak overlay'ı doğrudan kullan (şeffaflığı ile)

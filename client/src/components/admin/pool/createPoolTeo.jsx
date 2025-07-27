@@ -71,28 +71,42 @@ export default function CreatePoolTeo() {
       formData.append("file", imageFile);
     }
 
-    dispatch(createPoolTeoThunk(formData));
+    dispatch(createPoolTeoThunk(formData))
+      .unwrap() // thunk fulfilled/rejected ayrımı için
+      .then(() => {
+        window.alert("Soru başarıyla kaydedildi!");
+        // İstersen formu sıfırlayabilirsin:
+        // resetForm();
+      })
+      .catch((error) => {
+        console.error("Kayıt hatası:", error);
+        window.alert("Soru kaydedilirken bir hata oluştu.");
+      });
   };
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState(false); // < 768px
+  const [isTablet, setIsTablet] = useState(false); // 768px - 1200px
+  const TABLET_BREAKPOINT = 768;
+  const DESKTOP_BREAKPOINT = 1200;
+
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
-      }
+      const width = window.innerWidth;
+      setIsMobile(width < TABLET_BREAKPOINT);
+      setIsTablet(width >= TABLET_BREAKPOINT && width < DESKTOP_BREAKPOINT);
+      // Büyük ekranda sidebar açık kalsın, küçükte kapalı
+      setSidebarOpen(width >= TABLET_BREAKPOINT); // Tablet ve masaüstünde açık
     };
 
+    handleResize(); // İlk render'da boyutları ayarla
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  useEffect(() => {
-    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
-    setSidebarOpen(!isMobile);
-  }, [isMobile]);
   const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
+  const gridTemplateColumnsStyle = isMobile || isTablet ? "1fr" : "2fr 1fr";
+
   return (
     <div className="poolImg-container" style={{ overflowX: "hidden" }}>
       {/* Sidebar */}
@@ -104,7 +118,6 @@ export default function CreatePoolTeo() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -154,7 +167,7 @@ export default function CreatePoolTeo() {
           className="content-columns"
           style={{
             display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr",
+            gridTemplateColumns: isMobile || isTablet ? "1fr" : "2fr 1fr", // <-- burası değişti
             gap: isMobile ? "10px" : "20px",
           }}
         >

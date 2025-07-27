@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { getCertificatesThunk } from "../../../features/thunks/certificateThunk";
 import Sidebar from "../adminPanel/sidebar";
-import { Document, Packer, Paragraph, TextRun, PageBreak } from "docx";
-import { saveAs } from "file-saver";
+// Removed unused docx and file-saver imports from here, as they are backend concerns now
+// import { Document, Packer, Paragraph, TextRun, PageBreak } from "docx";
+// import { saveAs } from "file-saver";
+import CombineCertificate from "./combineCertificate"; // Assuming this is your component for the modal content
 
 function Modal({ visible, onClose, children }) {
   if (!visible) return null;
@@ -31,7 +33,6 @@ function Modal({ visible, onClose, children }) {
           borderRadius: 12,
           maxWidth: 500,
           width: "90%",
-          boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)",
           padding: "1.5rem 2rem",
           maxHeight: "80vh",
           overflowY: "auto",
@@ -82,6 +83,7 @@ export default function CertificateResult() {
   );
 
   const [selectedCertificate, setSelectedCertificate] = useState(null);
+  const [showCombineModal, setShowCombineModal] = useState(false); // State for combine certificates modal
 
   const [selectedIds, setSelectedIds] = useState([]);
 
@@ -112,8 +114,11 @@ export default function CertificateResult() {
   };
 
   const toggleSelectAll = (checked) => {
-    if (checked) setSelectedIds(filteredCertificates.map((c) => c.id));
-    else setSelectedIds([]);
+    if (checked) {
+      setSelectedIds(filteredCertificates.map((c) => c.id));
+    } else {
+      setSelectedIds([]);
+    }
   };
 
   const toggleSelectOne = (id) => {
@@ -146,7 +151,18 @@ export default function CertificateResult() {
     // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
     setSidebarOpen(!isMobile);
   }, [isMobile]);
-  const selectWidth = 300;
+
+  // Function to handle the "Combine Certificates" button click
+  const handleCombineCertificates = () => {
+    if (selectedIds.length === 0) {
+      alert("Lütfen birleştirmek için en az bir sertifika seçin.");
+      return;
+    }
+    setShowCombineModal(true);
+  };
+
+  const selectWidth = 300; // This variable seems unused in the provided code.
+
   return (
     <div
       className="poolImg-container"
@@ -169,7 +185,7 @@ export default function CertificateResult() {
         <Sidebar />
       </div>
 
-      {/* Ana İçerik */}
+      {/* Main Content */}
       <div
         className="poolImg-content"
         style={{ marginLeft: isMobile ? "0px" : "260px" }}
@@ -215,6 +231,24 @@ export default function CertificateResult() {
               }}
             >
               Geri Dön
+            </button>
+            <button
+              onClick={handleCombineCertificates}
+              disabled={selectedIds.length === 0} // Disable if no certificates are selected
+              style={{
+                marginLeft: "20px", // Add some spacing
+                backgroundColor: "#4CAF50", // Green color for combine button
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                padding: "6px 12px",
+                cursor: "pointer",
+                fontSize: "1rem",
+                opacity: selectedIds.length === 0 ? 0.6 : 1, // Dim if disabled
+                transition: "background-color 0.3s ease, opacity 0.3s ease",
+              }}
+            >
+              Toplu Sertifika Oluştur ({selectedIds.length})
             </button>
           </h1>
         </div>
@@ -356,7 +390,7 @@ export default function CertificateResult() {
                           e.stopPropagation();
                           toggleSelectOne(cert.id);
                         }}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()} // Prevent row click from firing when checkbox is clicked
                       />
                     </td>
                     <td>{cert.name}</td>
@@ -423,17 +457,17 @@ export default function CertificateResult() {
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
-                    color: "#0047b3", // Daha canlı bir mavi
-                    fontWeight: 700, // Daha kalın font
-                    fontSize: "1.1rem", // Biraz daha büyük font
-                    textDecoration: "underline", // Altını çiz
+                    color: "#0047b3",
+                    fontWeight: 700,
+                    fontSize: "1.1rem",
+                    textDecoration: "underline",
                     transition: "color 0.3s ease, transform 0.2s ease",
                     cursor: "pointer",
                     display: "inline-block",
                   }}
                   onMouseOver={(e) => {
-                    e.currentTarget.style.color = "#002966"; // Daha koyu mavi
-                    e.currentTarget.style.transform = "scale(1.05)"; // Hafif büyütme
+                    e.currentTarget.style.color = "#002966";
+                    e.currentTarget.style.transform = "scale(1.05)";
                   }}
                   onMouseOut={(e) => {
                     e.currentTarget.style.color = "#0047b3";
@@ -445,6 +479,17 @@ export default function CertificateResult() {
               </p>
             </>
           )}
+        </Modal>
+
+        {/* Modal for Combine Certificates */}
+        <Modal
+          visible={showCombineModal}
+          onClose={() => setShowCombineModal(false)}
+        >
+          <CombineCertificate
+            certificateIds={selectedIds}
+            onClose={() => setShowCombineModal(false)}
+          />
         </Modal>
       </div>
     </div>

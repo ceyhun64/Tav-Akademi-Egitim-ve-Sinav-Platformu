@@ -63,6 +63,62 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
     dispatch(getBookletByTypeThunk("img")).unwrap().then(setImgBooklets);
   }, [dispatch]);
 
+  // 1) Bitiş tarihi başlangıç tarihinden önce olamaz
+  useEffect(() => {
+    if (formData.start_date && formData.end_date) {
+      const startDate = new Date(formData.start_date);
+      const endDate = new Date(formData.end_date);
+      if (endDate < startDate) {
+        alert("Bitiş tarihi, başlangıç tarihinden önce olamaz.");
+      }
+    }
+  }, [formData.start_date, formData.end_date]);
+
+  // 2) Teorik sınavda başlangıç saati bitiş saatinden önce olamaz
+  useEffect(() => {
+    if (
+      formData.start_date &&
+      formData.end_date &&
+      formData.start_time_teo &&
+      formData.end_time_teo
+    ) {
+      const startDate = new Date(formData.start_date).toDateString();
+      const endDate = new Date(formData.end_date).toDateString();
+
+      if (startDate === endDate) {
+        if (formData.start_time_teo > formData.end_time_teo) {
+          alert("Teorik sınavda başlangıç saati, bitiş saatinden önce olamaz.");
+        }
+      }
+    }
+  }, [
+    formData.start_date,
+    formData.end_date,
+    formData.start_time_teo,
+    formData.end_time_teo,
+  ]);
+
+  useEffect(() => {
+    if (formData.end_time_teo && formData.start_time_img) {
+      if (formData.start_time_img < formData.end_time_teo) {
+        alert(
+          "Uygulamalı sınavın başlangıç saati, teorik sınavın bitiş saatinden önce olamaz."
+        );
+      }
+    }
+  }, [formData.end_time_teo, formData.start_time_img]);
+
+  // 4) Uygulamalı sınavda bitiş saati başlangıç saatinden önce olamaz
+  useEffect(() => {
+    if (formData.start_time_img && formData.end_time_img) {
+      if (formData.end_time_img < formData.start_time_img) {
+        alert(
+          "Uygulamalı sınavda bitiş saati, başlangıç saatinden önce olamaz."
+        );
+      }
+    }
+  }, [formData.start_time_img, formData.end_time_img]);
+
   useEffect(() => {
     if (formData.bookletId_teo) {
       dispatch(getBookletByIdThunk(formData.bookletId_teo))
@@ -199,7 +255,6 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -604,6 +659,7 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
                     onChange={handleChange}
                     className="form-select"
                   >
+                    <option value="0">Süresiz</option> {/* Süresiz seçeneği */}
                     {[...Array(10)].map((_, i) => (
                       <option key={i + 1} value={i + 1}>
                         {i + 1}

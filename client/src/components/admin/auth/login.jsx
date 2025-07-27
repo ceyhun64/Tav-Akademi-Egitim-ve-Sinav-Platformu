@@ -24,7 +24,6 @@ export default function AdminLogin() {
       const response = await dispatch(
         adminLoginThunk({ kullanici_adi, sifre })
       ).unwrap();
-      console.log(response);
       if (response.is2FAEnabled !== true) {
         navigate("/admin/setup-2fa", { state: { userId: response.userId } });
       } else

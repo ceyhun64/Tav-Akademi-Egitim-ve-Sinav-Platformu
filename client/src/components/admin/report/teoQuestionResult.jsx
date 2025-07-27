@@ -15,26 +15,31 @@ export default function TeoQuestionResult() {
   const { teoQuestionResults } = useSelector((state) => state.report);
   const { data } = teoQuestionResults || {};
   const [currentIndex, setCurrentIndex] = useState(0);
-  console.log("teoQuestionResults", teoQuestionResults);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(
+    window.innerWidth >= 768 && window.innerWidth < 1350
+  );
+
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1350);
+      if (width >= 768) {
+        setSidebarOpen(true); // büyük ekranlarda sidebar açık
       }
     };
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
   useEffect(() => {
+    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
     setSidebarOpen(!isMobile);
   }, [isMobile]);
-  const selectWidth = 300;
+  const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
   useEffect(() => {
     dispatch(getTeoQuestionResultThunk({ userId, examId }));
   }, [dispatch, userId, examId]);
@@ -54,24 +59,23 @@ export default function TeoQuestionResult() {
       className="poolteo-container"
       style={{
         fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-        overflowX: "hidden", // yatay kaymayı engeller
+        overflowX: "hidden",
       }}
     >
       {/* Sidebar */}
       <div
         style={{
-          width: "260px",
-          minHeight: "100vh",
-          padding: "1.5rem 1.2rem",
-          position: "fixed",
-          left: 0,
+          width: isMobile || isTablet ? "100%" : "260px",
+          minHeight: isMobile || isTablet ? "auto" : "100vh",
+          padding: isMobile || isTablet ? "1rem" : "1.5rem 1.2rem",
+          position: isMobile || isTablet ? "relative" : "fixed",
+          left: isMobile || isTablet ? "auto" : 0,
           top: 0,
-          backgroundColor: "#003399", // biraz daha canlı mavi
           color: "#fff",
-          boxShadow: "2px 0 12px rgba(0, 0, 0, 0.25)",
-          overflowY: "auto",
+          overflowY: isMobile || isTablet ? "visible" : "auto",
           zIndex: 10,
-          borderRadius: "0 12px 12px 0",
+          borderRadius: isMobile || isTablet ? "0" : "0 12px 12px 0",
+          marginBottom: isMobile || isTablet ? "1rem" : 0,
         }}
       >
         <Sidebar />
@@ -80,8 +84,8 @@ export default function TeoQuestionResult() {
       {/* Main Content */}
       <div
         style={{
-          marginLeft: "260px",
-          padding: "2.5rem 3rem",
+          marginLeft: isTablet ? "260px" : isMobile ? "0" : "260px",
+          padding: isMobile || isTablet ? "1rem" : "2.5rem 3rem",
           backgroundColor: "#f4f6fc",
           minHeight: "100vh",
           transition: "margin-left 0.3s ease",
@@ -94,12 +98,13 @@ export default function TeoQuestionResult() {
             justifyContent: "space-between",
             alignItems: "center",
             marginBottom: "2.5rem",
+            flexWrap: isMobile || isTablet ? "wrap" : "nowrap",
           }}
         >
           <h1
             style={{
               color: "#003399",
-              fontSize: "28px",
+              fontSize: isMobile || isTablet ? "24px" : "28px",
               fontWeight: "700",
               display: "flex",
               alignItems: "center",
@@ -109,17 +114,38 @@ export default function TeoQuestionResult() {
           >
             <i
               className="bi bi-clipboard-check-fill"
-              style={{ fontSize: "1.6rem" }}
+              style={{ fontSize: isMobile || isTablet ? "1.4rem" : "1.6rem" }}
             ></i>
             İşaretlenen Cevaplar
           </h1>
         </div>
-        <div className="row">
-          <div className="col-lg-3 mb-4">
+
+        <div
+          className="row"
+          style={{
+            display: "flex",
+            flexWrap: isMobile || isTablet ? "wrap" : "nowrap",
+            gap: isMobile || isTablet ? "1rem" : 0,
+          }}
+        >
+          <div
+            className="col-lg-3 mb-4"
+            style={{
+              flex: isMobile || isTablet ? "0 0 100%" : "0 0 25%",
+              maxWidth: isMobile || isTablet ? "100%" : "25%",
+            }}
+          >
             <UserInfoCard user={user} />
             <ExamInfoCard exam={exam} userExam={userExam} />
           </div>
-          <div className="col-lg-6">
+
+          <div
+            className="col-lg-6"
+            style={{
+              flex: isMobile || isTablet ? "0 0 100%" : "0 0 50%",
+              maxWidth: isMobile || isTablet ? "100%" : "50%",
+            }}
+          >
             <QuestionDetailCard
               question={currentQuestion}
               currentIndex={currentIndex}
@@ -130,7 +156,14 @@ export default function TeoQuestionResult() {
               setCurrent={setCurrentIndex}
             />
           </div>
-          <div className="col-lg-3">
+
+          <div
+            className="col-lg-3"
+            style={{
+              flex: isMobile || isTablet ? "0 0 100%" : "0 0 25%",
+              maxWidth: isMobile || isTablet ? "100%" : "25%",
+            }}
+          >
             <QuestionList
               data={answers}
               currentIndex={currentIndex}

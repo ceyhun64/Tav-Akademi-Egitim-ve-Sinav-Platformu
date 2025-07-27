@@ -101,27 +101,26 @@ export default function Certificate() {
       return;
     }
 
-    if (!certificateBaseNo.includes("/")) {
-      alert(
-        "Geçerli bir başlangıç sertifika numarası giriniz (örneğin TAV/001)."
-      );
-      return;
-    }
-
-    // Ön eki ve numarayı ayır
     const parts = certificateBaseNo.split("/");
-    if (parts.length !== 2) {
+    if (parts.length !== 4) {
       alert(
-        "Geçerli bir başlangıç sertifika numarası giriniz (örneğin TAV/001)."
+        "Geçerli bir sertifika numarası giriniz. Örnek: TAV/IST/2025/000001"
       );
       return;
     }
 
-    const prefix = parts[0] + "/";
-    const numberPart = parts[1];
+    const prefix = parts.slice(0, 3).join("/") + "/";
+    const numberPart = parts[3];
+
+    const baseNumber = parseInt(numberPart, 10);
+    if (isNaN(baseNumber)) {
+      alert("Sertifika numarasının sonunda geçerli bir sayı olmalıdır.");
+      return;
+    }
+
+    const numberLength = numberPart.length;
 
     // Numarayı sayıya çevir (başındaki sıfırlar olabilir)
-    const baseNumber = parseInt(numberPart, 10);
 
     if (isNaN(baseNumber)) {
       alert("Sertifika numarasının sonunda geçerli bir sayı olmalıdır.");
@@ -129,7 +128,6 @@ export default function Certificate() {
     }
 
     // Numarayı sıfırlarla doldurmak için padding uzunluğunu al
-    const numberLength = numberPart.length;
 
     const certificates = selectedUsers.map((item, index) => {
       const user = item.user || {};
@@ -194,7 +192,6 @@ export default function Certificate() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}

@@ -55,11 +55,17 @@ export default function ImgExamReports() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(
+    window.innerWidth >= 768 && window.innerWidth < 1350
+  );
+
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1350);
+      if (width >= 768) {
+        setSidebarOpen(true); // büyük ekranlarda sidebar açık
       }
     };
 
@@ -81,7 +87,6 @@ export default function ImgExamReports() {
   }, [isMobile]);
   const selectWidth = 300;
   const results = userImgResults?.data || [];
-  console.log("results:", results);
   // Lokasyon ve grup uniq listeleri
 
   // Filtrelenmiş sonuçlar
@@ -167,7 +172,6 @@ export default function ImgExamReports() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -234,14 +238,12 @@ export default function ImgExamReports() {
               placeholder: "Kişi Ara (Ad / Soyad / Sicil)",
               value: filterKisi,
               onChange: (e) => setFilterKisi(e.target.value),
-              colClass: "col-12 col-md-3",
             },
             {
               type: "select",
               options: [{ id: "", name: "Tüm Lokasyonlar" }, ...institutions],
               value: filterLokasyon,
               onChange: (e) => setFilterLokasyon(e.target.value),
-              colClass: "col-12 col-md-3",
               keyField: "id",
               labelField: "name",
             },
@@ -250,7 +252,6 @@ export default function ImgExamReports() {
               options: [{ id: "", name: "Tüm Gruplar" }, ...groups],
               value: filterGrup,
               onChange: (e) => setFilterGrup(e.target.value),
-              colClass: "col-12 col-md-2",
               keyField: "id",
               labelField: "name",
             },
@@ -259,59 +260,71 @@ export default function ImgExamReports() {
               placeholder: "Başlangıç Tarihi",
               value: startDate,
               onChange: (e) => setStartDate(e.target.value),
-              colClass: "col-12 col-md-2",
             },
             {
               type: "date",
               placeholder: "Bitiş Tarihi",
               value: endDate,
               onChange: (e) => setEndDate(e.target.value),
-              colClass: "col-12 col-md-2",
             },
-          ].map((input, idx) => (
-            <div key={idx} className={input.colClass}>
-              {input.type === "select" ? (
-                <select
-                  className="form-select"
-                  value={input.value}
-                  onChange={input.onChange}
-                  style={{
-                    boxShadow: "0 2px 8px rgb(0 51 153 / 0.15)",
-                    borderRadius: "8px",
-                    border: "1px solid #cbd5e0",
-                    transition: "border-color 0.25s ease",
-                  }}
-                  onFocus={(e) => (e.target.style.borderColor = "#003399")}
-                  onBlur={(e) => (e.target.style.borderColor = "#cbd5e0")}
-                >
-                  {input.options.map((opt) => (
-                    <option
-                      key={opt[input.keyField]}
-                      value={opt[input.keyField]}
-                    >
-                      {opt[input.labelField]}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type={input.type}
-                  className="form-control"
-                  placeholder={input.placeholder}
-                  value={input.value}
-                  onChange={input.onChange}
-                  style={{
-                    boxShadow: "0 2px 8px rgb(0 51 153 / 0.15)",
-                    borderRadius: "8px",
-                    border: "1px solid #cbd5e0",
-                    transition: "border-color 0.25s ease",
-                  }}
-                  onFocus={(e) => (e.target.style.borderColor = "#003399")}
-                  onBlur={(e) => (e.target.style.borderColor = "#cbd5e0")}
-                />
-              )}
-            </div>
-          ))}
+          ].map((input, idx) => {
+            // Ekran boyutuna göre kolon sınıfını belirle
+            let colClass = "col-12"; // mobil default
+            if (isTablet) {
+              colClass = "col-6"; // 2 sütun
+            } else if (!isMobile) {
+              // masaüstü
+              if (idx === 0) colClass = "col-12 col-md-3";
+              else if (idx === 1) colClass = "col-12 col-md-3";
+              else if (idx === 2) colClass = "col-12 col-md-2";
+              else colClass = "col-12 col-md-2";
+            }
+
+            return (
+              <div key={idx} className={colClass}>
+                {input.type === "select" ? (
+                  <select
+                    className="form-select"
+                    value={input.value}
+                    onChange={input.onChange}
+                    style={{
+                      boxShadow: "0 2px 8px rgb(0 51 153 / 0.15)",
+                      borderRadius: "8px",
+                      border: "1px solid #cbd5e0",
+                      transition: "border-color 0.25s ease",
+                    }}
+                    onFocus={(e) => (e.target.style.borderColor = "#003399")}
+                    onBlur={(e) => (e.target.style.borderColor = "#cbd5e0")}
+                  >
+                    {input.options.map((opt) => (
+                      <option
+                        key={opt[input.keyField]}
+                        value={opt[input.keyField]}
+                      >
+                        {opt[input.labelField]}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type={input.type}
+                    className="form-control"
+                    placeholder={input.placeholder}
+                    value={input.value}
+                    onChange={input.onChange}
+                    style={{
+                      boxShadow: "0 2px 8px rgb(0 51 153 / 0.15)",
+                      borderRadius: "8px",
+                      border: "1px solid #cbd5e0",
+                      transition: "border-color 0.25s ease",
+                    }}
+                    onFocus={(e) => (e.target.style.borderColor = "#003399")}
+                    onBlur={(e) => (e.target.style.borderColor = "#cbd5e0")}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {selectedIds.length > 0 && (
@@ -366,10 +379,11 @@ export default function ImgExamReports() {
               style={{
                 borderCollapse: "separate",
                 borderSpacing: "0 6px",
-                width: "100%", // minWidth kaldırıldı, genişlik tam ekran
-                fontSize: "12px", // font küçüldü
+                width: "100%",
+                fontSize: "12px",
                 userSelect: "none",
-                tableLayout: "fixed", // sütunlar eşit dağılsın
+                tableLayout: "fixed",
+                
               }}
             >
               <thead
@@ -379,6 +393,7 @@ export default function ImgExamReports() {
                   className="text-center align-middle"
                   style={{ fontWeight: "600", color: "#334155" }}
                 >
+                  {/* Checkbox sütunu: sadece mobil dışında göster */}
                   {!isMobile && (
                     <th style={{ width: "30px", padding: "6px 4px" }}>
                       <input
@@ -390,11 +405,24 @@ export default function ImgExamReports() {
                     </th>
                   )}
 
+                  {/* Başlıklar: mobil, tablet ve masaüstü ayrı */}
                   {isMobile ? (
                     <>
-                      <th style={{ padding: "6px 8px" }}>Ad</th>
-                      <th style={{ padding: "6px 8px" }}>Soyad</th>
-                      <th style={{ padding: "6px 8px" }}>Puan</th>
+                      <th style={{ padding: "6px 12px" }}>Ad</th>{" "}
+                      {/* Padding artırıldı */}
+                      <th style={{ padding: "6px 12px" }}>Soyad</th>{" "}
+                      {/* Padding artırıldı */}
+                      <th style={{ padding: "6px 12px" }}>Puan</th>{" "}
+                      {/* Padding artırıldı */}
+                    </>
+                  ) : isTablet ? (
+                    <>
+                      {/* Tablet görünümünde de başlıkların paddingini artırıyoruz */}
+                      <th style={{ padding: "6px 12px" }}>Ad</th>
+                      <th style={{ padding: "6px 12px" }}>Soyad</th>
+                      <th style={{ padding: "6px 12px" }}>Puan</th>
+                      <th style={{ padding: "6px 12px" }}>Doğru</th>
+                      <th style={{ padding: "6px 12px" }}>Yanlış</th>
                     </>
                   ) : (
                     [
@@ -435,7 +463,7 @@ export default function ImgExamReports() {
                         }
                         style={{
                           whiteSpace: "nowrap",
-                          padding: "6px 8px",
+                          padding: "6px 8px", // Masaüstü için mevcut padding uygun olabilir
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                         }}
@@ -476,6 +504,7 @@ export default function ImgExamReports() {
                         (e.currentTarget.style.backgroundColor = "#fff")
                       }
                     >
+                      {/* Checkbox hücresi (mobil dışında) */}
                       {!isMobile && (
                         <td
                           onClick={(e) => e.stopPropagation()}
@@ -499,41 +528,99 @@ export default function ImgExamReports() {
                         </td>
                       )}
 
+                      {/* Satır içeriği: mobil / tablet / masaüstü */}
                       {isMobile ? (
                         <>
-                          <td style={{ textAlign: "center" }}>
+                          <td
+                            style={{ textAlign: "center", padding: "6px 12px" }}
+                          >
+                            {" "}
+                            {/* Padding artırıldı */}
                             {user.ad || user.kullanici_adi || "-"}
                           </td>
-                          <td style={{ textAlign: "center" }}>
+                          <td
+                            style={{ textAlign: "center", padding: "6px 12px" }}
+                          >
+                            {" "}
+                            {/* Padding artırıldı */}
                             {user.soyad || "-"}
                           </td>
                           <td
-                            style={{ textAlign: "center", paddingRight: "8px" }}
+                            style={{ textAlign: "center", padding: "6px 12px" }}
+                          >
+                            {" "}
+                            {/* Padding artırıldı */}
+                            {result.score ?? "-"}
+                          </td>
+                        </>
+                      ) : isTablet ? (
+                        <>
+                          {/* Tablet görünümünde de hücrelerin paddingini artırıyoruz */}
+                          <td
+                            style={{ textAlign: "center", padding: "6px 12px" }}
+                          >
+                            {user.ad || user.kullanici_adi || "-"}
+                          </td>
+                          <td
+                            style={{ textAlign: "center", padding: "6px 12px" }}
+                          >
+                            {user.soyad || "-"}
+                          </td>
+                          <td
+                            style={{ textAlign: "center", padding: "6px 12px" }}
                           >
                             {result.score ?? "-"}
+                          </td>
+                          <td
+                            style={{ textAlign: "center", padding: "6px 12px" }}
+                          >
+                            {result.true_count ?? "-"}
+                          </td>
+                          <td
+                            style={{ textAlign: "center", padding: "6px 12px" }}
+                          >
+                            {result.false_count ?? "-"}
                           </td>
                         </>
                       ) : (
                         <>
-                          {/* Mevcut tüm hücreler burada: */}
-                          <td>
+                          <td style={{ padding: "6px 8px" }}>
                             {institutions.find((i) => i.id === user.lokasyonId)
                               ?.name || "-"}
                           </td>
-                          <td>
+                          <td style={{ padding: "6px 8px" }}>
                             {groups.find((g) => g.id === user.grupId)?.name ||
                               "-"}
                           </td>
-                          <td>{user.sicil || "-"}</td>
-                          <td>{user.ad || user.kullanici_adi || "-"}</td>
-                          <td>{user.soyad || "-"}</td>
-                          <td>{exam.start_date || "-"}</td>
-                          <td>{exam.start_time || "-"}</td>
-                          <td>{exam.end_time || "-"}</td>
-                          <td>{result.entry_date || "-"}</td>
-                          <td>{result.entry_time || "-"}</td>
-                          <td>{result.exit_time || "-"}</td>
-                          <td>
+                          <td style={{ padding: "6px 8px" }}>
+                            {user.sicil || "-"}
+                          </td>
+
+                          <td style={{ padding: "6px 8px",  }}>
+                            {user.ad || user.kullanici_adi || "-"}
+                          </td>
+                          <td style={{ padding: "6px 8px" }}>
+                            {user.soyad || "-"}
+                          </td>
+                          <td style={{ padding: "6px 8px" }}>
+                            {exam.start_date || "-"}
+                          </td>
+                          <td style={{ padding: "6px 8px" }}>
+                            {exam.start_time || "-"}
+                          </td>
+                          <td style={{ padding: "6px 8px" }}>
+                            {exam.end_time || "-"}
+                          </td>
+                          <td style={{ padding: "6px 8px" }}>
+                            {result.entry_date || "-"}
+                          </td>
+                          <td style={{ padding: "6px 8px" }}>
+                            {result.entry_time || "-"}
+                          </td>
+                          <td style={{ padding: "6px 8px" }}>
+                            {result.exit_time || "-"}
+                          </td>
+                          <td style={{ padding: "6px 8px" }}>
                             {calculateDuration(
                               result.entry_date,
                               result.entry_time,
@@ -541,22 +628,43 @@ export default function ImgExamReports() {
                               result.exit_time
                             )}
                           </td>
-                          <td>{exam.name || "-"}</td>
-                          <td>{exam.booklet?.name || "-"}</td>
-                          <td className="text-end">
+                          <td style={{ padding: "6px 8px" }}>
+                            {exam.name || "-"}
+                          </td>
+                          <td style={{ padding: "6px 8px" }}>
+                            {exam.booklet?.name || "-"}
+                          </td>
+                          <td
+                            className="text-end"
+                            style={{ padding: "6px 8px" }}
+                          >
                             {exam.question_count ?? "-"}
                           </td>
-                          <td className="text-end">
+                          <td
+                            className="text-end"
+                            style={{ padding: "6px 8px" }}
+                          >
                             {result.true_count ?? "-"}
                           </td>
-                          <td className="text-end">
+                          <td
+                            className="text-end"
+                            style={{ padding: "6px 8px" }}
+                          >
                             {result.false_count ?? "-"}
                           </td>
-                          <td className="text-end">{result.score ?? "-"}</td>
-                          <td className="text-end">
+                          <td
+                            className="text-end"
+                            style={{ padding: "6px 8px" }}
+                          >
+                            {result.score ?? "-"}
+                          </td>
+                          <td
+                            className="text-end"
+                            style={{ padding: "6px 8px" }}
+                          >
                             {exam.passing_score ?? "-"}
                           </td>
-                          <td>
+                          <td style={{ padding: "6px 8px" }}>
                             <span
                               className={
                                 result.pass
@@ -567,7 +675,9 @@ export default function ImgExamReports() {
                               {result.pass ? "Başarılı" : "Başarısız"}
                             </span>
                           </td>
-                          <td>{result.completed ? "Evet" : "Hayır"}</td>
+                          <td style={{ padding: "6px 8px" }}>
+                            {result.completed ? "Evet" : "Hayır"}
+                          </td>
                         </>
                       )}
                     </tr>

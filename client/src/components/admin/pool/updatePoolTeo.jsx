@@ -103,26 +103,40 @@ export default function UpdatePoolTeo() {
         formData.append(key, value);
       });
 
-      dispatch(updatePoolTeoThunk({ id, formData }));
+      await dispatch(updatePoolTeoThunk({ id, formData }));
+
+      // Başarı mesajı
+      window.alert("Güncelleme işlemi tamamlandı.");
     } catch (error) {
       console.error("Gönderme hatası:", error);
-      alert("Gönderme sırasında hata oluştu.");
+      window.alert("Gönderme sırasında hata oluştu.");
     }
   };
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  // Responsive state management
+  const [isMobile, setIsMobile] = useState(false); // < 768px
+  const [isTablet, setIsTablet] = useState(false); // 768px - 1200px
+  const TABLET_BREAKPOINT = 768;
+  const DESKTOP_BREAKPOINT = 1200;
+
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
-      }
+      const width = window.innerWidth;
+      setIsMobile(width < TABLET_BREAKPOINT);
+      setIsTablet(width >= TABLET_BREAKPOINT && width < DESKTOP_BREAKPOINT);
+      // Keep sidebar open on larger screens, closed on smaller
+      setSidebarOpen(width >= TABLET_BREAKPOINT); // Open on tablet and desktop
     };
 
+    handleResize(); // Set dimensions on initial render
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Determine grid template columns for content-columns
+  const gridTemplateColumnsStyle = isMobile || isTablet ? "1fr" : "2fr 1fr";
 
   useEffect(() => {
     // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
@@ -141,7 +155,6 @@ export default function UpdatePoolTeo() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -191,7 +204,7 @@ export default function UpdatePoolTeo() {
           className="content-columns"
           style={{
             display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr",
+            gridTemplateColumns: isMobile || isTablet ? "1fr" : "2fr 1fr",
             gap: isMobile ? "10px" : "20px",
           }}
         >

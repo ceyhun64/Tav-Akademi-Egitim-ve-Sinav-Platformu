@@ -70,6 +70,7 @@ export default function TeoQuestion() {
   const [showCodeInput, setShowCodeInput] = useState(false);
   const [showUnansweredWarning, setShowUnansweredWarning] = useState(false);
   const [unansweredCount, setUnansweredCount] = useState(0);
+  const [showExitConfirmation, setShowExitConfirmation] = useState(false); // New state for exit confirmation
 
   const [illegalKeys, setIllegalKeys] = useState([]);
   const [showIllegalModal, setShowIllegalModal] = useState(false);
@@ -91,21 +92,20 @@ export default function TeoQuestion() {
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
-      }
+      // Removed setSidebarOpen, as it's not defined in this component
     };
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       requestFullscreen();
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [examEnded]);
+  }, [examEnded]); // This effect now triggers only when examEnded changes
 
   // TAM EKRANDAN ÇIKIŞTA UYARI VER
   useEffect(() => {
@@ -269,30 +269,39 @@ export default function TeoQuestion() {
     const unanswered = totalQuestionCount - answeredCount;
 
     if (!autoSubmit) {
-      // Kullanıcı manuel bitirirken tüm soruları cevaplamasını zorunlu kıl
+      // If user is trying to submit manually
       if (unanswered > 0) {
         setUnansweredCount(unanswered);
         setShowUnansweredWarning(true);
-        setIsPaused(true); // Sınavı durdur
+        setIsPaused(true); // Pause exam
         return;
       }
 
-      // Eğer kod girişi gösterilmiyorsa, ilk tıklamada kodu oluştur ve göster
+      // If exit confirmation is not shown yet, show it
+      if (!showExitConfirmation) {
+        setShowExitConfirmation(true);
+        setIsPaused(true); // Pause exam during confirmation
+        return;
+      }
+
+      // If exit confirmation is shown and confirmed, proceed to code input or final submission
       if (!showCodeInput) {
         const code = generateRandomCode();
         setConfirmExitCode(code);
         setShowCodeInput(true);
+        setUserInputCode(""); // Clear previous input
+        setIsPaused(true); // Keep exam paused for code input
         return;
       }
 
-      // Eğer kod giriş ekranı açık, girilen kod doğru mu kontrol et
+      // If code input is shown, check the code
       if (userInputCode.toUpperCase() !== confirmExitCode) {
         alert("Girdiğiniz kod yanlış. Lütfen doğru kodu girin.");
         return;
       }
     }
 
-    // Otomatik bitir veya doğrulama geçtiyse sınavı bitir
+    // Auto-submit or successful manual submission after verification
     const now = new Date();
     const exitDate = now.toISOString().split("T")[0];
     const exitTime = now.toTimeString().split(" ")[0];
@@ -306,6 +315,8 @@ export default function TeoQuestion() {
 
     setExamEnded(true);
     setIsPaused(true);
+    setShowCodeInput(false); // Hide code input on final submission
+    setShowExitConfirmation(false); // Hide exit confirmation
 
     dispatch(
       answerTeoQuestionsThunk({
@@ -318,8 +329,15 @@ export default function TeoQuestion() {
       })
     );
 
-    // Yönlendirme
+    // Redirect
     navigate("/user-panel");
+  };
+
+  const handleCancelExit = () => {
+    setShowExitConfirmation(false);
+    setShowCodeInput(false); // Hide code input if user cancels from confirmation
+    setUserInputCode(""); // Clear input if user cancels
+    setIsPaused(false); // Resume exam
   };
 
   const handleSelectQuestion = (index) => {
@@ -392,6 +410,33 @@ export default function TeoQuestion() {
           </div>
         )}
 
+        {/* Sınavı Bitirme Onayı Modalı */}
+        {showExitConfirmation && !showCodeInput && !examEnded && (
+          <div style={overlayStyle}>
+            <div style={alertBoxStyle}>
+              <h4 className="text-info">
+                <i className="bi bi-question-circle-fill me-2" />
+                Sınavı Bitir
+              </h4>
+              <p>Sınavı bitirmek istediğinizden emin misiniz?</p>
+              <div className="d-flex justify-content-center gap-3 mt-4">
+                <button className="btn btn-danger" onClick={handleCancelExit}>
+                  İptal
+                </button>
+                <button
+                  className="btn btn-success"
+                  onClick={() => {
+                    setShowExitConfirmation(false); // Hide this modal
+                    handleSubmit(false); // Proceed to code input (or final submit if no code is needed)
+                  }}
+                >
+                  Evet, Bitir
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Sınav Sonlandı */}
         {examEnded && (
           <div style={overlayStyle}>
@@ -412,8 +457,10 @@ export default function TeoQuestion() {
         )}
 
         {/* Duraklatıldı / Uyarı */}
-        {((isPaused && !showUnansweredWarning) || showFullscreenWarning) &&
-        !examEnded ? (
+        {((isPaused && !showUnansweredWarning && !showExitConfirmation) ||
+          showFullscreenWarning) &&
+        !examEnded &&
+        !showCodeInput ? (
           <div style={overlayStyle}>
             <div style={alertBoxStyle}>
               <h4 className="text-info">
@@ -437,7 +484,7 @@ export default function TeoQuestion() {
           !examEnded && (
             <div className="row">
               {/* Soru Kartı */}
-              <div className="col-lg-9 mb-4 shadow-sm border-0 question-card-wrapper">
+              <div className="col-lg-9 mb-4 question-card-wrapper">
                 <div className="card shadow-sm border-0 h-100 d-flex flex-column">
                   <div
                     className="card-header bg-white d-flex justify-content-between align-items-center border-bottom"
@@ -534,7 +581,7 @@ export default function TeoQuestion() {
                                 style={{
                                   flex: 1,
                                   fontSize: 16,
-                                  color: "#333", // seçili olsa da değişmesin
+                                  color: "#333", // selected or not, the text color should not change
                                   userSelect: "none",
                                   textAlign: "left",
                                 }}
@@ -605,11 +652,25 @@ export default function TeoQuestion() {
                           maxLength={confirmExitCode?.length || 6}
                           autoFocus
                         />
+                        <div className="d-flex justify-content-end gap-2 mt-2">
+                          <button
+                            className="btn btn-danger"
+                            onClick={handleCancelExit} // Allow canceling from code input
+                          >
+                            İptal
+                          </button>
+                          <button
+                            className="btn btn-success"
+                            onClick={() => handleSubmit(false)} // Submit after entering code
+                          >
+                            Kodu Onayla
+                          </button>
+                        </div>
                       </div>
                     )}
 
-                    {/* Sınavı Bitir */}
-                    {!examEnded && (
+                    {/* Sınavı Bitir Butonu */}
+                    {!examEnded && !showCodeInput && !showExitConfirmation && (
                       <button
                         className="btn btn-success mt-3 mt-md-0"
                         onClick={() => handleSubmit(false)}

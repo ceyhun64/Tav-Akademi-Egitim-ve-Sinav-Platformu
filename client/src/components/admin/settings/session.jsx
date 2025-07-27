@@ -19,11 +19,17 @@ export default function Session() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(
+    window.innerWidth >= 768 && window.innerWidth < 1350
+  );
+
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1350);
+      if (width >= 768) {
+        setSidebarOpen(true); // büyük ekranlarda sidebar açık
       }
     };
 
@@ -50,7 +56,6 @@ export default function Session() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -96,9 +101,10 @@ export default function Session() {
           className="table-responsive"
           style={{
             borderRadius: "16px",
-            overflow: "auto",
-            maxWidth: isMobile ? "350px" : "1200px", // mobilde daha dar yap
-            maxHeight: isMobile ? "400px" : "800px", // mobilde daha kısa yap
+            overflowY: "auto",
+            overflowX: isTablet ? "hidden" : "auto", // Tablet'te yatay kaydırmayı kaldır
+            maxWidth: isMobile ? "700px" : isTablet ? "100%" : "1200px",
+            maxHeight: isMobile ? "400px" : "800px",
             boxShadow: "0 4px 20px rgb(0 0 0 / 0.07)",
             backgroundColor: "#fff",
             border: "1px solid #e2e8f0",
@@ -110,7 +116,7 @@ export default function Session() {
             style={{
               borderCollapse: "separate",
               borderSpacing: "0 8px",
-              minWidth: isMobile ? "350px" : "1100px", // mobilde daha dar
+              minWidth: isMobile ? "350px" : isTablet ? "500px" : "1100px", // Tablet genişliği küçültüldü
               userSelect: "none",
             }}
           >
@@ -126,12 +132,22 @@ export default function Session() {
               >
                 <th style={{ width: "40px" }}>#</th>
                 <th>Session ID</th>
-                {isMobile ? (
+
+                {isMobile && (
                   <>
                     <th>Ad</th>
                     <th>Soyad</th>
                   </>
-                ) : (
+                )}
+
+                {isTablet && (
+                  <>
+                    <th>Ad</th>
+                    <th>Soyad</th>
+                  </>
+                )}
+
+                {!isMobile && !isTablet && (
                   <>
                     <th>Ad</th>
                     <th>Soyad</th>
@@ -177,7 +193,8 @@ export default function Session() {
                     >
                       {session.sessionId}
                     </td>
-                    {isMobile ? (
+
+                    {isMobile && (
                       <>
                         <td
                           className="text-center"
@@ -192,7 +209,26 @@ export default function Session() {
                           {session.user?.soyad || "-"}
                         </td>
                       </>
-                    ) : (
+                    )}
+
+                    {isTablet && (
+                      <>
+                        <td
+                          className="text-center"
+                          style={{ verticalAlign: "middle" }}
+                        >
+                          {session.user?.ad || "-"}
+                        </td>
+                        <td
+                          className="text-center"
+                          style={{ verticalAlign: "middle" }}
+                        >
+                          {session.user?.soyad || "-"}
+                        </td>
+                      </>
+                    )}
+
+                    {!isMobile && !isTablet && (
                       <>
                         <td
                           className="text-center"
@@ -260,7 +296,10 @@ export default function Session() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={isMobile ? 4 : 11} className="text-center">
+                  <td
+                    colSpan={isMobile ? 4 : isTablet ? 3 : 11} // Tablet için colspan 3 yapıldı
+                    className="text-center"
+                  >
                     Aktif oturum bulunamadı.
                   </td>
                 </tr>

@@ -49,7 +49,6 @@ export default function PracticeQuestion() {
   const { examId: examIdParam } = useParams();
   const examId = Number(examIdParam);
   const { imgQuestions, duration } = useSelector((state) => state.practiceExam);
-  console.log("imgQuestions:", imgQuestions);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [selectedCoordinates, setSelectedCoordinates] = useState({});
   const [activeFilter, setActiveFilter] = useState("none");

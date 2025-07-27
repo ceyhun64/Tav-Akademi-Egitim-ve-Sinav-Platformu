@@ -21,7 +21,6 @@ export default function Login() {
       const response = await dispatch(
         loginThunk({ kullanici_adi, sifre })
       ).unwrap();
-      console.log(response);
       if (response.is2FAEnabled !== true) {
         navigate("/setup-2fa", { state: { userId: response.userId } });
       } else navigate("/verify-2fa", { state: { userId: response.userId } });

@@ -15,11 +15,22 @@ export default function AssignTeoExams() {
   // Mobil görünüm için sidebar state'leri
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(
+    window.innerWidth >= 768 && window.innerWidth < 1350
+  );
 
-  // Placeholder for checkbox functionality and filtered results
+  // Arama terimi (sınav adına göre filtre)
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Seçilen sınav id'leri (checkbox)
   const [selectedIds, setSelectedIds] = useState([]);
-  const filteredResults = assignTeoExams; // Assuming assignTeoExams is already the filtered data for this example
 
+  // Filtrelenmiş sınavlar (arama ile)
+  const filteredResults = assignTeoExams.filter((exam) =>
+    exam.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Tümünü seç / seçimi kaldır
   const handleSelectAll = () => {
     if (
       selectedIds.length === filteredResults.length &&
@@ -31,6 +42,7 @@ export default function AssignTeoExams() {
     }
   };
 
+  // Tek bir checkbox değiştiğinde
   const handleCheckboxChange = (examId) => {
     setSelectedIds((prev) =>
       prev.includes(examId)
@@ -44,14 +56,17 @@ export default function AssignTeoExams() {
     dispatch(getAssignTeoExamsThunk());
   }, [dispatch]);
 
-  // Mobil boyutlandırma için useEffect
+  // Ekran boyutu değişikliklerini takip et
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1350);
+      if (width >= 768) {
+        setSidebarOpen(true); // büyük ekranlarda sidebar açık
       }
     };
+
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -66,16 +81,34 @@ export default function AssignTeoExams() {
       window.confirm("Bu sınav atamasını silmek istediğinizden emin misiniz?")
     ) {
       dispatch(deleteAssignExamThunk(examId))
-        .unwrap() // Thunk'ın Promise'ini çözmek için unwrap kullanın
+        .unwrap()
         .then(() => {
-          // Başarılı olursa, veriyi yeniden çekerek listeyi güncelleyin
           dispatch(getAssignTeoExamsThunk());
           alert("Sınav ataması başarıyla silindi!");
+          setSelectedIds((prev) => prev.filter((id) => id !== examId));
         })
         .catch((error) => {
           console.error("Sınav silme hatası:", error);
           alert("Sınav silinirken bir hata oluştu: " + error.message);
         });
+    }
+  };
+
+  // Toplu silme işlemi
+  const handleBulkDelete = () => {
+    if (
+      selectedIds.length > 0 &&
+      window.confirm("Seçili sınavları silmek istediğinize emin misiniz?")
+    ) {
+      Promise.all(
+        selectedIds.map((id) => dispatch(deleteAssignExamThunk(id)).unwrap())
+      )
+        .then(() => {
+          dispatch(getAssignTeoExamsThunk());
+          alert("Seçilen sınavlar başarıyla silindi.");
+          setSelectedIds([]);
+        })
+        .catch((err) => alert("Toplu silmede hata oluştu: " + err.message));
     }
   };
 
@@ -93,7 +126,6 @@ export default function AssignTeoExams() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -111,7 +143,7 @@ export default function AssignTeoExams() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "2.5rem",
+            marginBottom: "1rem",
           }}
         >
           <h1
@@ -141,10 +173,10 @@ export default function AssignTeoExams() {
                 color: "white",
                 border: "none",
                 borderRadius: "4px",
-                padding: "6px 16px", // padding yatay biraz artırıldı
+                padding: "6px 16px",
                 cursor: "pointer",
                 fontSize: "1rem",
-                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+                whiteSpace: "nowrap",
               }}
             >
               Geri Dön
@@ -152,13 +184,52 @@ export default function AssignTeoExams() {
           </h1>
         </div>
 
+        {/* Arama ve Toplu Seçim Alanı */}
+        {/* Arama ve Toplu Seçim Alanı */}
+        <div className="mb-3 d-flex justify-content-between align-items-center flex-wrap">
+          <input
+            type="text"
+            placeholder="Sınav adıyla ara..."
+            className="form-control"
+            style={{
+              maxWidth: "280px",
+              marginBottom: isMobile ? "0.75rem" : "0.5rem",
+            }}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+
+          {/* Tablet ve üstü: buton sağda */}
+          {!isMobile && (
+            <div>
+              <button
+                className="btn btn-danger btn-sm ms-3"
+                onClick={handleBulkDelete}
+              >
+                Seçilenleri Sil
+              </button>
+            </div>
+          )}
+
+          {/* Mobil: buton altta ve tam genişlik */}
+          {isMobile && (
+            <div style={{ width: "100%" }}>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={handleBulkDelete}
+              >
+                Seçilenleri Sil
+              </button>
+            </div>
+          )}
+        </div>
         {/* Tablo */}
         <div
           className="table-responsive"
           style={{
             borderRadius: "16px",
-            overflowX: "hidden", // Prevent horizontal scrolling
-            maxWidth: "100%", // Take full width
+            overflowX: "auto",
+            maxWidth: "100%",
             maxHeight: "800px",
             boxShadow: "0 4px 20px rgb(0 0 0 / 0.07)",
             backgroundColor: "#fff",
@@ -166,7 +237,7 @@ export default function AssignTeoExams() {
             padding: "8px",
           }}
         >
-          {assignTeoExams && assignTeoExams.length > 0 ? (
+          {filteredResults && filteredResults.length > 0 ? (
             <table
               className="table align-middle table-hover"
               style={{
@@ -175,9 +246,8 @@ export default function AssignTeoExams() {
                 width: "100%",
                 fontSize: "12px",
                 userSelect: "none",
-                tableLayout: "fixed", // Distribute columns equally
-                    textAlign: "center", // <-- EKLENDİ
-
+                tableLayout: "fixed",
+                textAlign: "center",
               }}
             >
               <thead
@@ -187,17 +257,53 @@ export default function AssignTeoExams() {
                   className="text-center align-middle"
                   style={{ fontWeight: "600", color: "#334155" }}
                 >
-                
-                  {/* Table Headers based on mobile/desktop view */}
+                  {/* ✅ Checkbox sütunu başlığı — her cihazda */}
+                  <th style={{ width: "3%", padding: "6px 8px" }} title="Seçim">
+                    <input
+                      type="checkbox"
+                      onChange={handleSelectAll}
+                      checked={
+                        selectedIds.length === filteredResults.length &&
+                        filteredResults.length > 0
+                      }
+                      id="selectAllCheckbox"
+                    />
+                  </th>
+
+                  {/* Mobil görünüm başlıkları */}
                   {isMobile ? (
                     <>
                       <th style={{ padding: "6px 8px" }}>Sınav Adı</th>
                       <th style={{ padding: "6px 8px" }}>Başlangıç</th>
-                      <th style={{ padding: "6px 8px" }}>Süre (dk)</th>
+                      <th style={{ padding: "6px 8px" }}>Süre</th>
+                      <th style={{ padding: "6px 8px" }}>İşlemler</th>
                     </>
+                  ) : isTablet ? (
+                    [
+                      { header: "Sınav Adı", width: "35%" },
+                      { header: "Başlangıç Tarihi", width: "20%" },
+                      { header: "Bitiş Tarihi", width: "20%" },
+                      { header: "Süre (dk)", width: "10%" },
+                      { header: "Geçme Notu", width: "10%" },
+                      { header: "İşlemler", width: "10%" },
+                    ].map((col, i) => (
+                      <th
+                        key={i}
+                        style={{
+                          whiteSpace: "nowrap",
+                          padding: "6px 8px",
+                          width: col.width,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                        title={col.header}
+                      >
+                        {col.header}
+                      </th>
+                    ))
                   ) : (
                     [
-                      { header: "ID", width: "5%" }, // Smaller width for ID
+                      { header: "ID", width: "5%" },
                       { header: "Sınav Adı", width: "20%" },
                       { header: "Başlangıç Tarihi", width: "12%" },
                       { header: "Başlangıç Saati", width: "10%" },
@@ -206,7 +312,7 @@ export default function AssignTeoExams() {
                       { header: "Süre (dk)", width: "8%" },
                       { header: "Geçme Notu", width: "8%" },
                       { header: "Soru Sayısı", width: "8%" },
-                      { header: "İşlemler", width: "7%" }, // Adjust as needed
+                      { header: "İşlemler", width: "7%" },
                     ].map((col, i) => (
                       <th
                         key={i}
@@ -222,7 +328,7 @@ export default function AssignTeoExams() {
                           padding: "6px 8px",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
-                          width: col.width, // Explicit width for better control
+                          width: col.width,
                         }}
                         title={col.header}
                       >
@@ -233,7 +339,7 @@ export default function AssignTeoExams() {
                 </tr>
               </thead>
               <tbody>
-                {assignTeoExams.map((exam) => (
+                {filteredResults.map((exam) => (
                   <tr
                     key={exam.id}
                     style={{
@@ -251,7 +357,14 @@ export default function AssignTeoExams() {
                       (e.currentTarget.style.backgroundColor = "#fff")
                     }
                   >
-                  
+                    {/* ✅ Checkbox her cihazda görünsün */}
+                    <td style={{ padding: "6px 8px", verticalAlign: "middle" }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(exam.id)}
+                        onChange={() => handleCheckboxChange(exam.id)}
+                      />
+                    </td>
 
                     {isMobile ? (
                       <>
@@ -261,10 +374,38 @@ export default function AssignTeoExams() {
                         <td style={{ textAlign: "center", padding: "6px 8px" }}>
                           {exam.start_date || "-"}
                         </td>
-                        <td
-                          style={{ textAlign: "center", padding: "6px 8px" }} // Ensure consistent padding here
-                        >
+                        <td style={{ textAlign: "center", padding: "6px 8px" }}>
                           {exam.sure ?? "-"}
+                        </td>
+                        <td style={{ textAlign: "center", padding: "6px 8px" }}>
+                          <button
+                            className="btn btn-danger btn-sm"
+                            onClick={() => handleDelete(exam.id)}
+                          >
+                            Sil
+                          </button>
+                        </td>
+                      </>
+                    ) : isTablet ? (
+                      <>
+                        <td style={{ padding: "6px 8px" }}>{exam.name}</td>
+                        <td style={{ padding: "6px 8px" }}>
+                          {exam.start_date}
+                        </td>
+                        <td style={{ padding: "6px 8px" }}>{exam.end_date}</td>
+                        <td className="text-end" style={{ padding: "6px 8px" }}>
+                          {exam.sure}
+                        </td>
+                        <td className="text-end" style={{ padding: "6px 8px" }}>
+                          {exam.passing_score}
+                        </td>
+                        <td style={{ padding: "6px 8px" }}>
+                          <button
+                            className="btn btn-danger btn-sm"
+                            onClick={() => handleDelete(exam.id)}
+                          >
+                            Sil
+                          </button>
                         </td>
                       </>
                     ) : (
@@ -290,12 +431,11 @@ export default function AssignTeoExams() {
                         </td>
                         <td style={{ padding: "6px 8px" }}>
                           <button
-                            className="btn btn-danger btn-sm" // Removed ms-4, let tableLayout handle spacing or add external div for centering
+                            className="btn btn-danger btn-sm"
                             onClick={() => handleDelete(exam.id)}
                           >
                             Sil
                           </button>
-                          {/* Diğer işlemler (düzenleme vb.) buraya eklenebilir */}
                         </td>
                       </>
                     )}

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import {
   getPoolImgThunk,
+  // deletePoolImgThunk,  // Sadece ilgili thunk'ı silmiyoruz, kullanmaya devam ediyoruz
   deletePoolImgThunk,
-  getPoolImgsByBookletIdThunk,
+  getPoolImgsByBookletIdThunk, // Bu thunk'ı kullanmaya devam ediyoruz
 } from "../../../features/thunks/poolImgThunk";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
@@ -15,7 +16,7 @@ import Sidebar from "../adminPanel/sidebar";
 
 export default function PoolImg() {
   const dispatch = useDispatch();
-  const { poolImgs } = useSelector((state) => state.poolImg);
+  const { poolImgs } = useSelector((state) => state.poolImg); // poolImgs doğrudan kullanılacak
   const { imgBooklets } = useSelector((state) => state.booklet);
   const { difLevels, questionCats } = useSelector((state) => state.queDif);
 
@@ -24,20 +25,16 @@ export default function PoolImg() {
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRow, setExpandedRow] = useState(null); // Detayları göstermek için
 
-  const [selectedBooklet, setSelectedBooklet] = useState("");
+  const [selectedBooklet, setSelectedBooklet] = useState(""); // Seçilen kitapçık ID'si
 
-  // Filtered pool images based on selectedBooklet
-  const filteredPoolImgs = selectedBooklet
-    ? poolImgs.filter((item) => item.bookletId === selectedBooklet)
-    : poolImgs;
+  // Toplam sayfa sayısı (poolImgs üzerinden hesaplanmalı, çünkü artık filtrelenmiş veriyi içeriyor)
+  const totalPages = Math.ceil(poolImgs.length / itemsPerPage);
 
-  // Toplam sayfa sayısı (filteredPoolImgs üzerinden hesaplanmalı)
-  const totalPages = Math.ceil(filteredPoolImgs.length / itemsPerPage);
-
-  // Mevcut sayfada gösterilecek sorular (filteredPoolImgs üzerinden slice edilmeli)
+  // Mevcut sayfada gösterilecek sorular (poolImgs üzerinden slice edilmeli)
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentQuestions = filteredPoolImgs.slice(
+  const currentQuestions = poolImgs.slice(
+    // Artık filteredPoolImgs yerine doğrudan poolImgs kullanıyoruz
     indexOfFirstItem,
     indexOfLastItem
   );
@@ -63,8 +60,7 @@ export default function PoolImg() {
     pageNumbers.push(i);
   }
 
-  // Satır genişletme/daraltma
-
+  // Effect hook'ları
   useEffect(() => {
     dispatch(getDifLevelsThunk());
     dispatch(getQuestionCatThunk());
@@ -72,14 +68,15 @@ export default function PoolImg() {
 
   useEffect(() => {
     dispatch(getImgBookletsThunk());
-    dispatch(getPoolImgThunk()); // Initial fetch of all pool images
+    // Bileşen yüklendiğinde varsayılan olarak tüm soruları getir
+    dispatch(getPoolImgThunk());
   }, [dispatch]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Bu soruyu silmek istediğinize emin misiniz?")) return;
 
     await dispatch(deletePoolImgThunk(id));
-    // After deletion, re-fetch based on current filter or all
+    // Silme işleminden sonra, mevcut filtreye göre veya tüm soruları yeniden getir
     if (selectedBooklet) {
       dispatch(getPoolImgsByBookletIdThunk(selectedBooklet));
     } else {
@@ -87,17 +84,22 @@ export default function PoolImg() {
     }
   };
 
+  // Kitapçık seçimi değiştiğinde çalışacak fonksiyon
   const handleBookletChange = (e) => {
     const bookletId = e.target.value;
-    setSelectedBooklet(bookletId);
-    setCurrentPage(1); // Reset to first page when booklet filter changes
-    setExpandedRow(null); // Close any expanded rows
+    setSelectedBooklet(bookletId); // Seçili kitapçık state'ini güncelliyoruz
 
     if (bookletId) {
+      // Eğer bir kitapçık seçildiyse, o kitapçığa ait resimleri getir
+      // Bu thunk'ın Redux state'indeki poolImgs'i ilgili kitapçık resimleriyle güncellemesi beklenir
       dispatch(getPoolImgsByBookletIdThunk(bookletId));
     } else {
-      dispatch(getPoolImgThunk()); // Fetch all if no booklet is selected
+      // Eğer "Bir kitapçık seçiniz" seçeneği seçildiyse (boş değer), tüm resimleri getir
+      dispatch(getPoolImgThunk());
     }
+
+    setCurrentPage(1); // Kitapçık değiştiğinde sayfayı sıfırla
+    setExpandedRow(null); // Detayları kapat
   };
 
   const toggleRow = (id) => {
@@ -134,7 +136,6 @@ export default function PoolImg() {
     // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
     setSidebarOpen(!isMobile);
   }, [isMobile]);
-  // const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik - Bu değişken kullanılmıyor
 
   return (
     <div
@@ -150,7 +151,6 @@ export default function PoolImg() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -198,10 +198,10 @@ export default function PoolImg() {
                 color: "white",
                 border: "none",
                 borderRadius: "4px",
-                padding: "6px 16px", // padding yatay biraz artırıldı
+                padding: "6px 16px",
                 cursor: "pointer",
                 fontSize: "1rem",
-                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+                whiteSpace: "nowrap",
               }}
             >
               Geri Dön
@@ -212,7 +212,7 @@ export default function PoolImg() {
           className="filters"
           style={{
             display: "flex",
-            flexWrap: "wrap", // burada nowrap değil wrap yapıyoruz
+            flexWrap: "wrap",
             alignItems: "center",
             gap: "1.25rem",
             marginBottom: "2rem",
@@ -225,14 +225,14 @@ export default function PoolImg() {
               display: "flex",
               flexDirection: isMobile ? "column" : "row",
               gap: "0.75rem",
-              flexWrap: "wrap", // çocukların sarılmasına izin veriyoruz
-              width: "100%", // satırı kaplasın
+              flexWrap: "wrap",
+              width: "100%",
             }}
           >
             <div
               className="ms-2 me-2"
               style={{
-                flex: isMobile ? "0 0 100%" : "1 1 30%", // mobilde tam satır, masaüstünde yaklaşık 1/3
+                flex: isMobile ? "0 0 100%" : "1 1 30%",
                 minWidth: 0,
               }}
             >
@@ -265,8 +265,9 @@ export default function PoolImg() {
                 }}
               >
                 <option value="" style={{ color: "#001b66" }}>
-                  Bir Kitapçık Seçiniz
+                  Bir kitapçık seçiniz
                 </option>
+
                 {imgBooklets.map((booklet) => (
                   <option key={booklet.id} value={booklet.id}>
                     {booklet.name}
@@ -400,12 +401,12 @@ export default function PoolImg() {
             </select>
           </div>
 
-          {/* Toplam soru sayısı (filteredPoolImgs üzerinden gösterilmeli) */}
+          {/* Toplam soru sayısı (poolImgs üzerinden gösterilmeli) */}
           <div style={{ whiteSpace: "nowrap" }}>
-            Toplam Soru: {filteredPoolImgs.length}
+            Toplam Soru: {poolImgs.length}
           </div>
         </div>
-        {filteredPoolImgs?.length === 0 ? (
+        {poolImgs?.length === 0 ? ( // Artık filteredPoolImgs yerine doğrudan poolImgs kullanıyoruz
           <p style={{ color: "#5a6380", fontSize: "1.1rem" }}>
             Henüz soru eklenmemiş.
           </p>
@@ -426,7 +427,7 @@ export default function PoolImg() {
                 width: "100%",
                 color: "#001b66",
                 fontSize: "1rem",
-                minWidth: isMobile ? "100%" : "600px", // mobilde yatay scroll kapatıp full width yapabilirsin
+                minWidth: isMobile ? "100%" : "600px",
               }}
             >
               <thead style={{ backgroundColor: "#f5f7fa" }}>

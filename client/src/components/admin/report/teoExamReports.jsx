@@ -55,11 +55,17 @@ export default function TeoExamReports() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(
+    window.innerWidth >= 768 && window.innerWidth < 1350
+  );
+
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1350);
+      if (width >= 768) {
+        setSidebarOpen(true); // büyük ekranlarda sidebar açık
       }
     };
 
@@ -81,7 +87,6 @@ export default function TeoExamReports() {
   }, [dispatch]);
 
   const results = userTeoResults?.data || [];
-  console.log("results:", results);
   // Lokasyon ve grup uniq listeleri
   const lokasyonlar = Array.from(
     new Set(results.map((r) => r.user?.lokasyon).filter(Boolean))
@@ -173,7 +178,6 @@ export default function TeoExamReports() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -239,14 +243,12 @@ export default function TeoExamReports() {
               placeholder: "Kişi Ara (Ad / Soyad / Sicil)",
               value: filterKisi,
               onChange: (e) => setFilterKisi(e.target.value),
-              colClass: "col-12 col-md-3",
             },
             {
               type: "select",
               options: [{ id: "", name: "Tüm Lokasyonlar" }, ...institutions],
               value: filterLokasyon,
               onChange: (e) => setFilterLokasyon(e.target.value),
-              colClass: "col-12 col-md-3",
               keyField: "id",
               labelField: "name",
             },
@@ -255,7 +257,6 @@ export default function TeoExamReports() {
               options: [{ id: "", name: "Tüm Gruplar" }, ...groups],
               value: filterGrup,
               onChange: (e) => setFilterGrup(e.target.value),
-              colClass: "col-12 col-md-2",
               keyField: "id",
               labelField: "name",
             },
@@ -264,59 +265,71 @@ export default function TeoExamReports() {
               placeholder: "Başlangıç Tarihi",
               value: startDate,
               onChange: (e) => setStartDate(e.target.value),
-              colClass: "col-12 col-md-2",
             },
             {
               type: "date",
               placeholder: "Bitiş Tarihi",
               value: endDate,
               onChange: (e) => setEndDate(e.target.value),
-              colClass: "col-12 col-md-2",
             },
-          ].map((input, idx) => (
-            <div key={idx} className={input.colClass}>
-              {input.type === "select" ? (
-                <select
-                  className="form-select"
-                  value={input.value}
-                  onChange={input.onChange}
-                  style={{
-                    boxShadow: "0 2px 8px rgb(0 51 153 / 0.15)",
-                    borderRadius: "8px",
-                    border: "1px solid #cbd5e0",
-                    transition: "border-color 0.25s ease",
-                  }}
-                  onFocus={(e) => (e.target.style.borderColor = "#003399")}
-                  onBlur={(e) => (e.target.style.borderColor = "#cbd5e0")}
-                >
-                  {input.options.map((opt) => (
-                    <option
-                      key={opt[input.keyField]}
-                      value={opt[input.keyField]}
-                    >
-                      {opt[input.labelField]}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type={input.type}
-                  className="form-control"
-                  placeholder={input.placeholder}
-                  value={input.value}
-                  onChange={input.onChange}
-                  style={{
-                    boxShadow: "0 2px 8px rgb(0 51 153 / 0.15)",
-                    borderRadius: "8px",
-                    border: "1px solid #cbd5e0",
-                    transition: "border-color 0.25s ease",
-                  }}
-                  onFocus={(e) => (e.target.style.borderColor = "#003399")}
-                  onBlur={(e) => (e.target.style.borderColor = "#cbd5e0")}
-                />
-              )}
-            </div>
-          ))}
+          ].map((input, idx) => {
+            // Ekran boyutuna göre kolon sınıfını belirle
+            let colClass = "col-12"; // mobil default
+            if (isTablet) {
+              colClass = "col-6"; // 2 sütun
+            } else if (!isMobile) {
+              // masaüstü
+              if (idx === 0) colClass = "col-12 col-md-3";
+              else if (idx === 1) colClass = "col-12 col-md-3";
+              else if (idx === 2) colClass = "col-12 col-md-2";
+              else colClass = "col-12 col-md-2";
+            }
+
+            return (
+              <div key={idx} className={colClass}>
+                {input.type === "select" ? (
+                  <select
+                    className="form-select"
+                    value={input.value}
+                    onChange={input.onChange}
+                    style={{
+                      boxShadow: "0 2px 8px rgb(0 51 153 / 0.15)",
+                      borderRadius: "8px",
+                      border: "1px solid #cbd5e0",
+                      transition: "border-color 0.25s ease",
+                    }}
+                    onFocus={(e) => (e.target.style.borderColor = "#003399")}
+                    onBlur={(e) => (e.target.style.borderColor = "#cbd5e0")}
+                  >
+                    {input.options.map((opt) => (
+                      <option
+                        key={opt[input.keyField]}
+                        value={opt[input.keyField]}
+                      >
+                        {opt[input.labelField]}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type={input.type}
+                    className="form-control"
+                    placeholder={input.placeholder}
+                    value={input.value}
+                    onChange={input.onChange}
+                    style={{
+                      boxShadow: "0 2px 8px rgb(0 51 153 / 0.15)",
+                      borderRadius: "8px",
+                      border: "1px solid #cbd5e0",
+                      transition: "border-color 0.25s ease",
+                    }}
+                    onFocus={(e) => (e.target.style.borderColor = "#003399")}
+                    onBlur={(e) => (e.target.style.borderColor = "#cbd5e0")}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {selectedIds.length > 0 && (
@@ -401,6 +414,14 @@ export default function TeoExamReports() {
                       <th style={{ padding: "6px 8px" }}>Soyad</th>
                       <th style={{ padding: "6px 8px" }}>Puan</th>
                     </>
+                  ) : isTablet ? (
+                    <>
+                      <th style={{ padding: "6px 8px" }}>Ad</th>
+                      <th style={{ padding: "6px 8px" }}>Soyad</th>
+                      <th style={{ padding: "6px 8px" }}>Puan</th>
+                      <th style={{ padding: "6px 8px" }}>Doğru</th>
+                      <th style={{ padding: "6px 8px" }}>Yanlış</th>
+                    </>
                   ) : (
                     [
                       "Lokasyon",
@@ -452,6 +473,7 @@ export default function TeoExamReports() {
                   )}
                 </tr>
               </thead>
+
               <tbody>
                 {filteredResults.map((result, index) => {
                   const user = result.user || {};
@@ -517,10 +539,26 @@ export default function TeoExamReports() {
                           <td style={{ textAlign: "center" }}>
                             {user.soyad || "-"}
                           </td>
-                          <td
-                            style={{ textAlign: "center", paddingRight: "8px" }}
-                          >
+                          <td style={{ textAlign: "center" }}>
                             {result.score ?? "-"}
+                          </td>
+                        </>
+                      ) : isTablet ? (
+                        <>
+                          <td style={{ textAlign: "center" }}>
+                            {user.ad || user.kullanici_adi || "-"}
+                          </td>
+                          <td style={{ textAlign: "center" }}>
+                            {user.soyad || "-"}
+                          </td>
+                          <td style={{ textAlign: "center" }}>
+                            {result.score ?? "-"}
+                          </td>
+                          <td style={{ textAlign: "center" }}>
+                            {result.true_count ?? "-"}
+                          </td>
+                          <td style={{ textAlign: "center" }}>
+                            {result.false_count ?? "-"}
                           </td>
                         </>
                       ) : (
@@ -604,7 +642,6 @@ export default function TeoExamReports() {
                                   ? "text-success fw-semibold"
                                   : "text-danger fw-semibold"
                               }
-                              style={{ fontWeight: "600" }}
                             >
                               {result.pass ? "Başarılı" : "Başarısız"}
                             </span>

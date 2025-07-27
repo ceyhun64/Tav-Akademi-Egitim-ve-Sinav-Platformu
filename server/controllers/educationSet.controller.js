@@ -25,28 +25,49 @@ exports.createEducationSet = async (req, res) => {
     const {
       name,
       educationIds = [],
-      exam_name,
+      exam_name = null,
       sure_teo,
       sure_img,
-
       passing_score_teo,
       passing_score_img,
       bookletId_teo,
       bookletId_img,
-      method,
+      method = null,
     } = req.body;
+
+    // Sayısal alanlar boş veya geçersiz ise null yap
+    const sureTeoVal =
+      sure_teo && !isNaN(Number(sure_teo)) ? Number(sure_teo) : null;
+    const sureImgVal =
+      sure_img && !isNaN(Number(sure_img)) ? Number(sure_img) : null;
+    const passingScoreTeoVal =
+      passing_score_teo && !isNaN(Number(passing_score_teo))
+        ? Number(passing_score_teo)
+        : null;
+    const passingScoreImgVal =
+      passing_score_img && !isNaN(Number(passing_score_img))
+        ? Number(passing_score_img)
+        : null;
+    const bookletIdTeoVal =
+      bookletId_teo && !isNaN(Number(bookletId_teo))
+        ? Number(bookletId_teo)
+        : null;
+    const bookletIdImgVal =
+      bookletId_img && !isNaN(Number(bookletId_img))
+        ? Number(bookletId_img)
+        : null;
 
     // Eğitim seti oluştur
     const educationSet = await EducationSet.create({
       name,
-      exam_name,
-      sure_teo,
-      sure_img,
-      passing_score_teo,
-      passing_score_img,
-      bookletId_teo,
-      bookletId_img,
-      method,
+      exam_name: exam_name || null,
+      sure_teo: sureTeoVal,
+      sure_img: sureImgVal,
+      passing_score_teo: passingScoreTeoVal,
+      passing_score_img: passingScoreImgVal,
+      bookletId_teo: bookletIdTeoVal,
+      bookletId_img: bookletIdImgVal,
+      method: method || null,
       educationExam: 1,
     });
 
@@ -398,16 +419,14 @@ exports.getEducationSetById = async (req, res) => {
       where: { id: { [Op.in]: userIds } },
     });
 
-    res
-      .status(200)
-      .json({
-        imgExams,
-        teoExams,
-        educations,
-        users,
-        educationSet,
-        educationSetUser,
-      });
+    res.status(200).json({
+      imgExams,
+      teoExams,
+      educations,
+      users,
+      educationSet,
+      educationSetUser,
+    });
   } catch (error) {
     console.error("Eğitim seti detayı getirme hatası:", error);
     res

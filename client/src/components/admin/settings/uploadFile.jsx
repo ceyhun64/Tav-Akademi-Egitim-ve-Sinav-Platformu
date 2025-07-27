@@ -57,7 +57,7 @@ export default function UploadFile() {
   };
 
   // Silme butonu tıklandığında seçilen id'leri gönder
-  const handleDelete =async () => {
+  const handleDelete = async () => {
     if (selectedFileIds.length === 0) {
       alert("Lütfen silmek için dosya seçin.");
       return;
@@ -70,11 +70,19 @@ export default function UploadFile() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(
+    window.innerWidth >= 768 && window.innerWidth < 1350
+  );
+
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1350);
+      if (width >= 768) {
+        setSidebarOpen(true); // büyük ekranlarda sidebar açık
+      } else {
+        setSidebarOpen(false); // mobil/tablette kapalı
       }
     };
 
@@ -84,9 +92,8 @@ export default function UploadFile() {
 
   useEffect(() => {
     // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
-    setSidebarOpen(!isMobile);
-  }, [isMobile]);
-  const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
+    setSidebarOpen(!isMobile && !isTablet);
+  }, [isMobile, isTablet]);
 
   return (
     <div
@@ -102,18 +109,20 @@ export default function UploadFile() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
       >
         <Sidebar />
       </div>
-
       {/* Ana İçerik */}
       <div
         className="poolImg-content"
-        style={{ marginLeft: isMobile ? "0px" : "260px" }}
+        style={{
+          marginLeft: sidebarOpen ? 260 : 0,
+          padding: "1rem",
+          transition: "margin-left 0.3s ease",
+        }}
       >
         <div
           style={{
@@ -121,18 +130,22 @@ export default function UploadFile() {
             justifyContent: "space-between",
             alignItems: "center",
             marginBottom: "2.5rem",
+            flexWrap: isMobile ? "wrap" : "nowrap",
+            gap: isMobile ? "1rem" : "0",
           }}
         >
           <h1
             className="mb-4 mt-2 ms-5"
             style={{
               color: "#003399",
-              fontSize: "28px",
+              fontSize: isMobile ? "22px" : "28px",
               fontWeight: "700",
               display: "flex",
               alignItems: "center",
               gap: "0.6rem",
               userSelect: "none",
+              flexGrow: 1,
+              whiteSpace: "nowrap",
             }}
           >
             {!isMobile && (
@@ -142,37 +155,39 @@ export default function UploadFile() {
               ></i>
             )}
             Dosya Yükleme İşlemleri
-            <button
-              onClick={() => window.history.back()}
-              style={{
-                marginLeft: isMobile ? "auto" : "30px",
-                backgroundColor: "#001b66",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                padding: "6px 16px", // padding yatay biraz artırıldı
-                cursor: "pointer",
-                fontSize: "1rem",
-                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
-              }}
-            >
-              Geri Dön
-            </button>
           </h1>
+          <button
+            onClick={() => window.history.back()}
+            style={{
+              backgroundColor: "#001b66",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              padding: "6px 16px",
+              cursor: "pointer",
+              fontSize: "1rem",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+              alignSelf: isMobile ? "stretch" : "auto",
+              width: isMobile ? "100%" : "auto",
+            }}
+          >
+            Geri Dön
+          </button>
         </div>
+
         <div
           className="card shadow-sm"
           style={{
-            maxWidth: "1200px", // genişliği artırdım
-            width: "1100px", // genişliği tam ekran yapıyor
-            margin: "0 auto", // ortaya hizalama
-            borderRadius: "16px", // biraz daha yuvarlak köşeler
-            padding: "2rem", // içerik için padding artırıldı
-            boxShadow: "0 8px 20px rgba(0, 51, 153, 0.15)", // daha belirgin gölge
+            maxWidth: isMobile || isTablet ? "100%" : "1200px",
+            width: isMobile || isTablet ? "100%" : "1100px",
+            margin: "0 auto",
+            borderRadius: "16px",
+            padding: isMobile ? "1rem" : "2rem",
+            boxShadow: "0 8px 20px rgba(0, 51, 153, 0.15)",
             backgroundColor: "#fff",
           }}
         >
-          {" "}
           <div className="card-body">
             <h4 className="card-title mb-4">Dosya Yükle</h4>
             <form onSubmit={handleSubmit}>
@@ -212,8 +227,9 @@ export default function UploadFile() {
 
                 <button
                   type="submit"
-                  className="btn btn-primary w-100"
+                  className="btn btn-primary "
                   disabled={loading}
+                  style={{ fontSize: isMobile ? "0.9rem" : "1rem" }}
                 >
                   {loading ? (
                     <>
@@ -236,16 +252,15 @@ export default function UploadFile() {
         <div
           className="card shadow-sm mt-4"
           style={{
-            maxWidth: "1200px", // genişliği artırdım
-            width: "1100px", // genişliği tam ekran yapıyor
-            margin: "0 auto", // ortaya hizalama
-            borderRadius: "16px", // biraz daha yuvarlak köşeler
-            padding: "2rem", // içerik için padding artırıldı
-            boxShadow: "0 8px 20px rgba(0, 51, 153, 0.15)", // daha belirgin gölge
+            maxWidth: isMobile || isTablet ? "100%" : "1200px",
+            width: isMobile || isTablet ? "100%" : "1100px",
+            margin: "0 auto",
+            borderRadius: "16px",
+            padding: isMobile ? "1rem" : "2rem",
+            boxShadow: "0 8px 20px rgba(0, 51, 153, 0.15)",
             backgroundColor: "#fff",
           }}
         >
-          {" "}
           <div className="card-body">
             <div
               style={{

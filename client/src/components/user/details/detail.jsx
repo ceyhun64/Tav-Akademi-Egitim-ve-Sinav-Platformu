@@ -6,7 +6,6 @@ import { getUserDetailsThunk } from "../../../features/thunks/userThunk";
 export default function Detail() {
   const dispatch = useDispatch();
   const { user, isLoading, error } = useSelector((state) => state.user);
-  console.log(user);
 
   useEffect(() => {
     dispatch(getUserDetailsThunk());

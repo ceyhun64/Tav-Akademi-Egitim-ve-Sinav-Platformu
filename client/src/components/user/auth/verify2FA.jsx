@@ -14,7 +14,6 @@ export default function VerifyCode() {
   const location = useLocation();
 
   const userId = location.state?.userId;
-  console.log("userId:", userId); 
 
   const { alert, loading } = useSelector((state) => state.auth);
 

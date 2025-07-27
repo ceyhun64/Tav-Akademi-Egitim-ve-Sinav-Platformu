@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { registerThunk } from "../../../features/thunks/authThunk";
 import {
@@ -28,6 +28,7 @@ import {
 export default function Register() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation(); // Burayı ekleyin
 
   const initialFormData = {
     roleId: "",
@@ -53,6 +54,14 @@ export default function Register() {
   const [formData, setFormData] = useState(initialFormData);
   const [selectedPers, setSelectedPers] = useState(null);
   const [formErrors, setFormErrors] = useState({});
+
+  // Resim input'unu referans almak için useRef kullanın
+  const imageInputRef = useRef(null);
+
+  // --- Yeni eklenen durumlar ---
+  const [usernameAvailability, setUsernameAvailability] = useState(null); // 'checking', 'available', 'taken', 'error'
+  const [typingTimeout, setTypingTimeout] = useState(null);
+  // --- Yeni eklenen durumlar sonu ---
 
   useEffect(() => {
     dispatch(getGroupsThunk());
@@ -83,6 +92,7 @@ export default function Register() {
       ilce: "", // ilçe sıfırlanıyor
     }));
     // districts artık otomatik güncellenecek, burada setDistricts'e gerek yok
+    validateField("il", selectedProvinceValue); // Validate on change
   };
 
   //ilçe seçimi
@@ -91,6 +101,7 @@ export default function Register() {
       ...prev,
       ilce: Number(e.target.value),
     }));
+    validateField("ilce", Number(e.target.value)); // Validate on change
   };
 
   useEffect(() => {
@@ -113,7 +124,6 @@ export default function Register() {
     dispatch(getAllUsersThunk());
   }, [dispatch]);
 
-  // Seçilen kullanıcı detayları formu güncelleyelim
   // Seçilen kullanıcı detayları formu güncelleyelim
   useEffect(() => {
     if (selectedUser) {
@@ -142,277 +152,220 @@ export default function Register() {
         imagePreview: selectedUser.image || null,
         roleId: selectedUser.roleId || "",
       }));
+      // Kullanıcı güncellenirken kullanıcı adı uygunluğunu sıfırla veya mevcut kullanıcı adını kontrol etme
+      setUsernameAvailability(null);
+      clearTimeout(typingTimeout);
     } else {
       setFormData(initialFormData);
       setSelectedPers(null);
       setFormErrors({});
+      setUsernameAvailability(null); // Yeni kullanıcı eklerken uygunluk durumunu sıfırla
+      clearTimeout(typingTimeout); // Timeout'u temizle
+      // Kullanıcı seçimi kalktığında veya yeni kullanıcı eklenirken input'u temizle
+      if (imageInputRef.current) {
+        imageInputRef.current.value = "";
+      }
     }
   }, [selectedUser]);
 
-  const validateField = (name, value) => {
-    let errors = { ...formErrors };
-    const nameSurnameRegex = /^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]+$/;
-
-    switch (name) {
-      case "tcno":
-        if (!value) errors.tcno = "T.C. Kimlik No zorunludur.";
-        else if (value.length !== 11)
-          errors.tcno = "T.C. Kimlik No 11 karakter olmalıdır.";
-        else if (value.startsWith("0"))
-          errors.tcno = "T.C. Kimlik No sıfır ile başlayamaz.";
-        else if (isNaN(value))
-          errors.tcno = "T.C. Kimlik No sadece rakamlardan oluşmalıdır.";
-        else delete errors.tcno;
-        break;
-
-      case "sicil":
-        if (!value) errors.sicil = "Sicil No zorunludur.";
-        else if (value.length < 4 || value.length > 11)
-          errors.sicil = "Sicil No 4-11 karakter arasında olmalı.";
-        else if (isNaN(value))
-          errors.sicil = "Sicil No sadece rakamlardan oluşmalıdır.";
-        else delete errors.sicil;
-        break;
-
-      case "telefon":
-        if (!value) errors.telefon = "Telefon numarası zorunludur.";
-        else if (!/^\d{3}-\d{3}-\d{4}$/.test(value))
-          errors.telefon = "Telefon formatı 555-555-5555 şeklinde olmalıdır.";
-        else delete errors.telefon;
-        break;
-
-      case "email":
-        if (!value) errors.email = "E-posta zorunludur.";
-        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
-          errors.email = "Geçerli bir e-posta giriniz.";
-        else delete errors.email;
-        break;
-
-      case "ad":
-        if (!value) errors.ad = "Ad zorunludur.";
-        else if (!nameSurnameRegex.test(value))
-          errors.ad = "Ad sadece harf ve boşluk içermelidir.";
-        else delete errors.ad;
-        break;
-      case "soyad":
-        if (!value) errors.soyad = "Soyad zorunludur.";
-        else if (!nameSurnameRegex.test(value))
-          errors.soyad = "Soyad sadece harf ve boşluk içermelidir.";
-        else delete errors.soyad;
-        break;
-      case "kullanici_adi":
-        if (!value) errors.kullanici_adi = "Kullanıcı Adı zorunludur.";
-        else delete errors.kullanici_adi;
-        break;
-      case "sifre":
-        if (!selectedPers && !value) {
-          errors.sifre = "Şifre zorunludur.";
-        } else if (value && !validatePassword(value)) {
-          errors.sifre =
-            "Şifre en az 8 karakter olmalı, büyük/küçük harf, rakam ve özel karakter içermelidir.";
-        } else {
-          delete errors.sifre;
-        }
-        break;
-      case "roleId":
-        if (!value) errors.roleId = "Rol seçimi zorunludur.";
-        else delete errors.roleId;
-        break;
-      case "grupId":
-        if (!value) errors.grupId = "Grup seçimi zorunludur.";
-        else delete errors.grupId;
-        break;
-      case "lokasyonId":
-        if (!value) errors.lokasyonId = "Lokasyon seçimi zorunludur.";
-        else delete errors.lokasyonId;
-        break;
-      case "il":
-        if (!value) errors.il = "İl seçimi zorunludur.";
-        else delete errors.il;
-        break;
-      case "ilce":
-        if (!value) errors.ilce = "İlçe seçimi zorunludur.";
-        else delete errors.ilce;
-        break;
-      case "ise_giris_tarihi":
-        if (!value) errors.ise_giris_tarihi = "İşe giriş tarihi zorunludur.";
-        else delete errors.ise_giris_tarihi;
-        break;
-      case "cinsiyet":
-        if (!value) errors.cinsiyet = "Cinsiyet seçimi zorunludur.";
-        else delete errors.cinsiyet;
-        break;
-      case "adres":
-        if (!value) errors.adres = "Adres zorunludur.";
-        else delete errors.adres;
-        break;
-
-      default:
-        break;
-    }
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const validateForm = () => {
+  // --- All Validation Logic Consolidated Here ---
+  const validateAllFields = (dataToValidate) => {
     let errors = {};
-    let isValid = true;
-
     const nameSurnameRegex = /^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]+$/;
 
-    for (const key in formData) {
-      if (Object.prototype.hasOwnProperty.call(formData, key)) {
-        if (key === "image" || key === "imagePreview") continue;
-
-        if (selectedPers && key === "sifre" && !formData[key]) {
-          continue;
-        }
-
-        switch (key) {
-          case "tcno":
-            if (!formData.tcno) {
-              errors.tcno = "T.C. Kimlik No zorunludur.";
-              isValid = false;
-            } else if (formData.tcno.length !== 11) {
-              errors.tcno = "T.C. Kimlik No 11 karakter olmalıdır.";
-              isValid = false;
-            } else if (formData.tcno.startsWith("0")) {
-              errors.tcno = "T.C. Kimlik No sıfır ile başlayamaz.";
-              isValid = false;
-            } else if (isNaN(formData.tcno)) {
-              errors.tcno = "T.C. Kimlik No sadece rakamlardan oluşmalıdır.";
-              isValid = false;
-            }
-            break;
-          case "sicil":
-            if (!formData.sicil) {
-              errors.sicil = "Sicil No zorunludur.";
-              isValid = false;
-            } else if (
-              formData.sicil.length < 4 ||
-              formData.sicil.length > 11
-            ) {
-              errors.sicil = "Sicil No 4-11 karakter arasında olmalı.";
-              isValid = false;
-            } else if (isNaN(formData.sicil)) {
-              errors.sicil = "Sicil No sadece rakamlardan oluşmalıdır.";
-              isValid = false;
-            }
-            break;
-          case "telefon":
-            if (!formData.telefon) {
-              errors.telefon = "Telefon numarası zorunludur.";
-              isValid = false;
-            } else if (!/^\d{3}-\d{3}-\d{4}$/.test(formData.telefon)) {
-              errors.telefon =
-                "Telefon formatı 555-555-5555 şeklinde olmalıdır.";
-              isValid = false;
-            }
-            break;
-          case "email":
-            if (!formData.email) {
-              errors.email = "E-posta zorunludur.";
-              isValid = false;
-            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-              errors.email = "Geçerli bir e-posta giriniz.";
-              isValid = false;
-            }
-            break;
-          case "ad":
-            if (!formData.ad) {
-              errors.ad = "Ad zorunludur.";
-              isValid = false;
-            } else if (!nameSurnameRegex.test(formData.ad)) {
-              errors.ad = "Ad sadece harf ve boşluk içermelidir.";
-              isValid = false;
-            }
-            break;
-          case "soyad":
-            if (!formData.soyad) {
-              errors.soyad = "Soyad zorunludur.";
-              isValid = false;
-            } else if (!nameSurnameRegex.test(formData.soyad)) {
-              errors.soyad = "Soyad sadece harf ve boşluk içermelidir.";
-              isValid = false;
-            }
-            break;
-          case "kullanici_adi":
-            if (!formData.kullanici_adi) {
-              errors.kullanici_adi = "Kullanıcı Adı zorunludur.";
-              isValid = false;
-            }
-            break;
-          case "sifre":
-            if (!selectedPers && !formData.sifre) {
-              errors.sifre = "Şifre zorunludur.";
-              isValid = false;
-            } else if (formData.sifre && !validatePassword(formData.sifre)) {
-              errors.sifre =
-                "Şifre en az 8 karakter olmalı, büyük/küçük harf, rakam ve özel karakter içermelidir.";
-              isValid = false;
-            }
-            break;
-          case "roleId":
-            if (!formData.roleId) {
-              errors.roleId = "Rol seçimi zorunludur.";
-              isValid = false;
-            }
-            break;
-          case "grupId":
-            if (!formData.grupId) {
-              errors.grupId = "Grup seçimi zorunludur.";
-              isValid = false;
-            }
-            break;
-          case "lokasyonId":
-            if (!formData.lokasyonId) {
-              errors.lokasyonId = "Lokasyon seçimi zorunludur.";
-              isValid = false;
-            }
-            break;
-          case "il":
-            if (!formData.il) {
-              errors.il = "İl seçimi zorunludur.";
-              isValid = false;
-            }
-            break;
-          case "ilce":
-            if (!formData.ilce) {
-              errors.ilce = "İlçe seçimi zorunludur.";
-              isValid = false;
-            }
-            break;
-          case "ise_giris_tarihi":
-            if (!formData.ise_giris_tarihi) {
-              errors.ise_giris_tarihi = "İşe giriş tarihi zorunludur.";
-              isValid = false;
-            }
-            break;
-          case "cinsiyet":
-            if (!formData.cinsiyet) {
-              errors.cinsiyet = "Cinsiyet seçimi zorunludur.";
-              isValid = false;
-            }
-            break;
-          case "adres":
-            if (!formData.adres) {
-              errors.adres = "Adres zorunludur.";
-              isValid = false;
-            }
-            break;
-          default:
-            break;
-        }
-      }
+    // TC Kimlik No
+    if (!dataToValidate.tcno) {
+      errors.tcno = "T.C. Kimlik No zorunludur.";
+    } else if (dataToValidate.tcno.length !== 11) {
+      errors.tcno = "T.C. Kimlik No 11 karakter olmalıdır.";
+    } else if (dataToValidate.tcno.startsWith("0")) {
+      errors.tcno = "T.C. Kimlik No sıfır ile başlayamaz.";
+    } else if (isNaN(dataToValidate.tcno)) {
+      errors.tcno = "T.C. Kimlik No sadece rakamlardan oluşmalıdır.";
     }
-    setFormErrors(errors);
-    return isValid;
+
+    // Sicil No
+    if (!dataToValidate.sicil) {
+      errors.sicil = "Sicil No zorunludur.";
+    } else if (
+      dataToValidate.sicil.length < 4 ||
+      dataToValidate.sicil.length > 11
+    ) {
+      errors.sicil = "Sicil No 4-11 karakter arasında olmalı.";
+    } else if (isNaN(dataToValidate.sicil)) {
+      errors.sicil = "Sicil No sadece rakamlardan oluşmalıdır.";
+    }
+
+    // E-posta
+    if (!dataToValidate.email) {
+      errors.email = "E-posta zorunludur.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dataToValidate.email)) {
+      errors.email = "Geçerli bir e-posta giriniz.";
+    }
+
+    // Ad
+    if (!dataToValidate.ad) {
+      errors.ad = "Ad zorunludur.";
+    } else if (!nameSurnameRegex.test(dataToValidate.ad)) {
+      errors.ad = "Ad sadece harf ve boşluk içermelidir.";
+    } else if (dataToValidate.ad.length < 2 || dataToValidate.ad.length > 15) {
+      errors.ad = `Ad 2-15 karakter arasında olmalıdır.`;
+    }
+
+    // Soyad
+    if (!dataToValidate.soyad) {
+      errors.soyad = "Soyad zorunludur.";
+    } else if (!nameSurnameRegex.test(dataToValidate.soyad)) {
+      errors.soyad = "Soyad sadece harf ve boşluk içermelidir.";
+    } else if (
+      dataToValidate.soyad.length < 2 ||
+      dataToValidate.soyad.length > 15
+    ) {
+      errors.soyad = `Soyad 2-15 karakter arasında olmalıdır.`;
+    }
+
+    // Kullanıcı Adı
+    if (!dataToValidate.kullanici_adi) {
+      errors.kullanici_adi = "Kullanıcı Adı zorunludur.";
+    } else if (
+      dataToValidate.kullanici_adi.length < 2 ||
+      dataToValidate.kullanici_adi.length > 15
+    ) {
+      errors.kullanici_adi = `Kullanıcı adı 2-15 karakter arasında olmalıdır.`;
+    } else if (
+      usernameAvailability === "taken" &&
+      !(
+        selectedPers &&
+        dataToValidate.kullanici_adi === selectedPers.kullanici_adi
+      )
+    ) {
+      errors.kullanici_adi = "Bu kullanıcı adı zaten sistemde kayıtlı.";
+    } else if (usernameAvailability === "checking") {
+      errors.kullanici_adi = "Kullanıcı adı uygunluk kontrolü devam ediyor.";
+    }
+
+    // Şifre (Sadece yeni kullanıcı eklenirken veya mevcut kullanıcı şifresini değiştirirken zorunlu)
+    if (!selectedPers && !dataToValidate.sifre) {
+      errors.sifre = "Şifre zorunludur.";
+    } else if (
+      dataToValidate.sifre &&
+      !validatePassword(dataToValidate.sifre)
+    ) {
+      errors.sifre =
+        "Şifre en az 8 karakter olmalı, büyük/küçük harf, rakam ve özel karakter içermelidir.";
+    }
+
+    // Rol Seçimi
+    if (!dataToValidate.roleId) {
+      errors.roleId = "Rol seçimi zorunludur.";
+    }
+
+    // Grup Seçimi
+    if (!dataToValidate.grupId) {
+      errors.grupId = "Grup seçimi zorunludur.";
+    }
+
+    // Lokasyon Seçimi
+    if (!dataToValidate.lokasyonId) {
+      errors.lokasyonId = "Lokasyon seçimi zorunludur.";
+    }
+
+    // İl Seçimi
+    if (!dataToValidate.il) {
+      errors.il = "İl seçimi zorunludur.";
+    }
+
+    // İlçe Seçimi
+    if (!dataToValidate.ilce) {
+      errors.ilce = "İlçe seçimi zorunludur.";
+    }
+
+    // İşe Giriş Tarihi
+    if (!dataToValidate.ise_giris_tarihi) {
+      errors.ise_giris_tarihi = "İşe giriş tarihi zorunludur.";
+    }
+
+    // Telefon
+    if (!dataToValidate.telefon) {
+      errors.telefon = "Telefon numarası zorunludur.";
+    } else if (!/^\d{3}-\d{3}-\d{4}$/.test(dataToValidate.telefon)) {
+      errors.telefon = "Telefon formatı 555-555-5555 şeklinde olmalıdır.";
+    }
+
+    // Cinsiyet
+    if (!dataToValidate.cinsiyet) {
+      errors.cinsiyet = "Cinsiyet seçimi zorunludur.";
+    }
+
+    // Adres
+    if (!dataToValidate.adres) {
+      errors.adres = "Adres zorunludur.";
+    }
+
+    return errors;
   };
+
+  const validateField = (name, value) => {
+    // This function will now call validateAllFields for the current formData state
+    // and then specifically update the error for the changed field.
+    const allErrors = validateAllFields({ ...formData, [name]: value });
+    setFormErrors(allErrors); // This will update all errors based on the current state + the field being validated
+    return !allErrors[name]; // Return true if there's no error for the specific field
+  };
+
+  // --- Kullanıcı adı uygunluk kontrolü fonksiyonu ---
+  const checkUsernameAvailability = async (username) => {
+    // If in edit mode and username hasn't changed, no need to check
+    if (selectedPers && selectedPers.kullanici_adi === username) {
+      setUsernameAvailability("available");
+      setFormErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.kullanici_adi;
+        return newErrors;
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/users/check-username?username=${username}`
+      ); // API yolunuzu düzenleyin
+      const data = await response.json();
+
+      if (response.ok) {
+        if (data.exists) {
+          setUsernameAvailability("taken");
+          setFormErrors((prev) => ({
+            ...prev,
+            kullanici_adi: "Bu kullanıcı adı zaten sistemde kayıtlı.",
+          }));
+        } else {
+          setUsernameAvailability("available");
+          setFormErrors((prev) => {
+            const newErrors = { ...prev };
+            delete newErrors.kullanici_adi;
+            return newErrors;
+          });
+        }
+      } else {
+        // API'den hata döndüğünde
+        setUsernameAvailability("error");
+      }
+    } catch (error) {
+      console.error("Kullanıcı adı uygunluk kontrolü başarısız:", error);
+      setUsernameAvailability("error");
+      setFormErrors((prev) => ({
+        ...prev,
+        kullanici_adi: "Kullanıcı adı kontrol edilirken bir hata oluştu.",
+      }));
+    }
+  };
+  // --- Kullanıcı adı uygunluk kontrolü fonksiyonu sonu ---
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
+    let newValue = value;
     if (name === "telefon") {
       let formatted = value.replace(/\D/g, "").substring(0, 10);
       if (formatted.length > 3 && formatted.length <= 6) {
@@ -420,12 +373,35 @@ export default function Register() {
       } else if (formatted.length > 6) {
         formatted = formatted.replace(/(\d{3})(\d{3})(\d+)/, "$1-$2-$3");
       }
-      setFormData((prev) => ({ ...prev, [name]: formatted }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      newValue = formatted;
     }
+    setFormData((prev) => ({ ...prev, [name]: newValue }));
 
-    validateField(name, value);
+    // --- Kullanıcı adı için eklenen kod ---
+    if (name === "kullanici_adi") {
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+      }
+
+      if (newValue.length > 0) {
+        setUsernameAvailability("checking"); // Indicate that a check is in progress
+        const newTimeout = setTimeout(() => {
+          checkUsernameAvailability(newValue);
+        }, 500); // 500ms debounce
+        setTypingTimeout(newTimeout);
+      } else {
+        setUsernameAvailability(null); // Reset status if username is empty
+        setFormErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.kullanici_adi; // Clear error message too
+          return newErrors;
+        });
+      }
+    }
+    // --- Kullanıcı adı için eklenen kod sonu ---
+
+    // Validate the changed field immediately (will trigger a re-validation of all fields)
+    validateField(name, newValue);
   };
 
   const handleGuncelleClick = async () => {
@@ -448,19 +424,57 @@ export default function Register() {
         }));
       };
       reader.readAsDataURL(file);
+    } else {
+      // Eğer dosya seçimi iptal edilirse veya dosya yoksa, preview'i temizle
+      setFormData((prev) => ({
+        ...prev,
+        image: null,
+        imagePreview: null,
+      }));
     }
   };
 
-  const handleSubmit = (e) => {
+  // Yeni fonksiyon: Resmi silme
+  const handleRemoveImage = () => {
+    setFormData((prev) => ({
+      ...prev,
+      image: null,
+      imagePreview: null,
+    }));
+    // input elementinin value'sini sıfırlayarak aynı dosyanın tekrar seçilmesini sağlarız
+    if (imageInputRef.current) {
+      imageInputRef.current.value = "";
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const isValid = validateForm();
+    const errors = validateAllFields(formData); // Validate all fields on submit
+    setFormErrors(errors); // Update formErrors state
 
-    if (!isValid) {
-      const errorMessages = Object.values(formErrors)
+    if (Object.keys(errors).length > 0) {
+      const errorMessages = Object.values(errors)
         .filter((msg) => msg)
         .join("\n");
       window.alert("Lütfen aşağıdaki hataları düzeltin:\n" + errorMessages);
+      return;
+    }
+
+    // Final check for username availability before submission
+    if (usernameAvailability === "checking") {
+      window.alert(
+        "Kullanıcı adı uygunluk kontrolü devam ediyor. Lütfen bekleyin."
+      );
+      return;
+    }
+    if (
+      usernameAvailability === "taken" &&
+      !(selectedPers && formData.kullanici_adi === selectedPers.kullanici_adi)
+    ) {
+      window.alert(
+        "Bu kullanıcı adı zaten sistemde kayıtlı. Lütfen farklı bir kullanıcı adı seçin."
+      );
       return;
     }
 
@@ -506,7 +520,16 @@ export default function Register() {
         }
       }
 
-      if (!hasChanges && !formData.image) {
+      if (selectedPers.image && formData.imagePreview === null) {
+        data.append("deleteImage", "true");
+        hasChanges = true;
+      }
+
+      if (
+        !hasChanges &&
+        !formData.image &&
+        !(selectedPers.image && formData.imagePreview === null)
+      ) {
         window.alert("Herhangi bir değişiklik yapılmadı.");
         return;
       }
@@ -515,10 +538,22 @@ export default function Register() {
         .unwrap()
         .then(() => {
           window.alert("Kullanıcı güncellendi");
+
           dispatch(getAllUsersThunk());
-          dispatch({ type: "user/setSelectedUser", payload: null });
+
+          // Burada formu sıfırla ve tekrar kayıt moduna geç
+          setSelectedPers(null);
+          setFormData(initialFormData);
+          setFormErrors({});
+          setUsernameAvailability(null);
+          if (imageInputRef.current) {
+            imageInputRef.current.value = "";
+          }
         })
-        .catch((err) => window.alert("Güncelleme başarısız: " + err.message));
+        .catch((err) => {
+          const errorMessage = err.message || "Güncelleme başarısız.";
+          window.alert("Güncelleme başarısız: " + errorMessage);
+        });
     } else {
       Object.entries(formData).forEach(([key, value]) => {
         if (key !== "imagePreview" && key !== "image") {
@@ -535,15 +570,21 @@ export default function Register() {
           dispatch(getAllUsersThunk());
           setFormData(initialFormData);
           setFormErrors({});
+          setUsernameAvailability(null); // Reset status after successful registration
+          if (imageInputRef.current) {
+            imageInputRef.current.value = "";
+          }
         })
-        .catch((err) => window.alert("Kayıt başarısız: " + err.message));
+        .catch((err) => {
+          const errorMessage = err.message || "Kayıt başarısız.";
+          window.alert("Kayıt başarısız: " + errorMessage);
+        });
     }
   };
 
   const handleUserClick = async (id) => {
     try {
       const userDetails = await dispatch(getUserDetailsThunk(id)).unwrap();
-      console.log("Seçilen kullanıcı:", userDetails);
     } catch (error) {
       console.error("Kullanıcı detayları alınamadı:", error);
     }
@@ -588,7 +629,6 @@ export default function Register() {
     }
 
     try {
-      console.log("Seçilen kullanıcılar:", selectedUserIds);
       await dispatch(deleteUsersThunk(selectedUserIds)).unwrap();
       setSelectedUserIds([]);
       dispatch(getAllUsersThunk());
@@ -601,10 +641,11 @@ export default function Register() {
     sicil: "",
     ad: "",
     soyad: "",
-    lokasyon: "",
-    grup: "",
+    lokasyonId: "",
+    grupId: "",
     il: "",
     ilce: "",
+    kullanici_adi: "", // Kullanıcı adı filtresini ekledik
   });
 
   const handleFilterChange = (e) => {
@@ -616,22 +657,32 @@ export default function Register() {
   };
 
   const filteredUsers = users.filter((user) => {
+    const userIl = user.il ? String(user.il) : "";
+    const userIlce = user.ilce ? String(user.ilce) : "";
+    const filterIl = filters.il ? String(filters.il) : "";
+    const filterIlce = filters.ilce ? String(filters.ilce) : "";
+
     return (
       (!filters.sicil || user.sicil?.includes(filters.sicil)) &&
       (!filters.ad ||
         user.ad?.toLowerCase().includes(filters.ad.toLowerCase())) &&
       (!filters.soyad ||
         user.soyad?.toLowerCase().includes(filters.soyad.toLowerCase())) &&
-      (!filters.lokasyon || user.lokasyon === filters.lokasyon) &&
-      (!filters.grup || user.grup === filters.grup) &&
-      (!filters.il || user.il === filters.il) &&
-      (!filters.ilce || user.ilce === filters.ilce)
+      (!filters.lokasyonId || user.lokasyonId === Number(filters.lokasyonId)) &&
+      (!filters.grupId || user.grupId === Number(filters.grupId)) &&
+      (!filterIl || userIl === filterIl) &&
+      (!filterIlce || userIlce === filterIlce) &&
+      (!filters.kullanici_adi ||
+        user.kullanici_adi
+          ?.toLowerCase()
+          .includes(filters.kullanici_adi.toLowerCase()))
     );
   });
+
   const itemsPerPage = 50;
   const [currentPage, setCurrentPage] = useState(1);
 
-  const limitedUsers = filteredUsers.slice(0, 50);
+  const limitedUsers = filteredUsers.slice(0, 50); // This line effectively limits the *total* filtered users to 50 before pagination
   const totalPages = Math.ceil(limitedUsers.length / itemsPerPage);
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -639,18 +690,41 @@ export default function Register() {
   const currentUsers = limitedUsers.slice(indexOfFirstItem, indexOfLastItem);
 
   const uniqueValues = {
-    lokasyon: [...new Set(users.map((u) => u.lokasyon).filter(Boolean))],
-    grup: [...new Set(users.map((u) => u.grup).filter(Boolean))],
+    lokasyonId: [...new Set(users.map((u) => u.lokasyonId).filter(Boolean))],
+    grupId: [...new Set(users.map((u) => u.grupId).filter(Boolean))],
     il: [...new Set(users.map((u) => u.il).filter(Boolean))],
     ilce: [...new Set(users.map((u) => u.ilce).filter(Boolean))],
   };
+
+  const [isTablet, setIsTablet] = useState(false); // 768px - 1200px
+  const TABLET_BREAKPOINT = 1000;
+  const DESKTOP_BREAKPOINT = 1350;
+
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < TABLET_BREAKPOINT);
+      setIsTablet(width >= TABLET_BREAKPOINT && width < DESKTOP_BREAKPOINT);
+      // Büyük ekranda sidebar açık kalsın, küçükte kapalı
+      setSidebarOpen(width >= TABLET_BREAKPOINT); // Tablet ve masaüstünde açık
+    };
+
+    handleResize(); // İlk render'da boyutları ayarla
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
+
+  // content-columns için grid şablonunu belirleme
+  const gridTemplateColumnsStyle = isMobile || isTablet ? "1fr" : "2fr 1fr";
 
   function validatePassword(password) {
     const lengthCheck = password.length >= 8;
     const upperCheck = /[A-Z]/.test(password);
     const lowerCheck = /[a-z]/.test(password);
     const digitCheck = /\d/.test(password);
-    const specialCheck = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    const specialCheck = /[!@#$%^&*(),.?":{}|<>+-]/.test(password); // + eklendi
 
     return (
       lengthCheck && upperCheck && lowerCheck && digitCheck && specialCheck
@@ -703,7 +777,6 @@ export default function Register() {
     }
 
     try {
-      console.log("Seçilen kullanıcılar:", selectedUserIds);
       await dispatch(
         aktifPasifUserThunk({ userIds: selectedUserIds, durum })
       ).unwrap();
@@ -727,6 +800,23 @@ export default function Register() {
       });
     }
   };
+
+  const handleClearAllInputs = () => {
+    setFormData(initialFormData); // Tüm form verilerini başlangıç durumuna sıfırla
+    setShowPassword(false); // Şifre görünürlüğünü kapat
+    // Eğer bir dosya input'u kullanıyorsanız, değerini manuel olarak sıfırlamanız gerekebilir:
+    const fileInput = document.getElementById("image");
+    if (fileInput) {
+      fileInput.value = "";
+    }
+    // Eğer bir kullanıcı seçiliyse ve formu temizlerken seçimi de kaldırmak istiyorsanız:
+    // setSelectedUser(null); // Seçili kullanıcıyı kaldır (varsa)
+  };
+  useEffect(() => {
+    // Bu useEffect, component yüklendiğinde ve location.pathname değiştiğinde çalışır
+    // Yani, başka bir sayfadan bu sayfaya dönüldüğünde tetiklenir
+    handleClearAllInputs();
+  }, [location.pathname]); // Bağımlılık olarak location.pathname'i verin
   return (
     <div
       className="register-container"
@@ -751,7 +841,6 @@ export default function Register() {
           top: 0,
           backgroundColor: "#001b66",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 10,
           transition: "left 0.3s ease", // 👈 geçiş efekti
@@ -784,6 +873,9 @@ export default function Register() {
             margin: "0 auto",
             fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
             color: "#222",
+            maxWidth: isMobile ? "auto" : isTablet ? "650px" : "100%", // Tablet max genişlik 800px
+            left: isTablet ? "260px" : "auto", // 👈 sidebar genişliğine göre ayarlandı
+            width: isTablet ? "100%" : "auto",
           }}
         >
           <h1
@@ -814,7 +906,7 @@ export default function Register() {
             }}
           >
             <img
-              src={formData.imagePreview || "https://via.placeholder.com/150"} // Use a placeholder image
+              src={formData.imagePreview || exampleUser} // Use a placeholder image
               alt="Kullanıcı"
               style={{
                 width: "150px",
@@ -853,15 +945,22 @@ export default function Register() {
                 name="image"
                 onChange={handleFileChange}
                 style={{ display: "none" }}
+                // 👈 BURADA EKLEME: Dosya input'unun value'sini resetlemek için
+                value={formData.imagePreview ? undefined : ""} // Resim varsa undefined, yoksa boş string yaparak resetliyoruz
               />
 
               {/* Resmi Sil butonu */}
               {formData.imagePreview && (
                 <button
                   type="button"
-                  onClick={() =>
-                    setFormData((prev) => ({ ...prev, imagePreview: "" }))
-                  }
+                  onClick={() => {
+                    setFormData((prev) => ({ ...prev, imagePreview: "" }));
+                    // 👈 BURADA EKLEME: Input'u temizle
+                    const fileInput = document.getElementById("image");
+                    if (fileInput) {
+                      fileInput.value = ""; // Input değerini sıfırlayarak aynı dosyanın tekrar seçilmesini sağlarız
+                    }
+                  }}
                   style={{
                     padding: "8px 16px",
                     fontSize: "14px",
@@ -881,9 +980,10 @@ export default function Register() {
           <form
             onSubmit={handleSubmit}
             style={{
-              display: isMobile ? "block" : "grid",
+              display: isMobile || isTablet ? "block" : "grid",
               gap: "20px",
-              gridTemplateColumns: isMobile ? undefined : "repeat(4, 1fr)",
+              gridTemplateColumns:
+                isMobile || isTablet ? undefined : "repeat(4, 1fr)",
               fontSize: "14px",
             }}
           >
@@ -916,7 +1016,10 @@ export default function Register() {
                 "ad",
                 "soyad",
                 "kullanici_adi",
+                "telefon",
                 "email",
+                "il",
+                "ilce",
               ];
               const isRequired = requiredFields.includes(field);
 
@@ -1000,7 +1103,6 @@ export default function Register() {
                         onChange={handleChange}
                         placeholder={labels[field]}
                         required={!selectedPers} // Use selectedPers
-                        disabled={!!selectedPers} // Use selectedPers
                         style={{
                           flexGrow: 1,
                           padding: "10px 12px",
@@ -1321,26 +1423,53 @@ export default function Register() {
               );
             })}
 
-            <button
-              type="submit"
-              className="btn btn-primary mt-3"
+            <div
               style={{
-                gridColumn: isMobile ? undefined : "1 / -1",
-                justifySelf: "center", // Ortalamak için start yerine center
-                width: isMobile ? "100%" : "150px", // Masaüstünde sabit, küçük genişlik
+                display: "flex",
+                gap: "30px", // Butonlar arasında boşluk
+                flexWrap: isMobile ? "wrap" : "nowrap", // Mobilde alt satıra geçebilir
+                // Yeni eklenen stiller:
+                gridColumn: "1 / -1", // Formun tüm grid genişliğini kapla
+                justifyContent: "center", // İçindeki öğeleri yatayda ortala
               }}
             >
-              {selectedPers ? "Güncelle" : "Kaydet"}
-            </button>
+              <button
+                type="submit"
+                className="btn btn-primary mt-3"
+                style={{
+                  width: isMobile ? "100%" : "150px",
+                  flexGrow: isMobile ? 1 : 0, // Mobilde genişlesin
+                }}
+              >
+                {selectedPers ? "Güncelle" : "Kaydet"}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleClearAllInputs}
+                className="btn btn-info mt-3"
+                style={{
+                  width: isMobile ? "100%" : "150px",
+                  backgroundColor: "#aa3030ff",
+                  borderColor: "#6c757d",
+                  color: "#fff",
+                  fontSize: "15px",
+                  flexGrow: isMobile ? 1 : 0,
+                }}
+              >
+                Inputları Temizle
+              </button>
+            </div>
           </form>
         </section>
 
-        {/* bottom column - User list */}
         <section
           style={{
             backgroundColor: "#fff",
             borderRadius: "12px",
-            padding: isMobile ? "0 12px" : "20px", // mobilde sadece yatay padding
+            position: "relative", // Konumlandırma için
+            left: isTablet ? "0px" : "auto", // Tabletde soldan sıfır
+            padding: isMobile ? "0 12px" : isTablet ? "15px 20px" : "20px",
             boxShadow: "0 8px 24px rgba(0,27,102,0.08)",
             border: "1px solid #e0e6ed",
             display: "flex",
@@ -1348,18 +1477,21 @@ export default function Register() {
             gap: "15px",
             height: "100%",
             maxHeight: "none",
-            maxWidth: isMobile ? "400px" : "100%",
+            maxWidth: isMobile ? "400px" : isTablet ? "650px" : "100%", // Tablet max genişlik 800px
             overflowY: "visible",
-            overflowX: "hidden", // taşmayı tamamen engelle
+            overflowX: isTablet ? "auto" : "hidden", // Tabletde yatay kaydırma
+            margin: "0 auto",
           }}
         >
           <div
             style={{
               display: "flex",
-              justifyContent: "space-between", // Başlık ve sayıyı ayır
+              justifyContent: "space-between",
               alignItems: "center",
               marginBottom: "10px",
               marginTop: isMobile ? "10px" : "0",
+              flexWrap: isMobile || isTablet ? "wrap" : "nowrap", // sarmayı aç
+              gap: "10px",
             }}
           >
             <h5
@@ -1370,60 +1502,82 @@ export default function Register() {
                 alignItems: "center",
                 gap: "8px",
                 fontSize: "1.25rem",
-                margin: 0, // H5'in varsayılan margin'ini kaldır
+                margin: 0,
+                flex: isMobile || isTablet ? "1 1 100%" : "unset", // mobil ve tabletde tam genişlik
               }}
             >
               <i className="bi bi-people-fill"></i> Kullanıcı Listesi
             </h5>
-            {/* Personel sayısını burada göstereceğiz */}
-            {/* `totalUsers` state'i veya benzer bir prop ile toplam kullanıcı sayısını almanız gerekecek */}
+            {/* Personel sayısı için alan gerekirse buraya */}
           </div>
 
           <div style={{ flexGrow: 1, overflowY: "auto" }}>
             <UserFilter
+              isMobile={isMobile}
+              isTablet={isTablet}
               filters={filters}
               onChange={handleFilterChange}
               uniqueValues={uniqueValues}
             />
           </div>
-          <div className="row g-2 mt-3">
-            <div className="col-12 col-md-3">
+
+          {/* Butonlar container */}
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "12px",
+              justifyContent: isMobile || isTablet ? "center" : "flex-start",
+            }}
+          >
+            {[
+              {
+                label: "Seçilenleri Aktif Yap",
+                onClick: () => handleAktifPasif(true),
+                disabled: selectedUserIds.length === 0,
+                color: "success",
+              },
+              {
+                label: "Seçilenleri Pasif Yap",
+                onClick: () => handleAktifPasif(false),
+                disabled: selectedUserIds.length === 0,
+                color: "secondary",
+              },
+              {
+                label: "Seçileni Güncelle",
+                onClick: handleGuncelleClick,
+                disabled: selectedUserIds.length !== 1,
+                color: "warning",
+              },
+              {
+                label: "Seçilenleri Sil",
+                onClick: () => handleDeleteSelected(),
+                disabled: selectedUserIds.length === 0,
+                color: "danger",
+              },
+            ].map(({ label, onClick, disabled, color }, i) => (
               <button
-                className="btn btn-success w-100"
-                disabled={selectedUserIds.length === 0}
-                onClick={() => handleAktifPasif(true)}
+                key={i}
+                className={`btn btn-${color}`}
+                onClick={onClick}
+                disabled={disabled}
+                style={{
+                  flex: isMobile || isTablet ? "1 1 45%" : "1 1 23%", // mobil/tablette yarı genişlik, desktopta 4'te 1
+                  minWidth: "140px",
+                  whiteSpace: "nowrap",
+                }}
               >
-                Seçilenleri Aktif Yap
+                {label}
               </button>
-            </div>
-            <div className="col-12 col-md-3">
-              <button
-                className="btn btn-secondary w-100"
-                disabled={selectedUserIds.length === 0}
-                onClick={() => handleAktifPasif(false)}
-              >
-                Seçilenleri Pasif Yap
-              </button>
-            </div>
-            <div className="col-12 col-md-3">
-              <button
-                className="btn btn-warning w-100"
-                disabled={selectedUserIds.length !== 1}
-                onClick={handleGuncelleClick}
-              >
-                Seçileni Güncelle
-              </button>
-            </div>
-            <div className="col-12 col-md-3">
-              <button
-                className="btn btn-danger w-100"
-                disabled={selectedUserIds.length === 0}
-                onClick={() => handleDeleteSelected()}
-              >
-                Seçilenleri Sil
-              </button>
-            </div>
-            <div className="col-12 col-md-3">
+            ))}
+
+            {/* BulkRegister butonunu da yanına koymak için */}
+            <div
+              style={{
+                flex: isMobile || isTablet ? "1 1 45%" : "1 1 23%",
+                minWidth: "140px",
+              }}
+            >
               <BulkRegister />
             </div>
           </div>
@@ -1435,7 +1589,7 @@ export default function Register() {
                   fontSize: "1rem",
                   fontWeight: "600",
                   color: "#555",
-                  whiteSpace: "nowrap", // Alt satıra geçmesini engeller
+                  whiteSpace: "nowrap",
                 }}
               >
                 Toplam Personel: {users.length}
@@ -1450,12 +1604,11 @@ export default function Register() {
               onUserClick={handleUserClick}
               onCheckboxChange={handleCheckboxChange}
               onDeleteSelected={handleDeleteSelected}
-              isMobile={isMobile} // sütun gizlemek için prop
+              isMobile={isMobile}
+              isTablet={isTablet}
               style={{ flex: 1 }}
             />
           </div>
-
-          {/* Butonlar */}
         </section>
       </div>
     </div>

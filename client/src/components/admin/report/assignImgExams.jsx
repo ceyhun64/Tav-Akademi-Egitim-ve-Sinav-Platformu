@@ -24,18 +24,57 @@ export default function AssignImgExams() {
   // const filteredResults = assignImgExams;
 
   // Sınav verilerini çekmek için useEffect
+  // Arama terimi (sınav adına göre filtre)
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Seçilen sınav id'leri (checkbox)
+  const [selectedIds, setSelectedIds] = useState([]);
+
+  // Filtrelenmiş sınavlar (arama ile)
+  const filteredResults = assignImgExams.filter((exam) =>
+    exam.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Tümünü seç / seçimi kaldır
+  const handleSelectAll = () => {
+    if (
+      selectedIds.length === filteredResults.length &&
+      filteredResults.length > 0
+    ) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredResults.map((exam) => exam.id));
+    }
+  };
+
+  // Tek bir checkbox değiştiğinde
+  const handleCheckboxChange = (examId) => {
+    setSelectedIds((prev) =>
+      prev.includes(examId)
+        ? prev.filter((id) => id !== examId)
+        : [...prev, examId]
+    );
+  };
+
   useEffect(() => {
     dispatch(getAssignImgExamsThunk()); // Dispatching the correct thunk
   }, [dispatch]);
 
   // Mobil boyutlandırma için useEffect
+  const [isTablet, setIsTablet] = useState(
+    window.innerWidth >= 768 && window.innerWidth < 1350
+  );
+
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1350);
+      if (width >= 768) {
+        setSidebarOpen(true); // büyük ekranlarda sidebar açık
       }
     };
+
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -61,6 +100,22 @@ export default function AssignImgExams() {
         });
     }
   };
+  const handleBulkDelete = () => {
+    if (
+      selectedIds.length > 0 &&
+      window.confirm("Seçili sınavları silmek istediğinize emin misiniz?")
+    ) {
+      Promise.all(
+        selectedIds.map((id) => dispatch(deleteAssignExamThunk(id)).unwrap())
+      )
+        .then(() => {
+          dispatch(getAssignTeoExamsThunk());
+          alert("Seçilen sınavlar başarıyla silindi.");
+          setSelectedIds([]);
+        })
+        .catch((err) => alert("Toplu silmede hata oluştu: " + err.message));
+    }
+  };
 
   return (
     <div
@@ -76,7 +131,6 @@ export default function AssignImgExams() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -94,7 +148,7 @@ export default function AssignImgExams() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "2.5rem",
+            marginBottom: "1rem",
           }}
         >
           <h1
@@ -124,10 +178,10 @@ export default function AssignImgExams() {
                 color: "white",
                 border: "none",
                 borderRadius: "4px",
-                padding: "6px 16px", // padding yatay biraz artırıldı
+                padding: "6px 16px",
                 cursor: "pointer",
                 fontSize: "1rem",
-                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+                whiteSpace: "nowrap",
               }}
             >
               Geri Dön
@@ -135,13 +189,52 @@ export default function AssignImgExams() {
           </h1>
         </div>
 
+        {/* Arama ve Toplu Seçim Alanı */}
+        <div className="mb-3 d-flex justify-content-between align-items-center flex-wrap">
+          <input
+            type="text"
+            placeholder="Sınav adıyla ara..."
+            className="form-control"
+            style={{
+              maxWidth: "280px",
+              marginBottom: isMobile ? "0.75rem" : "0.5rem",
+            }}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+
+          {/* Tablet ve üstü: buton sağda */}
+          {!isMobile && (
+            <div>
+              <button
+                className="btn btn-danger btn-sm ms-3"
+                onClick={handleBulkDelete}
+              >
+                Seçilenleri Sil
+              </button>
+            </div>
+          )}
+
+          {/* Mobil: buton altta ve tam genişlik */}
+          {isMobile && (
+            <div style={{ width: "100%" }}>
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={handleBulkDelete}
+              >
+                Seçilenleri Sil
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Tablo */}
         <div
           className="table-responsive"
           style={{
             borderRadius: "16px",
-            overflowX: "hidden", // Prevent horizontal scrolling
-            maxWidth: "100%", // Take full width
+            overflowX: "auto",
+            maxWidth: "100%",
             maxHeight: "800px",
             boxShadow: "0 4px 20px rgb(0 0 0 / 0.07)",
             backgroundColor: "#fff",
@@ -149,17 +242,17 @@ export default function AssignImgExams() {
             padding: "8px",
           }}
         >
-          {assignImgExams && assignImgExams.length > 0 ? (
+          {filteredResults && filteredResults.length > 0 ? (
             <table
-              className="table align-middle table-hover" // Added align-middle and table-hover classes
+              className="table align-middle table-hover"
               style={{
                 borderCollapse: "separate",
                 borderSpacing: "0 6px",
                 width: "100%",
                 fontSize: "12px",
                 userSelect: "none",
-                tableLayout: "fixed", // Distribute columns equally
-                textAlign: "center", // <-- EKLENDİ
+                tableLayout: "fixed",
+                textAlign: "center",
               }}
             >
               <thead
@@ -169,16 +262,50 @@ export default function AssignImgExams() {
                   className="text-center align-middle"
                   style={{ fontWeight: "600", color: "#334155" }}
                 >
-                  {/* No checkbox for assignImgExams in the provided original markup, so not adding here */}
-                  {/* If you need one, you'll need to add selectedIds state and handle functions */}
+                  {/* ✅ Checkbox sütunu başlığı — her cihazda */}
+                  <th style={{ width: "3%", padding: "6px 8px" }} title="Seçim">
+                    <input
+                      type="checkbox"
+                      onChange={handleSelectAll}
+                      checked={
+                        selectedIds.length === filteredResults.length &&
+                        filteredResults.length > 0
+                      }
+                      id="selectAllCheckbox"
+                    />
+                  </th>
 
-                  {/* Table Headers based on mobile/desktop view */}
+                  {/* Mobil görünüm başlıkları */}
                   {isMobile ? (
                     <>
                       <th style={{ padding: "6px 8px" }}>Sınav Adı</th>
                       <th style={{ padding: "6px 8px" }}>Başlangıç</th>
-                      <th style={{ padding: "6px 8px" }}>Süre (dk)</th>
+                      <th style={{ padding: "6px 8px" }}>Süre</th>
+                      <th style={{ padding: "6px 8px" }}>İşlemler</th>
                     </>
+                  ) : isTablet ? (
+                    [
+                      { header: "Sınav Adı", width: "35%" },
+                      { header: "Başlangıç Tarihi", width: "20%" },
+                      { header: "Bitiş Tarihi", width: "20%" },
+                      { header: "Süre (dk)", width: "10%" },
+                      { header: "Geçme Notu", width: "10%" },
+                      { header: "İşlemler", width: "10%" },
+                    ].map((col, i) => (
+                      <th
+                        key={i}
+                        style={{
+                          whiteSpace: "nowrap",
+                          padding: "6px 8px",
+                          width: col.width,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                        title={col.header}
+                      >
+                        {col.header}
+                      </th>
+                    ))
                   ) : (
                     [
                       { header: "ID", width: "5%" },
@@ -216,8 +343,9 @@ export default function AssignImgExams() {
                   )}
                 </tr>
               </thead>
+
               <tbody>
-                {assignImgExams.map((exam) => (
+                {filteredResults.map((exam) => (
                   <tr
                     key={exam.id}
                     style={{
@@ -235,7 +363,14 @@ export default function AssignImgExams() {
                       (e.currentTarget.style.backgroundColor = "#fff")
                     }
                   >
-                    {/* No checkbox for assignImgExams in the provided original markup, so not adding here */}
+                    {/* ✅ Checkbox her cihazda görünsün */}
+                    <td style={{ padding: "6px 8px", verticalAlign: "middle" }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(exam.id)}
+                        onChange={() => handleCheckboxChange(exam.id)}
+                      />
+                    </td>
 
                     {isMobile ? (
                       <>
@@ -247,6 +382,36 @@ export default function AssignImgExams() {
                         </td>
                         <td style={{ textAlign: "center", padding: "6px 8px" }}>
                           {exam.sure ?? "-"}
+                        </td>
+                        <td style={{ textAlign: "center", padding: "6px 8px" }}>
+                          <button
+                            className="btn btn-danger btn-sm"
+                            onClick={() => handleDelete(exam.id)}
+                          >
+                            Sil
+                          </button>
+                        </td>
+                      </>
+                    ) : isTablet ? (
+                      <>
+                        <td style={{ padding: "6px 8px" }}>{exam.name}</td>
+                        <td style={{ padding: "6px 8px" }}>
+                          {exam.start_date}
+                        </td>
+                        <td style={{ padding: "6px 8px" }}>{exam.end_date}</td>
+                        <td className="text-end" style={{ padding: "6px 8px" }}>
+                          {exam.sure}
+                        </td>
+                        <td className="text-end" style={{ padding: "6px 8px" }}>
+                          {exam.passing_score}
+                        </td>
+                        <td style={{ padding: "6px 8px" }}>
+                          <button
+                            className="btn btn-danger btn-sm"
+                            onClick={() => handleDelete(exam.id)}
+                          >
+                            Sil
+                          </button>
                         </td>
                       </>
                     ) : (
@@ -277,7 +442,6 @@ export default function AssignImgExams() {
                           >
                             Sil
                           </button>
-                          {/* Diğer işlemler (düzenleme vb.) buraya eklenebilir */}
                         </td>
                       </>
                     )}

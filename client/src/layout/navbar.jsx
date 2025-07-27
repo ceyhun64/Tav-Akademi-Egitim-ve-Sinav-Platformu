@@ -134,10 +134,16 @@ export default function Navbar() {
                   aria-haspopup="true"
                   aria-expanded={dropdownOpen}
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  style={{ width: "120px" }} // ← burası önemli!
+                  style={{
+                    width: "120px",
+                    backgroundColor: "#198754",
+                    borderColor: "#198754",
+                    color: "#fff",
+                  }}
                 >
                   Giriş Yap
                 </button>
+
                 <ul
                   className={`dropdown-menu${dropdownOpen ? " show" : ""}`}
                   style={{ minWidth: "160px" }}

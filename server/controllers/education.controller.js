@@ -24,14 +24,19 @@ const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
 const cloudinary = require("cloudinary").v2;
+
 // Yardımcı: URL olup olmadığını kontrol eder
 function isUrl(str) {
   return str.startsWith("http://") || str.startsWith("https://");
 }
 
-// Yardımcı: URL'den PDF'yi indirip geçici dosya oluşturur
-async function downloadToTempFile(url) {
-  const tempPath = path.join(os.tmpdir(), `download_${Date.now()}.pdf`);
+// Yardımcı: URL'den dosyayı indirip geçici dosya oluşturur
+// Not: Bu fonksiyon artık sadece PDF değil, genel bir dosya indirebilir.
+async function downloadToTempFile(url, fileExtension) {
+  const tempPath = path.join(
+    os.tmpdir(),
+    `download_${Date.now()}${fileExtension}`
+  );
   const writer = fs.createWriteStream(tempPath);
   const response = await axios({
     url,
@@ -47,9 +52,10 @@ async function downloadToTempFile(url) {
 
   return tempPath;
 }
+
 exports.uploadSingleFile = async (req, res) => {
   let readStream;
-  let tempFilePath;
+  let tempFilePath; // Orijinal dosyadan indirildiyse geçici yol
 
   try {
     const { name, duration, type } = req.body;
@@ -60,75 +66,124 @@ exports.uploadSingleFile = async (req, res) => {
     }
 
     const ext = path.extname(file.originalname).toLowerCase();
-    if (ext !== ".pdf") {
-      return res
-        .status(400)
-        .json({ message: "Sadece PDF dosyaları destekleniyor." });
+    const allowedPdfs = [".pdf"];
+    const allowedVideos = [".mp4", ".mov", ".avi", ".wmv", ".webm", ".mkv"]; // Desteklenen video formatları
+    const allowedPowerpoints = [".ppt", ".pptx"]; // Desteklenen PowerPoint formatları
+
+    let fileTypeCategory; // "pdf", "video" veya "powerpoint" olabilir
+
+    if (allowedPdfs.includes(ext)) {
+      fileTypeCategory = "pdf";
+    } else if (allowedVideos.includes(ext)) {
+      fileTypeCategory = "video";
+    } else if (allowedPowerpoints.includes(ext)) {
+      fileTypeCategory = "powerpoint";
+    } else {
+      return res.status(400).json({
+        message:
+          "Desteklenmeyen dosya türü. Sadece PDF, Video (MP4, MOV, vb.) ve PowerPoint (PPT, PPTX) desteklenmektedir.",
+      });
     }
 
-    // Adobe Credentials
-    const credentials = new ServicePrincipalCredentials({
-      clientId: "bff289c0382e4c81a70ea65fc4a9f896",
-      clientSecret: "p8e-pi8g_A-wmbHxSj08okSNidei5bHasSWK",
-    });
+    // Adobe Kimlik Bilgileri - Sadece PDF işlemleri için başlat
+    let credentials;
+    let pdfServices;
+    if (fileTypeCategory === "pdf") {
+      credentials = new ServicePrincipalCredentials({
+        clientId: "bff289c0382e4c81a70ea65fc4a9f896",
+        clientSecret: "p8e-pi8g_A-wmbHxSj08okSNidei5bHasSWK",
+      });
+      pdfServices = new PDFServices({ credentials });
+    }
 
-    const pdfServices = new PDFServices({ credentials });
-
-    // Cloudinary URL'den dosya indir (gerekirse)
+    // Cloudinary URL'den dosya indir (gerekirse) - `downloadToTempFile` fonksiyonu güncellendi
     let filePath = file.path;
     if (isUrl(filePath)) {
-      tempFilePath = await downloadToTempFile(filePath);
+      tempFilePath = await downloadToTempFile(filePath, ext); // Uzantıyı da gönderiyoruz
       filePath = tempFilePath;
     }
 
-    // Dosyayı stream olarak oku
-    readStream = fs.createReadStream(filePath);
-    const inputAsset = await pdfServices.upload({
-      readStream,
-      mimeType: MimeType.PDF,
-    });
-
-    const params = new ExportPDFToImagesParams({
-      targetFormat: ExportPDFToImagesTargetFormat.JPEG,
-      outputType: ExportPDFToImagesOutputType.LIST_OF_PAGE_IMAGES,
-    });
-
-    const job = new ExportPDFToImagesJob({ inputAsset, params });
-    const pollingURL = await pdfServices.submit({ job });
-    const result = await pdfServices.getJobResult({
-      pollingURL,
-      resultType: ExportPDFToImagesResult,
-    });
-
-    const resultAssets = result.result.assets;
-    const tempDir = path.join(__dirname, "..", "tmp");
-    fs.mkdirSync(tempDir, { recursive: true });
-
     const pageImageUrls = [];
+    let numPages = 0; // Sayfa sayısı veya video/PowerPoint ise 1
 
-    for (let i = 0; i < resultAssets.length; i++) {
-      const imageAsset = resultAssets[i];
-      const tempImagePath = path.join(
-        tempDir,
-        `page_${Date.now()}_${i + 1}.jpeg`
-      );
+    switch (fileTypeCategory) {
+      case "pdf":
+        // Mevcut PDF'den resimlere dönüştürme mantığı (değişmedi)
+        readStream = fs.createReadStream(filePath);
+        const inputAssetPdf = await pdfServices.upload({
+          readStream,
+          mimeType: MimeType.PDF,
+        });
 
-      const streamAsset = await pdfServices.getContent({ asset: imageAsset });
-      const outputStream = fs.createWriteStream(tempImagePath);
+        const paramsPdf = new ExportPDFToImagesParams({
+          targetFormat: ExportPDFToImagesTargetFormat.JPEG,
+          outputType: ExportPDFToImagesOutputType.LIST_OF_PAGE_IMAGES,
+        });
 
-      await new Promise((resolve, reject) => {
-        streamAsset.readStream
-          .pipe(outputStream)
-          .on("finish", resolve)
-          .on("error", reject);
-      });
+        const jobPdf = new ExportPDFToImagesJob({
+          inputAsset: inputAssetPdf,
+          params: paramsPdf,
+        });
+        const pollingURLPdf = await pdfServices.submit({ job: jobPdf });
+        const resultPdf = await pdfServices.getJobResult({
+          pollingURL: pollingURLPdf,
+          resultType: ExportPDFToImagesResult,
+        });
 
-      const uploadResult = await cloudinary.uploader.upload(tempImagePath, {
-        folder: "education_pages",
-      });
+        const resultAssetsPdf = resultPdf.result.assets;
+        const tempDirPdf = path.join(os.tmpdir(), "education_temp_images");
+        fs.mkdirSync(tempDirPdf, { recursive: true });
 
-      pageImageUrls.push(uploadResult.secure_url);
-      fs.unlinkSync(tempImagePath);
+        for (let i = 0; i < resultAssetsPdf.length; i++) {
+          const imageAsset = resultAssetsPdf[i];
+          const tempImagePath = path.join(
+            tempDirPdf,
+            `page_${Date.now()}_${i + 1}.jpeg`
+          );
+
+          const streamAsset = await pdfServices.getContent({
+            asset: imageAsset,
+          });
+          const outputStream = fs.createWriteStream(tempImagePath);
+
+          await new Promise((resolve, reject) => {
+            streamAsset.readStream
+              .pipe(outputStream)
+              .on("finish", resolve)
+              .on("error", reject);
+          });
+
+          const uploadResult = await cloudinary.uploader.upload(tempImagePath, {
+            folder: "education_pages",
+          });
+
+          pageImageUrls.push(uploadResult.secure_url);
+          fs.unlinkSync(tempImagePath); // Geçici resmi sil
+        }
+        numPages = pageImageUrls.length;
+        break;
+
+      case "video":
+        // Video dosyalarını doğrudan Cloudinary'ye yükle, dönüştürme yok.
+        const videoUploadResult = await cloudinary.uploader.upload(filePath, {
+          resource_type: "video", // Cloudinary'ye bunun bir video olduğunu bildir
+          folder: "education_videos", // Videolar için ayrı bir klasör kullanmak mantıklı olabilir
+          // Dönüştürme istemediğiniz için 'eager' veya başka dönüşüm seçenekleri eklemiyoruz.
+        });
+        pageImageUrls.push(videoUploadResult.secure_url); // Video URL'sini burada saklıyoruz
+        numPages = 1; // Video için sayfa sayısı genellikle 1 kabul edilir (tek bir kaynak)
+        break;
+
+      case "powerpoint":
+        // PowerPoint dosyalarını doğrudan Cloudinary'ye yükle, dönüştürme yok.
+        // PPTX dosyalarını Cloudinary'ye docx/pdf olarak da yükleyebilirsiniz, ancak dönüştürme istemediğiniz belirtildi.
+        const pptUploadResult = await cloudinary.uploader.upload(filePath, {
+          resource_type: "raw", // PowerPoint için 'raw' veya 'auto' kullanılabilir. 'auto' Cloudinary'nin en iyi şekilde algılamasını sağlar.
+          folder: "education_powerpoints", // PowerPoint'ler için ayrı bir klasör
+        });
+        pageImageUrls.push(pptUploadResult.secure_url); // PowerPoint dosyasının URL'sini saklıyoruz
+        numPages = 1; // PowerPoint dosyasını tek bir varlık olarak kabul ediyoruz
+        break;
     }
 
     // Eğitim kaydını oluştur
@@ -136,19 +191,45 @@ exports.uploadSingleFile = async (req, res) => {
       name,
       duration,
       type,
-      file_url: file.path, // orijinal path (Cloudinary URL olabilir)
-      num_pages: pageImageUrls.length,
-      page_image_urls: pageImageUrls,
+      file_url: file.path, // Orijinal yol (Cloudinary URL veya yerel temp yol olabilir)
+      file_type: fileTypeCategory, // Dosya kategorisini kaydet (pdf, video, powerpoint)
+      num_pages: numPages,
+      page_image_urls: pageImageUrls, // Bu alan artık video/PPTX URL'sini de içerebilir
     });
 
     res.status(201).json({ newEducation, pages: pageImageUrls });
   } catch (error) {
     console.error("Tekli dosya yükleme hatası:", error);
+    // Adobe PDF Services'a özgü hata detaylarını logla (sadece PDF işlemleri sırasında ortaya çıkabilir)
+    if (
+      error instanceof SDKError ||
+      error instanceof ServiceUsageError ||
+      error instanceof ServiceApiError
+    ) {
+      console.error("Adobe PDF Services Hata Detayı:", error.message);
+      if (error.requestTrackingId) {
+        console.error(
+          "Adobe PDF Services Request Tracking ID:",
+          error.requestTrackingId
+        );
+      }
+    }
     res.status(500).json({ message: "Sunucu hatası." });
   } finally {
-    readStream?.destroy();
+    readStream?.destroy(); // Okuma stream'ini kapat
+
+    // Tüm geçici dosyaları temizle
     if (tempFilePath && fs.existsSync(tempFilePath)) {
-      fs.unlinkSync(tempFilePath); // Geçici indirilmiş PDF'yi temizle
+      fs.unlinkSync(tempFilePath);
+    }
+
+    // Geçici resim klasörünü temizle (eğer boşsa)
+    const tempDirForImages = path.join(os.tmpdir(), "education_temp_images");
+    if (
+      fs.existsSync(tempDirForImages) &&
+      fs.readdirSync(tempDirForImages).length === 0
+    ) {
+      fs.rmdirSync(tempDirForImages, { recursive: true }); // Klasör boş olsa bile bazen rmdirSync recursive ister
     }
   }
 };
@@ -397,6 +478,7 @@ exports.updateEducationUser = async (req, res) => {
     await logActivity({
       userId: req.user.id,
       action: `${req.user.name} adlı kullanıcı '${id}' ID'li eğitimi tamamladı.`,
+      category: "Education",
     });
     res.status(200).json({ message: "Kullanıcı başarıyla güncellendi." });
   } catch (error) {

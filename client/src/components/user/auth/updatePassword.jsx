@@ -17,7 +17,6 @@ export default function UpdatePassword() {
         e.preventDefault();
         try {
             const action = await dispatch(updatePasswordThunk({token, sifre, yenisifre, tekraryenisifre })).unwrap();
-            console.log("Şifre güncelleme başarılı:", action);
             setTimeout(() => {
                 navigate('/login'); // Ana sayfaya yönlendir
                 dispatch(clearAlert()); // Alerti temizle

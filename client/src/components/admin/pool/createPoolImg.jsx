@@ -4,7 +4,6 @@ import { createPoolImgThunk } from "../../../features/thunks/poolImgThunk";
 import QuestionEditor from "./questionEditor";
 import PolygonEditor from "./polygonEditor";
 import DraggableOverlayImage from "./draggableOverlayImag";
-import mergeImages from "./imageMerger";
 import ImageBlender from "./imageBlender";
 import {
   getDifLevelsThunk,
@@ -23,9 +22,6 @@ function processOverlayImage(file, callback) {
   reader.onload = (e) => {
     img.onload = () => {
       const canvas = document.createElement("canvas");
-      // Canvas'ı oluştururken hala alpha: true kullanmak en güvenli yaklaşımdır.
-      // Bu, tarayıcının varsayılan olarak opak bir arka plan eklemesini engeller
-      // ve gelecekteki olası uyumluluk sorunlarının önüne geçer.
       const ctx = canvas.getContext("2d", { alpha: true });
       canvas.width = img.width;
       canvas.height = img.height;
@@ -34,33 +30,23 @@ function processOverlayImage(file, callback) {
       const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imgData.data;
 
-      // Beyaz sayılacak renk aralığı için threshold belirleyin.
-      // Örnek: RGB hepsi 240'ın üzerindeyse beyaz say
       const threshold = 240;
 
-      // Kırpma için bounding box'ı başlat
       let minX = canvas.width,
         minY = canvas.height,
         maxX = 0,
         maxY = 0;
 
-      // Bu döngü artık pikselleri şeffaf yapmayacak.
-      // Sadece beyaz olmayan piksellerin en dış koordinatlarını bulacak.
       for (let i = 0; i < data.length; i += 4) {
         const r = data[i];
         const g = data[i + 1];
         const b = data[i + 2];
-        // data[i+3] (alpha kanalı) burada doğrudan kullanılmıyor,
-        // çünkü amacımız beyazı şeffaf yapmak değil, kırpmak.
 
-        // Eğer piksel beyaz değilse (yani RGB değerlerinden en az biri eşik altındaysa), koordinatları al
-        // Veya daha genel bir ifadeyle: Eğer piksel "beyaz" olarak kabul edilmiyorsa
         if (r < threshold || g < threshold || b < threshold) {
           const pixelIndex = i / 4;
           const x = pixelIndex % canvas.width;
           const y = Math.floor(pixelIndex / canvas.width);
 
-          // Beyaz olmayan piksellerin en dış koordinatlarını bul
           if (x < minX) minX = x;
           if (x > maxX) maxX = x;
           if (y < minY) minY = y;
@@ -68,17 +54,10 @@ function processOverlayImage(file, callback) {
         }
       }
 
-      // Kırpma boyutlarını hesapla
       const width = maxX - minX + 1;
       const height = maxY - minY + 1;
 
-      // Eğer hiç beyaz olmayan piksel bulunamazsa (resim tamamen beyazsa veya threshold çok yüksekse),
-      // bu durumda maxX < minX veya maxY < minY olabilir.
-      // Bu durumu ele almak için bir kontrol ekleyelim.
       if (width <= 0 || height <= 0) {
-        // Eğer kırpma alanı boşsa, 1x1 şeffaf bir resim döndürebiliriz
-        // veya boş bir Data URL döndürerek hata sinyali verebiliriz.
-        // Burada şeffaf bir PNG döndürüyoruz.
         const emptyCanvas = document.createElement("canvas");
         const emptyCtx = emptyCanvas.getContext("2d", { alpha: true });
         emptyCanvas.width = 1;
@@ -87,30 +66,23 @@ function processOverlayImage(file, callback) {
         return;
       }
 
-      // Yeni canvas kırpılmış alan için
       const croppedCanvas = document.createElement("canvas");
-      // Kırpılmış canvas'ın da şeffaf bir arka plana sahip olması önemli,
-      // aksi takdirde kırpılan görselin kenarları opaklaşabilir.
       const croppedCtx = croppedCanvas.getContext("2d", { alpha: true });
       croppedCanvas.width = width;
       croppedCanvas.height = height;
 
-      // Orijinal canvas'tan (img) kırpılan alanı alıp yeni canvas'a çiz
       croppedCtx.drawImage(
-        canvas, // Kaynak canvas (içinde orijinal resim var)
-        minX, // Kaynak X koordinatı
-        minY, // Kaynak Y koordinatı
-        width, // Kaynak genişlik
-        height, // Kaynak yükseklik
-        0, // Hedef X koordinatı
-        0, // Hedef Y koordinatı
-        width, // Hedef genişlik
-        height // Hedef yükseklik
+        canvas,
+        minX,
+        minY,
+        width,
+        height,
+        0,
+        0,
+        width,
+        height
       );
 
-      // Kırpılmış görseli PNG formatında Data URL olarak callback’e ver
-      // JPG yerine PNG kullanmak, şeffaflık ihtiyacı olmasa bile (çünkü artık beyaz kırpıyoruz)
-      // daha iyi kalite ve gelecekteki esneklik açısından genellikle tercih edilir.
       const croppedImageUrl = croppedCanvas.toDataURL("image/png");
       callback(croppedImageUrl);
     };
@@ -128,14 +100,13 @@ export default function CreatePoolImg() {
   const containerRef = useRef(null);
   const { banSubs } = useSelector((state) => state.banSubs);
 
-  // polygons, currentPolygon, form, dispatch gibi state'ler zaten senin mevcut koddadır diye varsayıyorum
-
   const [image, setImage] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [polygons, setPolygons] = useState([]);
   const [currentPolygon, setCurrentPolygon] = useState([]);
   const [hoverPoint, setHoverPoint] = useState(null);
   const [blendedDataUrl, setBlendedDataUrl] = useState(null);
+  const [selectBanSub, setSelectBanSub] = useState(null);
   const [dragging, setDragging] = useState({
     type: null,
     polygonIndex: null,
@@ -162,8 +133,8 @@ export default function CreatePoolImg() {
     f: "",
     answer: "",
     bookletId: "",
-    difLevelId: "", // değişti
-    questionCategoryId: "", // değişti
+    difLevelId: "",
+    questionCategoryId: "",
   });
   const { imgBooklets } = useSelector((state) => state.booklet);
 
@@ -174,18 +145,20 @@ export default function CreatePoolImg() {
   }, [dispatch]);
 
   useEffect(() => {
-    dispatch(getBanSubsThunk());
+    const fetchData = async () => {
+      await dispatch(getBanSubsThunk());
+    };
+    fetchData();
   }, [dispatch]);
 
   useEffect(() => {
     dispatch(getImgBookletsThunk());
   }, [dispatch]);
-  console.log(imgBooklets);
+
   const selectedBooklet = imgBooklets.find(
     (b) => b.id === parseInt(form.bookletId)
   );
 
-  // Resize observer for container
   useEffect(() => {
     if (!containerRef.current) return;
     const ro = new ResizeObserver((entries) => {
@@ -198,7 +171,6 @@ export default function CreatePoolImg() {
     return () => ro.disconnect();
   }, []);
 
-  // Compute image metrics
   const handleImageLoad = () => {
     const imgEl = imageRef.current;
     if (!imgEl) return;
@@ -207,10 +179,6 @@ export default function CreatePoolImg() {
     const natH = imgEl.naturalHeight;
     const displayW = imgEl.clientWidth;
     const displayH = imgEl.clientHeight;
-
-    console.log("Image loaded:");
-    console.log("Natural width / height:", natW, natH);
-    console.log("Displayed width / height:", displayW, displayH);
 
     if (!natW || !natH || !displayW || !displayH) {
       console.warn("Görsel boyutları alınamadı.");
@@ -223,7 +191,6 @@ export default function CreatePoolImg() {
     setImageMetrics({ offsetX: 0, offsetY: 0, scaleX, scaleY });
   };
 
-  // Handlers
   const handleQuestionChange = (content) =>
     setForm((f) => ({ ...f, question: content }));
 
@@ -253,12 +220,23 @@ export default function CreatePoolImg() {
     setCurrentPolygon([]);
   };
 
+  // New function to clear images
+  const handleClearImages = () => {
+    setImage(null);
+    setImageFile(null);
+    setOverlayImage(null);
+    setBlendedDataUrl(null);
+    setBlendedUrl(null);
+    setPolygons([]); // Also clear polygons when images are cleared
+    setCurrentPolygon([]);
+  };
+
   const handleRightClickFinish = (e) => {
     e.preventDefault();
     if (currentPolygon.length >= 3) {
       setPolygons((p) => [...p, currentPolygon]);
       setCurrentPolygon([]);
-    } else alert("Polygon oluşturmak için en az 3 nokta gerekli.");
+    } else window.alert("Polygon oluşturmak için en az 3 nokta gerekli.");
   };
 
   const handleMouseMove = (e) => {
@@ -309,9 +287,13 @@ export default function CreatePoolImg() {
   };
 
   const handleSubmit = async () => {
-    console.log("handleSubmit çağrıldı, blendedDataUrl:", blendedDataUrl);
     if (!blendedDataUrl) {
       window.alert("Birleşik görsel henüz hazırlanmadı. Lütfen bekleyin.");
+      return;
+    }
+
+    if (!form.answer) {
+      window.alert("Lütfen bir cevap seçin.");
       return;
     }
 
@@ -323,12 +305,10 @@ export default function CreatePoolImg() {
 
       const formData = new FormData();
       formData.append("file", mergedFile);
-
       formData.append(
         "coordinate",
         JSON.stringify([...polygons, currentPolygon])
       );
-
       formData.append("question", form.question);
       formData.append("bookletId", parseInt(form.bookletId));
       formData.append("difLevelId", parseInt(form.difLevelId));
@@ -350,23 +330,51 @@ export default function CreatePoolImg() {
       dispatch(createPoolImgThunk(formData))
         .unwrap()
         .then((response) => {
-          console.log("Gönderim başarılı:", response);
           window.alert("Soru başarıyla oluşturuldu!");
-          setForm({
-            bookletId: "",
-            difLevelId: "",
-            questionCategoryId: "",
-            question: "",
+          setForm((prevForm) => {
+            const newForm = {
+              bookletId: "",
+              difLevelId: "",
+              questionCategoryId: "",
+              question: "",
+              answer: "",
+            };
+
+            // Mevcut yasaklı madde alanlarını koru
+            // Yani 'A', 'B', 'C', 'D', 'E', 'F' alanlarını sıfırlamak istemiyorsanız:
+            Object.keys(prevForm).forEach((key) => {
+              if (
+                ![
+                  "bookletId",
+                  "difLevelId",
+                  "questionCategoryId",
+                  "question",
+                  "answer",
+                ].includes(key)
+              ) {
+                newForm[key] = prevForm[key]; // Mevcut değerlerini koru
+              }
+            });
+
+            return newForm;
           });
           setImage(null);
           setImageFile(null);
           setPolygons([]);
           setCurrentPolygon([]);
           setHoverPoint(null);
+          setOverlayImage(null);
+          setBlendedDataUrl(null);
+          setBlendedUrl(null);
+          setShowOverlay(false);
+        })
+        .catch((error) => {
+          console.error("Gönderim hatası:", error);
+          window.alert("Bir hata oluştu, lütfen tekrar deneyin.");
         });
     } catch (error) {
       console.error("Gönderim hatası:", error);
-      alert("Bir hata oluştu, lütfen tekrar deneyin.");
+      window.alert("Bir hata oluştu, lütfen tekrar deneyin.");
     }
   };
 
@@ -378,27 +386,50 @@ export default function CreatePoolImg() {
   const imageBlenderRef = useRef();
   const [blendedUrl, setBlendedUrl] = useState(null);
   useEffect(() => {
+
     if (image && overlayImage && imageBlenderRef.current) {
-      setTimeout(() => {
+      // Small delay to allow images to fully load and component to update
+      const timer = setTimeout(() => {
         const blended = imageBlenderRef.current.getDataUrl();
         if (blended) {
           setBlendedUrl(blended);
+          setBlendedDataUrl(blended); // Ensure blendedDataUrl is also updated
         }
-      }, 300); // yüklenmesi için biraz zaman tanı
+      }, 300);
+      return () => clearTimeout(timer); // Cleanup timeout
+    } else {
+      // If either image or overlayImage is null, clear blended URLs
+      setBlendedUrl(null);
+      setBlendedDataUrl(null);
     }
-  }, [image, overlayImage, blendMode]);
+  }, [image, overlayImage, blendMode, overlayPosition, overlaySize]); // Added overlayPosition and overlaySize to dependencies for real-time blending
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Responsive state management
+  const [isMobile, setIsMobile] = useState(false); // < 768px
+  const [isTablet, setIsTablet] = useState(false); // 768px - 1200px
+  const TABLET_BREAKPOINT = 768;
+  const DESKTOP_BREAKPOINT = 1200;
+
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
+      const width = window.innerWidth;
+      setIsMobile(width < TABLET_BREAKPOINT);
+      setIsTablet(width >= TABLET_BREAKPOINT && width < DESKTOP_BREAKPOINT);
+      // Keep sidebar open on larger screens, closed on smaller
+      setSidebarOpen(width >= TABLET_BREAKPOINT); // Open on tablet and desktop
     };
 
+    handleResize(); // Set dimensions on initial render
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
+  const selectWidth = 300; // Common width for both mobile and desktop
+
+  // Determine grid template columns for content-columns
+  const gridTemplateColumnsStyle = isMobile || isTablet ? "1fr" : "2fr 1fr";
 
   return (
     <div className="poolImg-container" style={{ overflowX: "hidden" }}>
@@ -411,7 +442,6 @@ export default function CreatePoolImg() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -419,7 +449,7 @@ export default function CreatePoolImg() {
         <Sidebar />
       </div>
 
-      {/* Ana İçerik */}
+      {/* Main Content */}
       <div
         className="poolImg-content"
         style={{ marginLeft: isMobile ? "0px" : "260px" }}
@@ -442,7 +472,7 @@ export default function CreatePoolImg() {
           <button
             onClick={() => window.history.back()}
             style={{
-              marginLeft: isMobile ? "auto" : "50px", // sağa itmek için
+              marginLeft: isMobile ? "auto" : "50px", // Push to the right
               backgroundColor: "#001b66",
               color: "white",
               border: "none",
@@ -455,7 +485,7 @@ export default function CreatePoolImg() {
             Geri Dön
           </button>
         </h2>
-        {blendMode && ( // blendMode boş değilse ImageBlender'ı render et
+        {image && overlayImage && (
           <ImageBlender
             ref={imageBlenderRef}
             baseImageSrc={image}
@@ -467,8 +497,7 @@ export default function CreatePoolImg() {
             onBlendComplete={(dataUrl) => {
               setBlendedDataUrl(dataUrl);
               setBlendedUrl(dataUrl);
-              setShowOverlay(true);
-              console.log("Blend tamamlandı, dataUrl geldi.");
+              setShowOverlay(true); // Ensure overlay is shown after blend
             }}
           />
         )}
@@ -476,12 +505,13 @@ export default function CreatePoolImg() {
           className="content-columns"
           style={{
             display: "grid",
-            gridTemplateColumns: isMobile ? "1fr" : "2fr 1fr",
-            gap: isMobile ? "10px" : "20px",
+            gridTemplateColumns: gridTemplateColumnsStyle, // Dynamically determined column count
+            gap: "20px", // General spacing
+            padding: "0 1rem", // Padding for content columns
           }}
         >
+          {/* Left Column: Image and Controls */}
           <div className="left-column">
-            {/* İçerik */}
             <div
               className="d-flex flex-wrap align-items-center gap-2"
               style={{ marginTop: 10 }}
@@ -523,7 +553,6 @@ export default function CreatePoolImg() {
                   style={{ display: "none" }}
                 />
               </label>
-
               <label
                 style={{
                   display: "inline-flex",
@@ -557,27 +586,27 @@ export default function CreatePoolImg() {
                   }}
                 />
               </label>
-
               <select
                 value={blendMode}
                 onChange={(e) => setBlendMode(e.target.value)}
                 style={{
-                  padding: "6px 12px",
-                  fontSize: "1rem",
-                  borderRadius: "8px",
+                  padding: isMobile || isTablet ? "4px 8px" : "6px 12px",
+                  fontSize: isMobile || isTablet ? "0.85rem" : "0.95rem",
+                  borderRadius: "6px",
                   border: "1px solid #ccc",
-                  backgroundColor: "",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                  backgroundColor: "#fff",
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
                   outline: "none",
                   cursor: "pointer",
-                  appearance: "none", // bazı tarayıcılarda klasik oka engel olur
+                  appearance: "none",
                   WebkitAppearance: "none",
                   MozAppearance: "none",
                   backgroundImage:
-                    "url(\"data:image/svg+xml;utf8,<svg fill='gray' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>\")",
+                    "url(\"data:image/svg+xml;utf8,<svg fill='gray' height='14' viewBox='0 0 24 24' width='14' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>\")",
                   backgroundRepeat: "no-repeat",
-                  backgroundPosition: "right 10px center",
-                  backgroundSize: "16px 16px",
+                  backgroundPosition: "right 8px center",
+                  backgroundSize: "14px 14px",
+                  minWidth: "140px",
                 }}
               >
                 <option value="*">Efekt Seçiniz</option>
@@ -587,7 +616,6 @@ export default function CreatePoolImg() {
                 <option value="mod4">Mod 4</option>
                 <option value="mod5">Mod 5</option>
               </select>
-
               <button
                 onClick={handleClearPolygons}
                 className="btn"
@@ -615,6 +643,34 @@ export default function CreatePoolImg() {
                 ></i>
                 Tüm Polygonları Temizle
               </button>
+              {/* New button to clear images */}
+              <button
+                onClick={handleClearImages}
+                className="btn"
+                style={{
+                  backgroundColor: "#dc3545", // Red color for clear action
+                  color: "#fff",
+                  padding: "6px 14px",
+                  borderRadius: "8px",
+                  fontSize: "0.9rem",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  border: "none",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#c82333")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#dc3545")
+                }
+              >
+                <i
+                  className="bi bi-image-fill" // Changed icon to represent images
+                  style={{ fontSize: "16px", color: "white" }}
+                ></i>
+                Görselleri Temizle
+              </button>
             </div>
 
             {image && (
@@ -624,13 +680,15 @@ export default function CreatePoolImg() {
                   position: "relative",
                   display: "inline-block",
                   marginTop: 20,
+                  maxWidth: "100%", // Limit container width
+                  overflow: "hidden", // Prevent image overflow
                 }}
               >
                 <img
                   ref={imageRef}
                   src={image}
                   alt="Main"
-                  style={{ display: "block", maxWidth: "100%" }}
+                  style={{ display: "block", maxWidth: "100%", height: "auto" }}
                   onLoad={handleImageLoad}
                 />
                 {blendedUrl && (
@@ -642,22 +700,22 @@ export default function CreatePoolImg() {
                       top: 0,
                       left: 0,
                       maxWidth: "100%",
+                      height: "auto",
                       pointerEvents: "none",
-                      zIndex: 10, // Burayı değiştirmene gerek yok, düşük bırak
+                      zIndex: 10,
                       opacity: 0.8,
                     }}
                   />
                 )}
-                {showOverlay &&
-                  overlayImage && ( // Bu koşul artık blendedUrl oluştuğunda false olacak
-                    <DraggableOverlayImage
-                      showOverlay={showOverlay}
-                      src={overlayImage}
-                      containerRef={containerRef}
-                      onPositionChange={setOverlayPosition}
-                      onSizeChange={setOverlaySize}
-                    />
-                  )}
+                {showOverlay && overlayImage && (
+                  <DraggableOverlayImage
+                    showOverlay={showOverlay}
+                    src={overlayImage}
+                    containerRef={containerRef}
+                    onPositionChange={setOverlayPosition}
+                    onSizeChange={setOverlaySize}
+                  />
+                )}
                 <PolygonEditor
                   style={{ position: "relative", zIndex: 10000 }}
                   imageRef={imageRef}
@@ -707,13 +765,15 @@ export default function CreatePoolImg() {
               />
             </div>
           </div>
+
+          {/* Right Column: Form Fields */}
           <div
             className="right-column"
             style={{
-              display: isMobile ? "flex" : "block",
+              display: "flex",
               flexDirection: "column",
-              alignItems: isMobile ? "center" : "flex-start",
-              width: isMobile ? "100%" : "auto",
+              alignItems: isMobile || isTablet ? "center" : "flex-start",
+              width: "100%",
             }}
           >
             <div>
@@ -733,12 +793,13 @@ export default function CreatePoolImg() {
                       marginBottom: 12,
                       display: "flex",
                       alignItems: "center",
-                      width: isMobile ? "90%" : 300,
+                      width: isMobile || isTablet ? "90%" : 300,
                       cursor: "pointer",
-                      justifyContent: isMobile ? "center" : "flex-start",
+                      justifyContent:
+                        isMobile || isTablet ? "center" : "flex-start",
                     }}
                   >
-                    {/* Sol taraf */}
+                    {/* Left side */}
                     <div
                       onClick={() =>
                         setForm((prev) => ({ ...prev, answer: field }))
@@ -762,13 +823,13 @@ export default function CreatePoolImg() {
                       {field.toUpperCase()}
                     </div>
 
-                    {/* Select kutusu */}
+                    {/* Select box */}
                     <select
                       name={field}
                       value={value}
                       onChange={handleFormChange}
                       style={{
-                        width: selectWidth,
+                        width: "100%",
                         padding: "10px",
                         border: "1px solid #cbd5e1",
                         borderLeft: "none",
@@ -786,17 +847,50 @@ export default function CreatePoolImg() {
                       }
                     >
                       <option value="">Yasaklı Madde Seçiniz</option>
-                      {banSubs.map((item) => (
-                        <option key={item.id} value={item.name}>
-                          {item.name}
-                        </option>
-                      ))}
+
+                      {banSubs.map((item) => {
+                        // Şimdiki select hariç diğer selectlerde seçili olanları al
+                        const otherSelectedValues = Object.entries(form)
+                          .filter(
+                            ([key]) =>
+                              key !== field &&
+                              key !== "question" &&
+                              key !== "difLevelId" &&
+                              key !== "bookletId" &&
+                              key !== "questionCategoryId" &&
+                              key !== "answer"
+                          )
+                          .map(([_, val]) => val);
+
+                        const isDisabled = otherSelectedValues.includes(
+                          item.name
+                        );
+
+                        return (
+                          <option
+                            key={item.id}
+                            value={item.name}
+                            disabled={isDisabled}
+                          >
+                            {item.name}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
                 ))}
 
-              {/* Kitapçık seçimi */}
-              <div style={{ marginBottom: 8 }}>
+              {/* Booklet selection */}
+              <div
+                style={{
+                  marginBottom: 8,
+                  display: "flex", // Use flex for alignment
+                  alignItems: "center",
+                  width: isMobile || isTablet ? "90%" : 300,
+                  justifyContent:
+                    isMobile || isTablet ? "center" : "flex-start",
+                }}
+              >
                 <label style={{ display: "inline-block", width: 120 }}>
                   Kitapçık
                 </label>
@@ -807,7 +901,7 @@ export default function CreatePoolImg() {
                   required
                   style={{
                     padding: 10,
-                    width: selectWidth,
+                    width: "100%",
                     borderRadius: 6,
                     border: "1px solid #cbd5e1",
                     fontSize: 14,
@@ -829,8 +923,17 @@ export default function CreatePoolImg() {
                 </select>
               </div>
 
-              {/* Zorluk Seviyesi */}
-              <div style={{ marginBottom: 8 }}>
+              {/* Difficulty Level */}
+              <div
+                style={{
+                  marginBottom: 8,
+                  display: "flex", // Use flex for alignment
+                  alignItems: "center",
+                  width: isMobile || isTablet ? "90%" : 300,
+                  justifyContent:
+                    isMobile || isTablet ? "center" : "flex-start",
+                }}
+              >
                 <label style={{ display: "inline-block", width: 120 }}>
                   Zorluk Seviyesi:
                 </label>
@@ -840,7 +943,7 @@ export default function CreatePoolImg() {
                   onChange={handleFormChange}
                   style={{
                     padding: 10,
-                    width: selectWidth,
+                    width: "100%",
                     borderRadius: 6,
                     border: "1px solid #cbd5e1",
                     fontSize: 14,
@@ -862,8 +965,17 @@ export default function CreatePoolImg() {
                 </select>
               </div>
 
-              {/* Soru Kategorisi */}
-              <div style={{ marginBottom: 8 }}>
+              {/* Question Category */}
+              <div
+                style={{
+                  marginBottom: 8,
+                  display: "flex", // Use flex for alignment
+                  alignItems: "center",
+                  width: isMobile || isTablet ? "90%" : 300,
+                  justifyContent:
+                    isMobile || isTablet ? "center" : "flex-start",
+                }}
+              >
                 <label style={{ display: "inline-block", width: 120 }}>
                   Soru Kategorisi:
                 </label>
@@ -873,7 +985,7 @@ export default function CreatePoolImg() {
                   onChange={handleFormChange}
                   style={{
                     padding: 10,
-                    width: selectWidth,
+                    width: "100%",
                     borderRadius: 6,
                     border: "1px solid #cbd5e1",
                     fontSize: 14,

@@ -74,8 +74,7 @@ export default function EducationReportDetail() {
   // Now, we are certain that userEducationResultDetail.data exists.
   const data = userEducationResultDetail.data;
   const user = data.user || {}; // Safely access user
-  // console.log(user); // You can keep these for debugging if needed
-  // console.log(data); // You can keep these for debugging if needed
+
 
   const getGroupName = (id) => {
     const group = groups.find((g) => g.id === id);
@@ -118,7 +117,6 @@ export default function EducationReportDetail() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}

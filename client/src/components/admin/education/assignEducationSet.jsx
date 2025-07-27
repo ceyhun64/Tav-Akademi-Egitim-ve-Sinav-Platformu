@@ -15,7 +15,6 @@ export default function AssignEducationSet() {
   const { educationSets } = useSelector((state) => state.educationSet);
   const { users } = useSelector((state) => state.user); // örnek
 
-  console.log(users);
   const [formData, setFormData] = useState({
     educationSetId: "",
     userIds: [],
@@ -26,6 +25,44 @@ export default function AssignEducationSet() {
 
     mail: false,
   });
+  useEffect(() => {
+    if (
+      formData.start_date &&
+      formData.end_date &&
+      new Date(formData.start_date) > new Date(formData.end_date)
+    ) {
+      alert(
+        "Bitiş tarihi, başlangıç tarihinden önce olamaz. Lütfen düzeltiniz"
+      );
+    }
+  }, [formData.start_date, formData.end_date]);
+
+  useEffect(() => {
+    const { start_date, end_date, start_time, end_time } = formData;
+
+    // Gerekli tüm alanlar girilmiş olmalı
+    if (!start_date || !end_date || !start_time || !end_time) return;
+
+    // Sadece tarihler aynıysa saatleri karşılaştır
+    if (start_date === end_date) {
+      const [startHour, startMinute] = start_time.split(":").map(Number);
+      const [endHour, endMinute] = end_time.split(":").map(Number);
+
+      const startTotalMinutes = startHour * 60 + startMinute;
+      const endTotalMinutes = endHour * 60 + endMinute;
+
+      if (startTotalMinutes >= endTotalMinutes) {
+        alert(
+          "Bitiş saati, başlangıç saatinden sonra olmalıdır. Lütfen düzeltiniz"
+        );
+      }
+    }
+  }, [
+    formData.start_date,
+    formData.end_date,
+    formData.start_time,
+    formData.end_time,
+  ]);
 
   useEffect(() => {
     dispatch(getEducationSetsThunk());
@@ -90,7 +127,6 @@ export default function AssignEducationSet() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}

@@ -3,19 +3,22 @@ export default function AnswerSummary({
   total,
   onSelectQuestion,
   currentIndex,
+  exam_type,
 }) {
+  const isImgExam = exam_type === "img";
+
   return (
     <div
       className="answer-summary-card half-width"
       style={{
         borderRadius: "12px",
-        height: "800px", // eskiden 600px idi, 800px yaptık
+        height: "800px",
         padding: "2px",
         backgroundColor: "#f5f7fa",
         fontFamily: "Segoe UI, Roboto, sans-serif",
         maxWidth: "100%",
         width: "100%",
-        maxHeight: "800px", // aynı şekilde maxHeight da 800px olmalı
+        maxHeight: "800px",
         overflowY: "auto",
       }}
     >
@@ -29,9 +32,13 @@ export default function AnswerSummary({
           return (
             <li
               key={idx}
-              onClick={() => onSelectQuestion?.(idx)}
+              onClick={() => {
+                if (!isImgExam && onSelectQuestion) {
+                  onSelectQuestion(idx);
+                }
+              }}
               style={{
-                cursor: "pointer",
+                cursor: isImgExam ? "default" : "pointer",
                 padding: "10px 12px",
                 borderRadius: "8px",
                 marginBottom: "8px",
@@ -42,16 +49,21 @@ export default function AnswerSummary({
                 boxShadow: isActive
                   ? "inset 4px 0 0 #001b66, 0 0 0 1px #c0c6d3"
                   : "0 0 0 1px #dee2e6",
+                userSelect: "none",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = isActive
-                  ? "#dce3f5"
-                  : "#e6ecf5";
+                if (!isImgExam) {
+                  e.currentTarget.style.backgroundColor = isActive
+                    ? "#dce3f5"
+                    : "#e6ecf5";
+                }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = isActive
-                  ? "#dce3f5"
-                  : "#ffffff";
+                if (!isImgExam) {
+                  e.currentTarget.style.backgroundColor = isActive
+                    ? "#dce3f5"
+                    : "#ffffff";
+                }
               }}
             >
               {questionNumber}. Soru:{" "}

@@ -15,10 +15,12 @@ import {
   deleteCourseTypeThunk,
   deleteEducatorThunk,
   deleteRequesterThunk,
+  combineCertificatesThunk,
 } from "../thunks/certificateThunk";
 
 const initialState = {
   completedEducationSets: [],
+  combineCertificates: [],
   certificates: [],
   educators: [],
   courseNos: [],
@@ -59,6 +61,14 @@ const certificateSlice = createSlice({
         state.completedEducationSets = action.payload;
       })
       .addCase(createCertificateThunk.rejected, setError)
+
+      // Combine Certificates
+      .addCase(combineCertificatesThunk.pending, setLoading)
+      .addCase(combineCertificatesThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.combineCertificates = action.payload; // artık string mesaj var
+      })
+      .addCase(combineCertificatesThunk.rejected, setError)
 
       // Certificates
       .addCase(getCertificatesThunk.pending, setLoading)

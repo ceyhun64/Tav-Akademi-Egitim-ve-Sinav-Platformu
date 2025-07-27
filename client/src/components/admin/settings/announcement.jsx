@@ -76,18 +76,23 @@ export default function AnnouncementForm() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(
+    window.innerWidth >= 768 && window.innerWidth < 1350
+  );
+
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1350);
+      if (width >= 768) {
+        setSidebarOpen(true); // büyük ekranlarda sidebar açık
       }
     };
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
   useEffect(() => {
     // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
     setSidebarOpen(!isMobile);
@@ -108,7 +113,6 @@ export default function AnnouncementForm() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -133,7 +137,7 @@ export default function AnnouncementForm() {
             className="mb-4 mt-2 ms-5"
             style={{
               color: "#003399",
-              fontSize: "28px",
+              fontSize: isMobile ? "20px" : "28px",
               fontWeight: "700",
               display: "flex",
               alignItems: "center",
@@ -170,12 +174,12 @@ export default function AnnouncementForm() {
           <div
             className="card shadow-sm"
             style={{
-              maxWidth: "1200px", // genişliği artırdım
-              width: "1100px", // genişliği tam ekran yapıyor
-              margin: "0 auto", // ortaya hizalama
-              borderRadius: "16px", // biraz daha yuvarlak köşeler
-              padding: "2rem", // içerik için padding artırıldı
-              boxShadow: "0 8px 20px rgba(0, 51, 153, 0.15)", // daha belirgin gölge
+              maxWidth: isMobile || isTablet ? "100%" : "1200px",
+              width: "100%",
+              margin: "0 auto",
+              borderRadius: "16px",
+              padding: isMobile ? "1rem" : "2rem",
+              boxShadow: "0 8px 20px rgba(0, 51, 153, 0.15)",
               backgroundColor: "#fff",
             }}
           >

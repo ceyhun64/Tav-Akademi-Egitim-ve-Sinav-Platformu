@@ -78,7 +78,6 @@ export default function ImgQuestion() {
   const { imgQuestions, duration, name } = useSelector(
     (state) => state.question
   );
-  console.log("imgQuestions:", imgQuestions);
 
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [selectedCoordinates, setSelectedCoordinates] = useState({});
@@ -282,17 +281,21 @@ export default function ImgQuestion() {
   useEffect(() => {
     dispatch(getImgQuestionsThunk(examId));
   }, [dispatch, examId]);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState(false); // < 768px
+  const [isTablet, setIsTablet] = useState(false); // 768px - 1400
+  const TABLET_BREAKPOINT = 768;
+  const DESKTOP_BREAKPOINT = 1400; // Güncellendi
+
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
-      }
+      const width = window.innerWidth;
+      setIsMobile(width < TABLET_BREAKPOINT);
+      setIsTablet(width >= TABLET_BREAKPOINT && width < DESKTOP_BREAKPOINT);
     };
 
+    handleResize();
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize); // Düzeltildi
   }, []);
 
   const handleImageClick = (e) => {
@@ -578,7 +581,7 @@ export default function ImgQuestion() {
         return;
       }
       if (userInputCode.toUpperCase() !== confirmExitCode) {
-        alert("Girdiğiniz kod yanlış. Lütfen doğru kodu girin.");
+        alert("Sınav bitti");
         return;
       }
     }
@@ -635,12 +638,6 @@ export default function ImgQuestion() {
       delete updated[q.id];
       return updated;
     });
-
-    setSelectedAnswers((prev) => {
-      const updated = { ...prev };
-      delete updated[q.id];
-      return updated;
-    });
   };
 
   return (
@@ -656,7 +653,8 @@ export default function ImgQuestion() {
                 if (currentIndex < imgQuestions.length - 1) {
                   handleNext();
                 } else {
-                  handleSubmit();
+                  handleSubmit(true); // Pass 'true' to indicate auto-submission
+                  setExamEnded(true); // Optio
                 }
               }}
               resetKey={currentIndex}
@@ -672,8 +670,29 @@ export default function ImgQuestion() {
                 activeFilter={activeFilter}
                 setActiveFilter={setActiveFilter}
               />
+              {activeFilter === "transparency" && (
+                <div className="d-flex justify-content-center align-items-center gap-3">
+                  <button
+                    onClick={() =>
+                      setTransparencyAlpha((p) => Math.max(0, p - 10))
+                    }
+                    className="btn btn-outline-secondary btn-sm"
+                  >
+                    -
+                  </button>
+                  <span>{transparencyAlpha}%</span>
+                  <button
+                    onClick={() =>
+                      setTransparencyAlpha((p) => Math.min(100, p + 10))
+                    }
+                    className="btn btn-outline-secondary btn-sm"
+                  >
+                    +
+                  </button>
+                </div>
+              )}
               <button
-                onClick={openModal}
+                onClick={setModalOpen}
                 title="Filtreli resmi büyüt"
                 className="btn"
                 style={{
@@ -688,6 +707,9 @@ export default function ImgQuestion() {
                   transition: "background-color 0.3s, border-color 0.3s",
                   fontSize: "1.25rem",
                   color: "#001b66",
+
+                  width: isMobile ? 36 : 100,
+                  height: isMobile ? 24 : 80,
                 }}
               >
                 <i className="bi bi-search" style={{ color: "#001b66" }}></i>
@@ -826,29 +848,7 @@ export default function ImgQuestion() {
                     activeFilter={activeFilter}
                     transparencyAlpha={transparencyAlpha}
                     renderFilteredImage={renderFilteredImageMemo}
-                  >
-                    {activeFilter === "transparency" && (
-                      <div className="d-flex justify-content-center align-items-center gap-3 mt-3">
-                        <button
-                          onClick={() =>
-                            setTransparencyAlpha((p) => Math.max(0, p - 10))
-                          }
-                          className="btn btn-outline-secondary btn-sm"
-                        >
-                          -
-                        </button>
-                        <span>{transparencyAlpha}%</span>
-                        <button
-                          onClick={() =>
-                            setTransparencyAlpha((p) => Math.min(100, p + 10))
-                          }
-                          className="btn btn-outline-secondary btn-sm"
-                        >
-                          +
-                        </button>
-                      </div>
-                    )}
-                  </ImageMarker>
+                  ></ImageMarker>
                   <div className="d-flex d-lg-none justify-content-between align-items-center my-3 px-2">
                     <div
                       style={{
@@ -867,7 +867,21 @@ export default function ImgQuestion() {
                   </div>
 
                   {showSelectAnswerWarning && (
-                    <div style={overlayStyle}>
+                    <div
+                      style={{
+                        ...containerStyle,
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        padding: "1rem",
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        zIndex: 9999, // overlay'nin üstte kalması için
+                      }}
+                    >
                       <div
                         style={{
                           backgroundColor: "white",
@@ -876,11 +890,13 @@ export default function ImgQuestion() {
                           boxShadow: "0 0 10px rgba(0, 0, 0, 0.3)",
                           textAlign: "center",
                           maxWidth: "500px",
-                          marginRight: "650px",
-                          marginBottom: "200px",
+                          width: "100%",
+                          maxHeight: "80vh",
+                          overflowY: "auto",
+                          marginBottom: "5rem",
                         }}
                       >
-                        <h4 className="text-warning">
+                        <h4 className="text-warning text-center">
                           <i className="bi bi-exclamation-circle-fill me-2" />
                           Uyarı
                         </h4>
@@ -893,12 +909,6 @@ export default function ImgQuestion() {
                         </button>
                       </div>
                     </div>
-                  )}
-
-                  {modalOpen && (
-                    <FullscreenModal onClose={closeModal}>
-                      {renderImage(true)}
-                    </FullscreenModal>
                   )}
 
                   {selectedCoordinates[q.id] && (
@@ -929,7 +939,8 @@ export default function ImgQuestion() {
                   maxWidth: "100%",
                   margin: "auto",
                   display: "grid",
-                  gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
+                  gridTemplateColumns:
+                    isMobile || isTablet ? "1fr" : "repeat(3, 1fr)",
                   gap: "12px 16px",
                 }}
               >
@@ -996,20 +1007,15 @@ export default function ImgQuestion() {
               </div>
 
               {/* Navigasyon */}
+              {/* Navigasyon */}
               <div
                 className="card-footer d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mt-3"
                 style={{ backgroundColor: "white" }}
               >
-                {" "}
                 <div className="d-flex gap-2">
-                  <button
-                    className="btn btn-outline-secondary"
-                    onClick={handleNext}
-                    disabled={currentIndex === 0}
-                  >
-                    <i className="bi bi-arrow-left-circle me-1" />
-                    Önceki
-                  </button>
+                  {/* Önceki butonu kaldırıldı */}
+
+                  {/* Sonraki butonu aktif */}
                   <button
                     className="btn btn-outline-primary"
                     onClick={handleNext}
@@ -1019,6 +1025,7 @@ export default function ImgQuestion() {
                     <i className="bi bi-arrow-right-circle ms-1" />
                   </button>
                 </div>
+
                 {/* Kod Giriş Alanı */}
                 {showCodeInput && (
                   <div
@@ -1058,6 +1065,7 @@ export default function ImgQuestion() {
                     />
                   </div>
                 )}
+
                 {/* Sınavı Bitir */}
                 {!examEnded && (
                   <button
@@ -1110,11 +1118,17 @@ export default function ImgQuestion() {
                 total={imgQuestions.length}
                 onSelectQuestion={(index) => setCurrentIndex(index)}
                 currentIndex={currentIndex}
+                exam_type={"img"}
               />
             </div>
           </div>
         </div>
       </div>
+      {modalOpen && (
+        <FullscreenModal onClose={closeModal}>
+          {renderImage(true)}
+        </FullscreenModal>
+      )}
     </div>
   );
 }

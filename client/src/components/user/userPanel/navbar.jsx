@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logoutThunk } from "../../../features/thunks/authThunk";
 import { clearAlert } from "../../../features/slices/authSlice";
-import "./navbar.css";
 
 export default function Navbar() {
   const dispatch = useDispatch();
@@ -15,6 +14,7 @@ export default function Navbar() {
   const examsDropdownRef = useRef();
   const resultsDropdownRef = useRef();
   const [dropdownOpen, setDropdownOpen] = useState(null); // 'exams', 'results', or null
+  const [collapseOpen, setCollapseOpen] = useState(false);
 
   const handleLogout = async () => {
     await dispatch(logoutThunk());
@@ -39,14 +39,41 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(false); // < 768px
+  const [isTablet, setIsTablet] = useState(false); // 768px - 1400
+  const TABLET_BREAKPOINT = 768;
+  const DESKTOP_BREAKPOINT = 1300;
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 992);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    const handleResize = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < TABLET_BREAKPOINT);
+      setIsTablet(width >= TABLET_BREAKPOINT && width < DESKTOP_BREAKPOINT);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("mousedown", handleResize); // Changed from mousedown to resize
   }, []);
+
+  // Dropdown açma kapama davranışını mobilde click, diğerlerinde hover ile ayarla
+  const handleDropdownClick = (menu) => {
+    if (isMobile) {
+      setDropdownOpen((prev) => (prev === menu ? null : menu));
+    }
+  };
+
+  const handleDropdownMouseEnter = (menu) => {
+    if (!isMobile) {
+      setDropdownOpen(menu);
+    }
+  };
+
+  const handleDropdownMouseLeave = () => {
+    if (!isMobile) {
+      setDropdownOpen(null);
+    }
+  };
 
   return (
     <nav
@@ -70,38 +97,62 @@ export default function Navbar() {
           />
         </Link>
 
+        {/* Hamburger Butonu React state ile kontrol */}
         <button
           className="navbar-toggler border-0"
           type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
           aria-controls="navbarNav"
-          aria-expanded="false"
+          aria-expanded={collapseOpen}
           aria-label="Toggle navigation"
+          onClick={() => setCollapseOpen((prev) => !prev)}
         >
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav navbar-center mb-2 mb-lg-0">
+        <div
+          className={`collapse navbar-collapse${collapseOpen ? " show" : ""}`}
+          id="navbarNav"
+        >
+          <ul
+            className="navbar-nav navbar-center mb-2 mb-lg-0"
+            style={
+              isTablet ? { flexWrap: "wrap", justifyContent: "center" } : {}
+            }
+          >
             <li className="nav-item">
               <Link
                 className={`nav-link fw-medium custom-nav-link ${
                   location.pathname === "/education-set" ? "active-link" : ""
                 }`}
                 to="/education-set"
+                style={{
+                  fontSize: isTablet || isMobile ? "0.8rem" : "0.9rem", // Smaller text for tablet/mobile
+                  paddingTop: "0.35rem",
+                  paddingBottom: "0.35rem",
+                  paddingLeft: "0.2rem", // Reduced padding
+                  paddingRight: "0.2rem", // Reduced padding
+                  display: "flex",
+                  alignItems: "center",
+                  gap: isTablet || isMobile ? "2px" : "6px", // Reduced gap
+                  textAlign: "center",
+                }}
               >
-                <i className="bi bi-mortarboard me-2"></i>
+                {!(isTablet || isMobile) && ( // Icon hidden on tablet/mobile
+                  <i
+                    className="bi bi-mortarboard me-2"
+                    style={{ fontSize: "1rem" }}
+                  ></i>
+                )}
                 Eğitimlerim
               </Link>
             </li>
-
+            {/* Sınavlarım Dropdown */}
             <li
               className="nav-item dropdown"
               ref={examsDropdownRef}
               style={{ position: "relative" }}
-              onMouseEnter={() => setDropdownOpen("exams")}
-              onMouseLeave={() => setDropdownOpen(null)}
+              onMouseEnter={() => handleDropdownMouseEnter("exams")}
+              onMouseLeave={() => handleDropdownMouseLeave()}
             >
               <span
                 className={`nav-link fw-medium custom-nav-link dropdown-toggle ${
@@ -113,61 +164,97 @@ export default function Navbar() {
                     : ""
                 }`}
                 role="button"
-                onClick={() =>
-                  setDropdownOpen(dropdownOpen === "exams" ? null : "exams")
-                }
+                onClick={() => handleDropdownClick("exams")}
+                style={{
+                  fontSize: isTablet || isMobile ? "0.8rem" : "0.9rem", // Smaller text
+                  paddingTop: "0.35rem",
+                  paddingBottom: "0.35rem",
+                  paddingLeft: "0.2rem", // Reduced padding
+                  paddingRight: "0.2rem", // Reduced padding
+                  display: "flex",
+                  alignItems: "center",
+                  gap: isTablet || isMobile ? "2px" : "6px", // Reduced gap
+                  cursor: "pointer",
+                  textAlign: "center",
+                }}
               >
-                <i className="bi bi-journal-text me-2"></i>
+                {!(isTablet || isMobile) && ( // Icon hidden
+                  <i
+                    className="bi bi-journal-text me-2"
+                    style={{ fontSize: "1rem" }}
+                  ></i>
+                )}
                 Sınavlarım
               </span>
-              {dropdownOpen === "exams" && (
+              {(dropdownOpen === "exams" ||
+                (!isMobile && dropdownOpen === "exams")) && (
                 <ul
                   className="dropdown-menu show"
                   style={{
                     position: "absolute",
-                    top: "calc(100% + 2px)", // Dropdown tam altında biraz boşluk ile
-                    left: 0,
+                    top: "100%",
+                    left: isTablet || isMobile ? "0" : 0, // Align left for tablet/mobile
+                    // transform: "none", // Remove transform to avoid centering
                     backgroundColor: "white",
                     borderRadius: "0.25rem",
                     padding: "0.5rem 0",
                     minWidth: "200px",
                     zIndex: 9999,
-                    fontSize: "0.85rem", // Yazı boyutu küçültüldü
-                    marginLeft: "30px",
+                    fontSize: "0.85rem",
+                    marginLeft: isTablet || isMobile ? "0" : "30px", // Adjust margin for tablet/mobile
                     border: "1px solid #ced4da",
                   }}
                 >
                   <li>
-                    <Link className="dropdown-item" to="/teo-exams">
+                    <Link
+                      className="dropdown-item"
+                      to="/teo-exams"
+                      style={{ fontSize: "0.8rem", padding: "6px 15px" }}
+                      onClick={() => setCollapseOpen(false)}
+                    >
                       Teorik Sınavlar
                     </Link>
                   </li>
                   <li>
-                    <Link className="dropdown-item" to="/img-exams">
+                    <Link
+                      className="dropdown-item"
+                      to="/img-exams"
+                      style={{ fontSize: "0.8rem", padding: "6px 15px" }}
+                      onClick={() => setCollapseOpen(false)}
+                    >
                       Görsel Sınavlar
                     </Link>
                   </li>
                   <li>
-                    <Link className="dropdown-item" to="/both-exams">
+                    <Link
+                      className="dropdown-item"
+                      to="/both-exams"
+                      style={{ fontSize: "0.8rem", padding: "6px 15px" }}
+                      onClick={() => setCollapseOpen(false)}
+                    >
                       Karma Sınavlar
                     </Link>
                   </li>
                   <li>
-                    <Link className="dropdown-item" to="/practice-exams">
+                    <Link
+                      className="dropdown-item"
+                      to="/practice-exams"
+                      style={{ fontSize: "0.8rem", padding: "6px 15px" }}
+                      onClick={() => setCollapseOpen(false)}
+                    >
                       Pratik Sınavlar
                     </Link>
                   </li>
                 </ul>
               )}
             </li>
-
-            {/* Sonuçlarım dropdown */}
+            {/* Sonuçlarım Dropdown */}
             <li
               className="nav-item dropdown"
               ref={resultsDropdownRef}
               style={{ position: "relative" }}
-              onMouseEnter={() => setDropdownOpen("results")}
-              onMouseLeave={() => setDropdownOpen(null)}
+              onMouseEnter={() => handleDropdownMouseEnter("results")}
+              onMouseLeave={() => handleDropdownMouseLeave()}
             >
               <span
                 className={`nav-link fw-medium custom-nav-link dropdown-toggle ${
@@ -177,50 +264,93 @@ export default function Navbar() {
                     : ""
                 }`}
                 role="button"
-                onClick={() =>
-                  setDropdownOpen(dropdownOpen === "results" ? null : "results")
-                }
+                onClick={() => handleDropdownClick("results")}
+                style={{
+                  fontSize: isTablet || isMobile ? "0.8rem" : "0.9rem", // Smaller text
+                  paddingTop: "0.35rem",
+                  paddingBottom: "0.35rem",
+                  paddingLeft: "0.2rem", // Reduced padding
+                  paddingRight: "0.2rem", // Reduced padding
+                  display: "flex",
+                  alignItems: "center",
+                  gap: isTablet || isMobile ? "2px" : "6px", // Reduced gap
+                  cursor: "pointer",
+                  textAlign: "center",
+                }}
               >
-                <i className="bi bi-graph-up-arrow me-2"></i>
+                {!(isTablet || isMobile) && ( // Icon hidden
+                  <i
+                    className="bi bi-graph-up-arrow me-2"
+                    style={{ fontSize: "1rem" }}
+                  ></i>
+                )}
                 Sonuçlarım
               </span>
-              {dropdownOpen === "results" && (
+              {(dropdownOpen === "results" ||
+                (!isMobile && dropdownOpen === "results")) && (
                 <ul
                   className="dropdown-menu show"
                   style={{
                     position: "absolute",
                     top: "100%",
-                    left: 0,
+                    left: isTablet || isMobile ? "0" : 0, // Align left for tablet/mobile
+                    // transform: "none", // Remove transform
                     backgroundColor: "white",
                     borderRadius: "0.25rem",
                     padding: "0.5rem 0",
                     minWidth: "200px",
                     zIndex: 9999,
-                    marginLeft: "30px",
+                    marginLeft: isTablet || isMobile ? "0" : "30px", // Adjust margin for tablet/mobile
                   }}
                 >
                   <li>
-                    <Link className="dropdown-item" to="/teo-exam-report">
+                    <Link
+                      className="dropdown-item"
+                      to="/teo-exam-report"
+                      style={{ fontSize: "0.8rem", padding: "6px 15px" }}
+                      onClick={() => setCollapseOpen(false)}
+                    >
                       Teorik Sonuçlar
                     </Link>
                   </li>
                   <li>
-                    <Link className="dropdown-item" to="/img-exam-report">
+                    <Link
+                      className="dropdown-item"
+                      to="/img-exam-report"
+                      style={{ fontSize: "0.8rem", padding: "6px 15px" }}
+                      onClick={() => setCollapseOpen(false)}
+                    >
                       Görsel Sonuçlar
                     </Link>
                   </li>
                 </ul>
               )}
             </li>
-
             <li className="nav-item">
               <Link
                 className={`nav-link fw-medium custom-nav-link ${
                   location.pathname === "/image-gallery" ? "active-link" : ""
                 }`}
                 to="/image-gallery"
+                style={{
+                  fontSize: isTablet || isMobile ? "0.8rem" : "0.9rem", // Smaller text
+                  paddingTop: "0.35rem",
+                  paddingBottom: "0.35rem",
+                  paddingLeft: "0.2rem", // Reduced padding
+                  paddingRight: "0.2rem", // Reduced padding
+                  display: "flex",
+                  alignItems: "center",
+                  gap: isTablet || isMobile ? "2px" : "6px", // Reduced gap
+                  textAlign: "center",
+                }}
+                onClick={() => setCollapseOpen(false)}
               >
-                <i className="bi bi-book me-2"></i>
+                {!(isTablet || isMobile) && ( // Icon hidden
+                  <i
+                    className="bi bi-book me-2"
+                    style={{ fontSize: "1rem" }}
+                  ></i>
+                )}{" "}
                 Kütüphane
               </Link>
             </li>
@@ -230,8 +360,25 @@ export default function Navbar() {
                   location.pathname === "/downloads" ? "active-link" : ""
                 }`}
                 to="/downloads"
+                style={{
+                  fontSize: isTablet || isMobile ? "0.8rem" : "0.9rem", // Smaller text
+                  paddingTop: "0.35rem",
+                  paddingBottom: "0.35rem",
+                  paddingLeft: "0.2rem", // Reduced padding
+                  paddingRight: "0.2rem", // Reduced padding
+                  display: "flex",
+                  alignItems: "center",
+                  gap: isTablet || isMobile ? "2px" : "6px", // Reduced gap
+                  textAlign: "center",
+                }}
+                onClick={() => setCollapseOpen(false)}
               >
-                <i className="bi bi-download me-2"></i>
+                {!(isTablet || isMobile) && ( // Icon hidden
+                  <i
+                    className="bi bi-download me-2"
+                    style={{ fontSize: "1rem" }}
+                  ></i>
+                )}
                 İndirmeler
               </Link>
             </li>
@@ -241,58 +388,70 @@ export default function Navbar() {
                   location.pathname === "/announcements" ? "active-link" : ""
                 }`}
                 to="/announcements"
+                style={{
+                  fontSize: isTablet || isMobile ? "0.8rem" : "0.9rem", // Smaller text
+                  paddingTop: "0.35rem",
+                  paddingBottom: "0.35rem",
+                  paddingLeft: "0.2rem", // Reduced padding
+                  paddingRight: "0.2rem", // Reduced padding
+                  display: "flex",
+                  alignItems: "center",
+                  gap: isTablet || isMobile ? "2px" : "6px", // Reduced gap
+                  textAlign: "center",
+                }}
+                onClick={() => setCollapseOpen(false)}
               >
-                <i className="bi bi-megaphone me-2"></i> {/* duyuru simgesi */}
+                {!(isTablet || isMobile) && ( // Icon hidden
+                  <i
+                    className="bi bi-megaphone me-2"
+                    style={{ fontSize: "1rem" }}
+                  ></i>
+                )}{" "}
                 Duyurularım
               </Link>
             </li>
           </ul>
 
-          <ul className="navbar-nav align-items-center">
-            <li className="nav-item d-flex align-items-center me-3">
-              <span className="nav-link fw-semibold d-flex align-items-center gap-2">
-                <i
-                  className="bi bi-person"
-                  style={{ color: "#001b66", fontSize: "1.25rem" }}
-                ></i>
-                <span style={{ color: "#001b66" }}>{ad || "Kullanıcı"}</span>
-              </span>
-            </li>
+          <ul
+            className="navbar-nav align-items-center"
+            style={
+              isTablet
+                ? {
+                    marginLeft: "auto",
+                    flexWrap: "wrap",
+                    justifyContent: "flex-end",
+                    marginTop: "1rem",
+                  }
+                : {}
+            }
+          >
             <li className="nav-item">
               <button
                 onClick={handleLogout}
                 style={{
                   fontWeight: 600,
                   borderRadius: "30px",
-                  padding: "8px 28px",
-                  border: "2px solid #dc3545",
-                  backgroundColor: "transparent",
-                  color: "#dc3545",
-                  boxShadow: "0 4px 6px rgba(220, 53, 69, 0.3)",
-                  transition: "all 0.3s ease",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
+                  padding: isTablet || isMobile ? "4px 12px" : "8px 28px",
+                  border: "1px solid #660000ff",
+                  backgroundColor: "#ffffff",
+                  color: "#660000ff",
                   cursor: "pointer",
-                  fontSize: "0.6rem",
+                  fontSize: isTablet || isMobile ? "0.8rem" : "inherit",
+                  margin: isTablet || isMobile ? "-0.3rem 0 0 0" : "0",
+                  display: isTablet || isMobile ? "block" : "inline-block",
+                  marginTop: isTablet || isMobile ? "0.0rem" : "0.5rem",
+                  marginBottom: isTablet || isMobile ? "0.5rem" : "0",
+
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#dc3545";
-                  e.currentTarget.style.color = "#fff";
-                  e.currentTarget.style.boxShadow =
-                    "0 6px 12px rgba(220, 53, 69, 0.6)";
+                  e.target.style.backgroundColor = "#b71717ff";
+                  e.target.style.color = "#ffffff";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                  e.currentTarget.style.color = "#dc3545";
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 6px rgba(220, 53, 69, 0.3)";
+                  e.target.style.backgroundColor = "#ffffff";
+                  e.target.style.color = "#b91a1aff";
                 }}
               >
-                <i
-                  className="bi bi-box-arrow-right"
-                  style={{ fontSize: "1rem" }}
-                ></i>
                 Çıkış Yap
               </button>
             </li>

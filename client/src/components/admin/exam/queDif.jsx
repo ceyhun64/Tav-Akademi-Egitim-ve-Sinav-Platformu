@@ -1,4 +1,4 @@
-import React, { useEffect,useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getQuestionCatThunk,
@@ -41,13 +41,18 @@ export default function QueDif() {
   };
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(
+    window.innerWidth >= 768 && window.innerWidth < 1350
+  );
+
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1350);
+      if (width >= 768) {
+        setSidebarOpen(true); // Sidebar is open on larger screens
       }
     };
 
@@ -56,10 +61,9 @@ export default function QueDif() {
   }, []);
 
   useEffect(() => {
-    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
+    // İlk yüklemede sidebar büyük ekranda açık, küçükte kapalı
     setSidebarOpen(!isMobile);
   }, [isMobile]);
-  const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
 
   return (
     <div
@@ -75,9 +79,10 @@ export default function QueDif() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
+          width: sidebarOpen ? 260 : 0,
+          transition: "width 0.3s ease",
         }}
       >
         <Sidebar />
@@ -86,7 +91,11 @@ export default function QueDif() {
       {/* Ana İçerik */}
       <div
         className="poolImg-content"
-        style={{ marginLeft: isMobile ? "0px" : "260px" }}
+        style={{
+          marginLeft: sidebarOpen ? 260 : 0,
+          padding: "1rem",
+          transition: "margin-left 0.3s ease",
+        }}
       >
         <div
           style={{
@@ -123,10 +132,10 @@ export default function QueDif() {
                 color: "white",
                 border: "none",
                 borderRadius: "4px",
-                padding: "6px 16px", // padding yatay biraz artırıldı
+                padding: "6px 16px",
                 cursor: "pointer",
                 fontSize: "1rem",
-                whiteSpace: "nowrap", // metnin tek satırda kalmasını sağlar
+                whiteSpace: "nowrap",
               }}
             >
               Geri Dön
@@ -135,20 +144,23 @@ export default function QueDif() {
         </div>
 
         <div
-          className="row"
           style={{
             maxWidth: "1200px",
-            width: "1100px",
+            width: "100%",
             margin: "0 auto",
             borderRadius: "16px",
-            padding: "2rem",
+            padding: isMobile ? "1rem" : "2rem",
             boxShadow: "0 8px 20px rgba(0, 51, 153, 0.15)",
             backgroundColor: "#fff",
+
+            display: "flex",
+            flexDirection: isMobile || isTablet ? "column" : "row",
+            gap: "1.5rem",
           }}
         >
           {/* Soru Kategorileri */}
-          <div className="col-md-6 mb-4">
-            <div className="card shadow-sm">
+          <div style={{ flex: 1 }}>
+            <div className="card shadow-sm" style={{ height: "100%" }}>
               <div className="card-body">
                 <h4 className="card-title mb-3">Soru Kategorileri</h4>
 
@@ -203,8 +215,8 @@ export default function QueDif() {
           </div>
 
           {/* Zorluk Seviyeleri */}
-          <div className="col-md-6 mb-4">
-            <div className="card shadow-sm">
+          <div style={{ flex: 1 }}>
+            <div className="card shadow-sm" style={{ height: "100%" }}>
               <div className="card-body">
                 <h4 className="card-title mb-3">Zorluk Seviyeleri</h4>
 

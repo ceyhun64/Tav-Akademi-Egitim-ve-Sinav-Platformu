@@ -18,7 +18,6 @@ export default function ImgExams() {
     navigate(`/img-questions/${examId}`);
   };
 
-  console.log(exams);
   const activeExams =
     exams?.filter((exam) => {
       if (!exam.examUsers?.[0]) return false;

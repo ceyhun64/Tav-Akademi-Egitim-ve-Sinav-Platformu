@@ -51,11 +51,7 @@ exports.update_user_details = async (req, res) => {
       grup,
       lokasyon,
     } = req.body;
-
-    // Zorunlu kontroller
-    if (!tcno || !sicil || !ad || !soyad || !kullanici_adi || !email) {
-      return res.status(400).json({ message: "Zorunlu alanlar eksik." });
-    }
+   
 
     // Güncellenecek alanları bir objede toplayın
     const updates = {};

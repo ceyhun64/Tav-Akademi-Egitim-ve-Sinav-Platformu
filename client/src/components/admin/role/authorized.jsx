@@ -107,7 +107,6 @@ export default function Authorized() {
           top: 0,
           backgroundColor: "#003399", // biraz daha canlı mavi
           color: "#fff",
-          boxShadow: "2px 0 12px rgba(0, 0, 0, 0.25)",
           overflowY: "auto",
           zIndex: 10,
           borderRadius: "0 12px 12px 0",

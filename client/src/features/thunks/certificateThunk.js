@@ -3,6 +3,7 @@ import {
   getCompletedEducationSets,
   createCertificate,
   getCertificates,
+  combineCertificates,
   getCourseNos,
   getCourseTypes,
   getEducators,
@@ -38,6 +39,28 @@ export const createCertificateThunk = createAsyncThunk(
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);
+    }
+  }
+);
+export const combineCertificatesThunk = createAsyncThunk(
+  "certificate/combineCertificates",
+  async (certificateIds, thunkAPI) => {
+    try {
+      const blob = await combineCertificates(certificateIds);
+
+      // Blob'u Redux state'e koyma, direkt indir:
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "sertifikalar.docx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      return "İndirme tamamlandı"; // sadece basit mesaj döndür
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data || error.message);
     }
   }
 );
@@ -152,7 +175,6 @@ export const createRequesterThunk = createAsyncThunk(
     }
   }
 );
-
 
 export const deleteCourseNoThunk = createAsyncThunk(
   "certificate/deleteCourseNo",

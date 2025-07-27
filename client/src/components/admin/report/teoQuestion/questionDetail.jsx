@@ -83,10 +83,9 @@ export default function QuestionDetailCard({ question, currentIndex }) {
                 borderRadius: "8px",
                 display: "block",
                 margin: "0 auto",
-                width: `${displaySize.width}px`,
-                height: `${displaySize.height}px`,
+                maxWidth: "100%", // Maksimum container genişliği kadar
+                height: "auto", // Oran bozulmasın diye otomatik yükseklik
                 boxShadow: "0 0 10px rgba(0, 27, 102, 0.2)",
-                border: "1px solid #001b66",
               }}
             />
           </div>

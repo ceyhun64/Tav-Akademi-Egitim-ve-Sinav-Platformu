@@ -569,7 +569,7 @@ export default function BothImgQuestion() {
 
     // Eğer kod giriş ekranı açık, girilen kod doğru mu kontrol et
     if (userInputCode.toUpperCase() !== confirmExitCode) {
-      alert("Girdiğiniz kod yanlış. Lütfen doğru kodu girin.");
+      alert("Sınav bitti");
       return;
     }
 
@@ -614,12 +614,6 @@ export default function BothImgQuestion() {
 
   const handleRemoveCoordinate = () => {
     setSelectedCoordinates((prev) => {
-      const updated = { ...prev };
-      delete updated[q.id];
-      return updated;
-    });
-
-    setSelectedAnswers((prev) => {
       const updated = { ...prev };
       delete updated[q.id];
       return updated;
@@ -673,8 +667,29 @@ export default function BothImgQuestion() {
                     activeFilter={activeFilter}
                     setActiveFilter={setActiveFilter}
                   />
+                  {activeFilter === "transparency" && (
+                    <div className="d-flex justify-content-center align-items-center gap-3">
+                      <button
+                        onClick={() =>
+                          setTransparencyAlpha((p) => Math.max(0, p - 10))
+                        }
+                        className="btn btn-outline-secondary btn-sm"
+                      >
+                        -
+                      </button>
+                      <span>{transparencyAlpha}%</span>
+                      <button
+                        onClick={() =>
+                          setTransparencyAlpha((p) => Math.min(100, p + 10))
+                        }
+                        className="btn btn-outline-secondary btn-sm"
+                      >
+                        +
+                      </button>
+                    </div>
+                  )}
                   <button
-                    onClick={openModal}
+                    onClick={setModalOpen}
                     title="Filtreli resmi büyüt"
                     className="btn"
                     style={{
@@ -689,6 +704,9 @@ export default function BothImgQuestion() {
                       transition: "background-color 0.3s, border-color 0.3s",
                       fontSize: "1.25rem",
                       color: "#001b66",
+
+                      width: isMobile ? 36 : 100,
+                      height: isMobile ? 24 : 80,
                     }}
                   >
                     <i
@@ -832,31 +850,7 @@ export default function BothImgQuestion() {
                         activeFilter={activeFilter}
                         transparencyAlpha={transparencyAlpha}
                         renderFilteredImage={renderFilteredImageMemo}
-                      >
-                        {activeFilter === "transparency" && (
-                          <div className="d-flex justify-content-center align-items-center gap-3 mt-3">
-                            <button
-                              onClick={() =>
-                                setTransparencyAlpha((p) => Math.max(0, p - 10))
-                              }
-                              className="btn btn-outline-secondary btn-sm"
-                            >
-                              -
-                            </button>
-                            <span>{transparencyAlpha}%</span>
-                            <button
-                              onClick={() =>
-                                setTransparencyAlpha((p) =>
-                                  Math.min(100, p + 10)
-                                )
-                              }
-                              className="btn btn-outline-secondary btn-sm"
-                            >
-                              +
-                            </button>
-                          </div>
-                        )}
-                      </ImageMarker>
+                      ></ImageMarker>
                       <div className="d-flex d-lg-none justify-content-between align-items-center my-3 px-2">
                         <div
                           style={{
@@ -875,7 +869,21 @@ export default function BothImgQuestion() {
                       </div>
 
                       {showSelectAnswerWarning && (
-                        <div style={overlayStyle}>
+                        <div
+                          style={{
+                            ...containerStyle,
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            padding: "1rem",
+                            position: "fixed",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            zIndex: 9999, // overlay'nin üstte kalması için
+                          }}
+                        >
                           <div
                             style={{
                               backgroundColor: "white",
@@ -884,11 +892,13 @@ export default function BothImgQuestion() {
                               boxShadow: "0 0 10px rgba(0, 0, 0, 0.3)",
                               textAlign: "center",
                               maxWidth: "500px",
-                              marginRight: "650px",
-                              marginBottom: "200px",
+                              width: "100%",
+                              maxHeight: "80vh",
+                              overflowY: "auto",
+                              marginBottom: "5rem",
                             }}
                           >
-                            <h4 className="text-warning">
+                            <h4 className="text-warning text-center">
                               <i className="bi bi-exclamation-circle-fill me-2" />
                               Uyarı
                             </h4>
@@ -901,12 +911,6 @@ export default function BothImgQuestion() {
                             </button>
                           </div>
                         </div>
-                      )}
-
-                      {modalOpen && (
-                        <FullscreenModal onClose={closeModal}>
-                          {renderImage(true)}
-                        </FullscreenModal>
                       )}
 
                       {selectedCoordinates[q.id] && (
@@ -1120,7 +1124,8 @@ export default function BothImgQuestion() {
                       if (currentIndex < bothImgQuestions.length - 1) {
                         handleNext();
                       } else {
-                        handleSubmit();
+                        handleSubmit(true); // Pass 'true' to indicate auto-submission
+                        setExamEnded(true); // Optio
                       }
                     }}
                     resetKey={currentIndex}
@@ -1153,6 +1158,11 @@ export default function BothImgQuestion() {
             </div>
           </div>
         </div>
+      )}
+      {modalOpen && (
+        <FullscreenModal onClose={closeModal}>
+          {renderImage(true)}
+        </FullscreenModal>
       )}
     </div>
   );

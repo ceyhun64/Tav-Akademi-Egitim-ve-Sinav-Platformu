@@ -617,7 +617,7 @@ exports.get_user_teo_exams = async (req, res, next) => {
         },
       },
       attributes: {
-        exclude: ["attemp_limit", "timed", "sonucu_gizle", "bookletId"],
+        exclude: [ "timed", "sonucu_gizle", "bookletId"],
       },
     });
     res.status(200).json(exams);
@@ -651,7 +651,7 @@ exports.get_user_img_exams = async (req, res, next) => {
         },
       },
       attributes: {
-        exclude: ["attemp_limit", "timed", "sonucu_gizle", "bookletId"],
+        exclude: [ "timed", "sonucu_gizle", "bookletId"],
       },
     });
 
@@ -691,7 +691,7 @@ exports.get_user_unified_exams = async (req, res, next) => {
         },
       },
       attributes: {
-        exclude: ["attemp_limit", "timed", "sonucu_gizle", "bookletId"],
+        exclude: [ "timed", "sonucu_gizle", "bookletId"],
       },
     });
 

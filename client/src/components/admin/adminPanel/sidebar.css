@@ -51,7 +51,6 @@
   font-size: 1.1rem;
   height: 65px;
   border-radius: 6px;
-  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* Hover efektleri */
@@ -63,13 +62,6 @@
   text-decoration: none;
 }
 
-/* Aktif link */
-.sidebar .active-link {
-  background-color: #001b66;
-  color: #ffffff !important;
-  border-radius: 6px;
-  box-shadow: 0 5px 15px rgb(0 27 102 / 0.6);
-}
 
 /* Menü elemanının relative konumu submenu için gerekli */
 .sidebar .btn-toggle {

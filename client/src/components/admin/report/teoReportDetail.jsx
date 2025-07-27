@@ -31,7 +31,6 @@ export default function TeoReportDetail() {
   const { userResultDetail } = useSelector((state) => state.report);
   const { groups, institutions } = useSelector((state) => state.grpInst);
 
-  console.log("userResultDetail", userResultDetail);
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -153,7 +152,6 @@ export default function TeoReportDetail() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}

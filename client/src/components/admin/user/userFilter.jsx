@@ -7,7 +7,13 @@ import {
 import provinces from "../../../data/provinces.json";
 import "./UserFilter.css";
 
-export default function UserFilter({ filters, onChange, uniqueValues }) {
+export default function UserFilter({
+  filters,
+  onChange,
+  uniqueValues,
+  isMobile,
+  isTablet,
+}) {
   const dispatch = useDispatch();
   const { groups, institutions } = useSelector((state) => state.grpInst);
 
@@ -16,23 +22,111 @@ export default function UserFilter({ filters, onChange, uniqueValues }) {
     dispatch(getInstitutionsThunk());
   }, [dispatch]);
 
-  // Seçilen ilin objesini bul
   const selectedProvince = provinces.find(
     (p) => p.value === Number(filters.il)
   );
 
-  // İlçeler (districts) sadece seçilen ilin districts'i olacak
   const districtsForSelectedProvince = selectedProvince
     ? selectedProvince.districts
     : [];
 
   return (
-    <div className="card p-3 mb-3 shadow-sm">
+    <div
+      className="card p-3 mb-3 shadow-sm"
+      style={{ width: isTablet ? "100%" : "auto" }}
+    >
       <h5>Filtrele</h5>
       <div className="row user-filter-row">
-        {/* Diğer inputlar aynı */}
+        {/* Ad */}
+        <div
+          className={
+            isMobile
+              ? "col-12 mb-2"
+              : isTablet
+              ? "col-6 mb-2"
+              : "col-6 col-md-4 mb-2"
+          }
+        >
+          <input
+            type="text"
+            className="form-control"
+            name="ad"
+            placeholder="Ad"
+            value={filters.ad || ""}
+            onChange={onChange}
+          />
+        </div>
 
-        <div className="col-md-4 col-6 mb-2">
+        {/* Soyad */}
+        <div
+          className={
+            isMobile
+              ? "col-12 mb-2"
+              : isTablet
+              ? "col-6 mb-2"
+              : "col-6 col-md-4 mb-2"
+          }
+        >
+          <input
+            type="text"
+            className="form-control"
+            name="soyad"
+            placeholder="Soyad"
+            value={filters.soyad || ""}
+            onChange={onChange}
+          />
+        </div>
+
+        {/* Sicil */}
+        <div
+          className={
+            isMobile
+              ? "col-12 mb-2"
+              : isTablet
+              ? "col-6 mb-2"
+              : "col-6 col-md-4 mb-2"
+          }
+        >
+          <input
+            type="text"
+            className="form-control"
+            name="sicil"
+            placeholder="Sicil No"
+            value={filters.sicil || ""}
+            onChange={onChange}
+          />
+        </div>
+
+        {/* Kullanıcı Adı */}
+        <div
+          className={
+            isMobile
+              ? "col-12 mb-2"
+              : isTablet
+              ? "col-6 mb-2"
+              : "col-6 col-md-4 mb-2"
+          }
+        >
+          <input
+            type="text"
+            className="form-control"
+            name="kullanici_adi"
+            placeholder="Kullanıcı Adı"
+            value={filters.kullanici_adi || ""}
+            onChange={onChange}
+          />
+        </div>
+
+        {/* İl */}
+        <div
+          className={
+            isMobile
+              ? "col-12 mb-2"
+              : isTablet
+              ? "col-6 mb-2"
+              : "col-6 col-md-4 mb-2"
+          }
+        >
           <select
             name="il"
             className="form-select"
@@ -48,7 +142,16 @@ export default function UserFilter({ filters, onChange, uniqueValues }) {
           </select>
         </div>
 
-        <div className="col-md-4 col-6 mb-2">
+        {/* İlçe */}
+        <div
+          className={
+            isMobile
+              ? "col-12 mb-2"
+              : isTablet
+              ? "col-6 mb-2"
+              : "col-6 col-md-4 mb-2"
+          }
+        >
           <select
             name="ilce"
             className="form-select"
@@ -65,13 +168,20 @@ export default function UserFilter({ filters, onChange, uniqueValues }) {
           </select>
         </div>
 
-        {/* Lokasyon ve grup seçimleri aynı */}
-
-        <div className="col-md-4 col-6 mb-2">
+        {/* Lokasyon */}
+        <div
+          className={
+            isMobile
+              ? "col-12 mb-2"
+              : isTablet
+              ? "col-6 mb-2"
+              : "col-6 col-md-4 mb-2"
+          }
+        >
           <select
             name="lokasyonId"
             className="form-select"
-            value={filters.lokasyonId}
+            value={Number(filters.lokasyonId)}
             onChange={onChange}
           >
             <option value="">Tüm Lokasyonlar</option>
@@ -87,11 +197,20 @@ export default function UserFilter({ filters, onChange, uniqueValues }) {
           </select>
         </div>
 
-        <div className="col-md-4 col-6 mb-2">
+        {/* Grup */}
+        <div
+          className={
+            isMobile
+              ? "col-12 mb-2"
+              : isTablet
+              ? "col-6 mb-2"
+              : "col-6 col-md-4 mb-2"
+          }
+        >
           <select
             name="grupId"
             className="form-select"
-            value={filters.grupId}
+            value={Number(filters.grupId)}
             onChange={onChange}
           >
             <option value="">Tüm Gruplar</option>

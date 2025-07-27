@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Navbar from "../../components/user/userPanel/navbar";
 import UpcomingExam from "../../components/user/userPanel/upcomingExam";
 import ContinueEducation from "../../components/user/userPanel/continueEducation";
@@ -6,6 +6,15 @@ import Graphic from "../../components/user/userPanel/graphic";
 import Footer from "../../layout/footer";
 
 export default function UserPanelPage() {
+  useEffect(() => {
+    // Sayfa yüklendiğinde tam ekran modundaysa çık
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch((err) => {
+        console.warn("Tam ekran modundan çıkılamadı:", err);
+      });
+    }
+  }, []);
+
   return (
     <div>
       <Navbar />

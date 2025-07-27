@@ -48,9 +48,12 @@ export default function Graphic() {
           Eğitim Başarılarımızla <span className="text-primary">Gurur</span>{" "}
           Duyuyoruz
         </h2>
-        <p className="text-muted fs-5 mt-3 responsive-paragraph">
-          Katılımcılarımız yalnızca <strong>sınavlardan</strong> değil,{" "}
-          <strong>kariyerlerinden</strong> de tam puan aldı.
+        <p
+          className="text-muted fs-5 mt-3 text-center mx-auto"
+          style={{ maxWidth: "600px" }}
+        >
+          Katılımcılarımız yalnızca sınavlardan değil, kariyerlerinden de tam
+          puan aldı.
         </p>
       </div>
 

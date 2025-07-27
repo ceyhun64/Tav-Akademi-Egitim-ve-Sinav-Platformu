@@ -53,7 +53,6 @@ export default function PoolTeo() {
   for (let i = startPage; i <= endPage; i++) {
     pageNumbers.push(i);
   }
-  
 
   // Satır genişletme/daraltma
 
@@ -97,19 +96,35 @@ export default function PoolTeo() {
   };
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+
   useEffect(() => {
     const handleResize = () => {
+      // Bu breakpoint'leri projenizin responsive tasarımına göre ayarlayabilirsiniz.
+      // Örneğin: 768px altı mobil, 768px ile 991px arası tablet, 992px üstü masaüstü
       setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
-      }
+      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1190);
     };
 
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    handleResize(); // İlk render'da boyutları ayarla
+    window.addEventListener("resize", handleResize); // Boyut değiştiğinde dinle
+
+    return () => {
+      window.removeEventListener("resize", handleResize); // Bileşen kaldırıldığında temizle
+    };
   }, []);
 
+  // Flex değerlerini belirleyen yardımcı bir fonksiyon tanımlayalım
+  const getFlexValue = (mobileFlex, tabletFlex, desktopFlex) => {
+    if (isMobile) {
+      return mobileFlex;
+    } else if (isTablet) {
+      return tabletFlex;
+    } else {
+      return desktopFlex;
+    }
+  };
   useEffect(() => {
     // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
     setSidebarOpen(!isMobile);
@@ -129,7 +144,6 @@ export default function PoolTeo() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -203,6 +217,7 @@ export default function PoolTeo() {
           <div
             style={{
               display: "flex",
+              // flexDirection: isMobile ? "column" : "row", // Tablette de row kalmalı
               flexDirection: isMobile ? "column" : "row",
               gap: "0.75rem",
               flexWrap: "wrap",
@@ -212,7 +227,11 @@ export default function PoolTeo() {
             {/* Kitapçık Seçme Alanı */}
             <div
               style={{
-                flex: isMobile ? "0 0 100%" : "0 0 20%",
+                flex: getFlexValue(
+                  "0 0 100%", // Mobil: Tam genişlik
+                  "0 0 calc(50% - 0.375rem)", // Tablet: 2 sütun (boşluk dahil)
+                  "0 0 20%" // Masaüstü: %20
+                ),
                 minWidth: 0,
               }}
             >
@@ -259,7 +278,11 @@ export default function PoolTeo() {
             {/* Kitapçıkları Düzenle Butonu */}
             <div
               style={{
-                flex: isMobile ? "0 0 100%" : "0 0 20%",
+                flex: getFlexValue(
+                  "0 0 100%", // Mobil: Tam genişlik
+                  "0 0 calc(50% - 0.375rem)", // Tablet: 2 sütun (boşluk dahil)
+                  "0 0 20%" // Masaüstü: %20
+                ),
                 minWidth: 0,
               }}
             >
@@ -302,7 +325,11 @@ export default function PoolTeo() {
             {/* Kitapçığa Soru Ekle Butonu */}
             <div
               style={{
-                flex: isMobile ? "0 0 100%" : "0 0 20%",
+                flex: getFlexValue(
+                  "0 0 100%", // Mobil: Tam genişlik
+                  "0 0 calc(50% - 0.375rem)", // Tablet: 2 sütun (boşluk dahil)
+                  "0 0 20%" // Masaüstü: %20
+                ),
                 minWidth: 0,
               }}
             >
@@ -342,10 +369,15 @@ export default function PoolTeo() {
             {/* Toplu Ekleme Bileşeni */}
             <div
               style={{
-                flex: isMobile ? "0 0 100%" : "0 0 30%",
+                flex: getFlexValue(
+                  "0 0 100%", // Mobil: Tam genişlik
+                  "0 0 calc(100% - 0.75rem)", // Tablet: Tam genişlik (tek sütun)
+                  "0 0 30%" // Masaüstü: %30
+                ),
                 minWidth: 0,
               }}
             >
+              {/* BulkPoolTeo bileşenini burada render edin */}
               <BulkPoolTeo selectedBookletId={selectedBooklet} />
             </div>
           </div>

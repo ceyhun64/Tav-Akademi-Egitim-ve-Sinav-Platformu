@@ -19,10 +19,10 @@ export default function TeoExams() {
 
   const activeExams =
     exams?.filter((exam) => {
-      if (!exam.examUsers?.[0]) return false;
+      const user = exam.examUsers?.[0];
+      if (!user) return false;
 
-      const isNotCompleted = exam.examUsers[0].completed === false;
-
+      const isNotCompleted = user.completed === false;
       const examEndDateTime = new Date(`${exam.end_date}T${exam.end_time}`);
       const now = new Date();
       const isBeforeEnd = now <= examEndDateTime;
@@ -50,16 +50,11 @@ export default function TeoExams() {
     return (
       <div
         className="d-flex justify-content-center align-items-center"
-        style={{
-          height: "300px",
-        }}
+        style={{ height: "300px" }}
       >
         <div
           className="text-center p-4 border rounded shadow-sm"
-          style={{
-            maxWidth: "400px",
-            backgroundColor: "#f8f9fa",
-          }}
+          style={{ maxWidth: "400px", backgroundColor: "#f8f9fa" }}
         >
           <i className="bi bi-calendar-x fs-1 text-secondary mb-3"></i>
           <h5 className="text-secondary">Aktif sınavınız bulunmamaktadır.</h5>
@@ -88,6 +83,7 @@ export default function TeoExams() {
             year: "numeric",
           }
         );
+
         const endDate = new Date(exam.end_date).toLocaleDateString("tr-TR", {
           weekday: "short",
           day: "numeric",
@@ -95,12 +91,19 @@ export default function TeoExams() {
           year: "numeric",
         });
 
-        // Sınav başlangıç zamanı ve mevcut zaman
+        const now = new Date();
         const examStartDateTime = new Date(
           `${exam.start_date}T${exam.start_time}`
         );
-        const now = new Date();
-        const canStart = now >= examStartDateTime;
+        const canStartByTime = now >= examStartDateTime;
+
+        const user = exam.examUsers?.[0];
+        const attemptLimit = exam.attemp_limit ?? 0;
+        const currentAttempts = user?.attempt_count ?? 0;
+
+        const hasAttemptRight =
+          attemptLimit === 0 || currentAttempts < attemptLimit;
+        const canStart = canStartByTime && hasAttemptRight;
 
         return (
           <div key={exam.id} className="teo-exam-card">
@@ -138,6 +141,16 @@ export default function TeoExams() {
                 ></i>{" "}
                 <strong>Geçme Puanı:</strong> {exam.passing_score}
               </p>
+              <p>
+                <i
+                  className="bi bi-arrow-repeat"
+                  style={{ color: "#0056cc" }}
+                ></i>{" "}
+                <strong>Hakkınız:</strong>{" "}
+                {attemptLimit === 0
+                  ? "Sınırsız"
+                  : `${currentAttempts} / ${attemptLimit}`}
+              </p>
             </div>
 
             <button
@@ -147,7 +160,13 @@ export default function TeoExams() {
               }`}
               aria-label={`Sınavı Başlat: ${exam.name}`}
               disabled={!canStart}
-              title={!canStart ? "Sınav henüz başlamadı." : undefined}
+              title={
+                !canStartByTime
+                  ? "Sınav henüz başlamadı."
+                  : !hasAttemptRight
+                  ? "Sınav giriş hakkınız kalmadı."
+                  : undefined
+              }
             >
               Sınavı Başlat
             </button>

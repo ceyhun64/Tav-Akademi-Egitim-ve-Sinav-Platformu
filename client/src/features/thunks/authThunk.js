@@ -145,11 +145,10 @@ export const passwordEmailThunk = createAsyncThunk(
 
 export const updatePasswordThunk = createAsyncThunk(
   "auth/updatePassword",
-  async ({ token, sifre, yenisifre, tekraryenisifre }, thunkAPI) => {
+  async ({ token, yenisifre, tekraryenisifre }, thunkAPI) => {
     try {
       const response = await updatePassword(
         token,
-        sifre,
         yenisifre,
         tekraryenisifre
       );

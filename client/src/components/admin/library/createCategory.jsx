@@ -74,25 +74,30 @@ export default function CreateCategory() {
     }
   };
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Responsive durumları yönetimi
+  const [isMobile, setIsMobile] = useState(false); // < 768px
+  const [isTablet, setIsTablet] = useState(false); // 768px - 1200px
+  const TABLET_BREAKPOINT = 768;
+  const DESKTOP_BREAKPOINT = 1200;
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true); // büyük ekranda sidebar açık kalsın
-      }
+      const width = window.innerWidth;
+      setIsMobile(width < TABLET_BREAKPOINT);
+      setIsTablet(width >= TABLET_BREAKPOINT && width < DESKTOP_BREAKPOINT);
+      // Büyük ekranda sidebar açık kalsın, küçükte kapalı
+      setSidebarOpen(width >= TABLET_BREAKPOINT); // Tablet ve masaüstünde açık
     };
 
+    handleResize(); // İlk render'da boyutları ayarla
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  useEffect(() => {
-    // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
-    setSidebarOpen(!isMobile);
-  }, [isMobile]);
-  const selectWidth = 300;
+  const selectWidth = 300; // Hem mobil hem masaüstü için ortak genişlik
+
+  // content-columns için grid şablonunu belirleme
+  const gridTemplateColumnsStyle = isMobile || isTablet ? "1fr" : "2fr 1fr";
   return (
     <div
       className="poolImg-container"
@@ -107,7 +112,6 @@ export default function CreateCategory() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -167,9 +171,11 @@ export default function CreateCategory() {
         </div>
         {/* İçerik */}
         <main className="galcat-content">
-          <div className="content-columns">
+          <div className="row gx-4">
             {/* Sol sütun */}
-            <section className="left-column">
+            <section
+              className={`col-12 ${isMobile || isTablet ? "" : "col-md-5"}`}
+            >
               <h2>Kategori ve Alt Kategori Ekle</h2>
 
               {/* Yeni Kategori Ekle */}
@@ -226,7 +232,9 @@ export default function CreateCategory() {
             </section>
 
             {/* Sağ sütun */}
-            <aside className="right-column">
+            <aside
+              className={`col-12 ${isMobile || isTablet ? "" : "col-md-7"}`}
+            >
               <h2>Kategoriler</h2>
               <div className="card">
                 <div className="card-body">

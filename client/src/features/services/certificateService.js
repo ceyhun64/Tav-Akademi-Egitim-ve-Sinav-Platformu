@@ -23,6 +23,18 @@ export const createCertificate = async (data) => {
     throw error;
   }
 };
+export const combineCertificates = async (certificateIds) => {
+  try {
+    const response = await axiosInstance.post("/certificate/combine", { certificateIds }, {
+      responseType: "blob", // veya "arraybuffer"
+    });
+    console.log("service:", response);
+    return response.data;
+  } catch (error) {
+    console.error("Kullanıcı güncelleme hatası:", error);
+    throw error;
+  }
+};
 
 export const getCertificates = async () => {
   try {
@@ -76,7 +88,6 @@ export const getCourseTypes = async () => {
   }
 };
 
-
 export const createRequester = async (data) => {
   try {
     const response = await axiosInstance.post("/certificate/requester", data);
@@ -117,7 +128,6 @@ export const createCourseType = async (data) => {
     throw error;
   }
 };
-
 
 export const deleteRequester = async (id) => {
   try {

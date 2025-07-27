@@ -7,7 +7,7 @@ import UnauthorizedModal from "./pages/unAuthorizedModal";
 import UserRegister from "./pages/user/register";
 import UserLogin from "./pages/user/login";
 import UserPasswordEmail from "./pages/user/passwordEmail";
-import UserUpdatePassword from "./pages/user/updatePassword";
+import UserUpdatePassword from "./pages/admin/updatePassword";
 import UserDetails from "./pages/user/details";
 import UserVerifyCode from "./pages/user/verifyCode";
 import UserImageGallery from "./pages/user/imageGallery";
@@ -29,6 +29,7 @@ import UserImgExamReport from "./pages/user/imgExamReport";
 import UserPracticeExam from "./pages/user/practiceExam";
 import UserPracticeQuestions from "./pages/user/practiceQuestions";
 import UserAnnouncement from "./pages/user/announcement";
+import UpdatePasswordPage from "./pages/admin/updatePassword";
 
 import AdminLayout from "./layout/adminLayout"; // yukarıdaki componenti koyduğun dosya
 
@@ -91,6 +92,7 @@ import AdminCertificateInputs from "./pages/admin/certificateInputs";
 import AdminAssignTeoExams from "./pages/admin/assignTeoExams";
 import AdminAssignImgExams from "./pages/admin/assignImgExams";
 import AdminAssignEducationSetPage from "./pages/admin/assignEducationSet";
+import AdminAssignEducationSets from "./pages/admin/assignEducationSets";
 
 import HomePage from "./pages/home/homePage";
 import About from "./pages/home/about";
@@ -158,6 +160,10 @@ function App() {
           <Route path="/user-panel" element={<UserPanelPage />} />
           <Route path="/teo-exam-report" element={<UserTeoExamReport />} />
           <Route path="/img-exam-report" element={<UserImgExamReport />} />
+          <Route
+            path="/update-password/:token"
+            element={<UpdatePasswordPage />}
+          />
 
           <Route
             path="/practice-questions/:examId"
@@ -319,6 +325,10 @@ function App() {
           <Route
             path="/admin/assign-education-set-report"
             element={<AdminAssignEducationSetPage />}
+          />
+          <Route
+            path="/admin/assign-education-sets"
+            element={<AdminAssignEducationSets />}
           />
           {/* </Route> */}
         </Routes>

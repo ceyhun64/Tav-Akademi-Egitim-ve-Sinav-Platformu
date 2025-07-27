@@ -114,7 +114,6 @@ export default function EducationDetail() {
               fontWeight: "bold",
               borderRadius: "6px",
               textDecoration: "none",
-              boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
               transition: "background-color 0.3s ease",
             }}
             onMouseEnter={(e) =>

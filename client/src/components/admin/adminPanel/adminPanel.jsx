@@ -151,7 +151,11 @@ export default function AdminPanel() {
   return (
     <div
       className="poolImg-container"
-      style={{ overflowX: "hidden", padding: "1rem" }}
+      style={{
+        overflowX: "hidden",
+        padding: "1rem",
+        backgroundColor: "#fffff",
+      }}
     >
       {/* Sidebar */}
       <div
@@ -162,7 +166,6 @@ export default function AdminPanel() {
           top: 0,
           backgroundColor: "white",
           color: "#fff",
-          boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
           overflowY: "auto",
           zIndex: 99999,
         }}
@@ -433,13 +436,19 @@ export default function AdminPanel() {
               icon1: (
                 <i
                   className="bi bi-person-check"
-                  style={{ fontSize: 20, color: "#001b66" }}
+                  style={{
+                    fontSize: "clamp(0.85rem, 1.5vw, 1.1rem)",
+                    color: "#001b66",
+                  }}
                 ></i>
               ),
               icon2: (
                 <i
                   className="bi bi-person-x"
-                  style={{ fontSize: 20, color: "#e53e3e" }}
+                  style={{
+                    fontSize: "clamp(0.85rem, 1.5vw, 1.1rem)",
+                    color: "#e53e3e",
+                  }}
                 ></i>
               ),
             },
@@ -451,13 +460,19 @@ export default function AdminPanel() {
               icon1: (
                 <i
                   className="bi bi-person-check"
-                  style={{ fontSize: 20, color: "#001b66" }}
+                  style={{
+                    fontSize: "clamp(0.85rem, 1.5vw, 1.1rem)",
+                    color: "#001b66",
+                  }}
                 ></i>
               ),
               icon2: (
                 <i
                   className="bi bi-person-x"
-                  style={{ fontSize: 20, color: "#e53e3e" }}
+                  style={{
+                    fontSize: "clamp(0.85rem, 1.5vw, 1.1rem)",
+                    color: "#e53e3e",
+                  }}
                 ></i>
               ),
             },
@@ -467,43 +482,70 @@ export default function AdminPanel() {
                 <div className="card-body">
                   <h5
                     className="card-title d-flex align-items-center"
-                    style={{ color: "#001b66" }}
+                    style={{
+                      color: "#001b66",
+                      fontSize: "clamp(0.9rem, 1.6vw, 1.1rem)",
+                      fontWeight: 600,
+                    }}
                   >
-                    {icon1} <span className="ms-2">{title1}</span>
+                    {icon1}
+                    <span className="ms-2">{title1}</span>
                   </h5>
                   <ul className="list-group list-group-flush mb-3">
                     {data1.map((e) => (
                       <li
                         className="list-group-item d-flex justify-content-between"
                         key={e.userId}
-                        style={{ cursor: "pointer" }}
+                        style={{
+                          cursor: "pointer",
+                          fontSize: "clamp(0.75rem, 1.5vw, 0.95rem)",
+                        }}
                       >
                         <span>
                           {e.user?.ad} {e.user?.soyad}
                         </span>
-                        <span className="badge bg-primary rounded-pill">
+                        <span
+                          className="badge bg-primary rounded-pill"
+                          style={{
+                            fontSize: "clamp(0.65rem, 1.3vw, 0.8rem)",
+                          }}
+                        >
                           {Math.round(e.score)}
                         </span>
                       </li>
                     ))}
                   </ul>
+
                   <h5
                     className="card-title d-flex align-items-center"
-                    style={{ color: "#e53e3e" }}
+                    style={{
+                      color: "#e53e3e",
+                      fontSize: "clamp(0.9rem, 1.6vw, 1.1rem)",
+                      fontWeight: 600,
+                    }}
                   >
-                    {icon2} <span className="ms-2">{title2}</span>
+                    {icon2}
+                    <span className="ms-2">{title2}</span>
                   </h5>
                   <ul className="list-group list-group-flush">
                     {data2.map((e) => (
                       <li
                         className="list-group-item d-flex justify-content-between"
                         key={e.userId}
-                        style={{ cursor: "pointer" }}
+                        style={{
+                          cursor: "pointer",
+                          fontSize: "clamp(0.75rem, 1.5vw, 0.95rem)",
+                        }}
                       >
                         <span>
                           {e.user?.ad} {e.user?.soyad}
                         </span>
-                        <span className="badge bg-danger rounded-pill">
+                        <span
+                          className="badge bg-danger rounded-pill"
+                          style={{
+                            fontSize: "clamp(0.65rem, 1.3vw, 0.8rem)",
+                          }}
+                        >
                           {Math.round(e.score)}
                         </span>
                       </li>

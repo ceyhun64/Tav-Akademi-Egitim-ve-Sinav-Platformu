@@ -50,7 +50,6 @@ const authSlice = createSlice({
       .addCase(loginThunk.fulfilled, (state, action) => {
         state.loading = false;
         state.is2FAEnabled = action.payload.is2FAEnabled;
-
       })
       .addCase(loginThunk.rejected, (state, action) => {
         state.loading = false;
@@ -126,10 +125,6 @@ const authSlice = createSlice({
       })
       .addCase(updatePasswordThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.alert = {
-          message: "Şifre başarıyla güncellendi",
-          type: "success",
-        };
       })
       .addCase(updatePasswordThunk.rejected, (state, action) => {
         state.loading = false;

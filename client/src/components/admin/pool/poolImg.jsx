@@ -13,6 +13,7 @@ import {
   getQuestionCatThunk,
 } from "../../../features/thunks/queDifThunk";
 import Sidebar from "../adminPanel/sidebar";
+import ExportToExcel from "./exportPoolImg";
 
 export default function PoolImg() {
   const dispatch = useDispatch();
@@ -356,6 +357,10 @@ export default function PoolImg() {
                 <i className="bi bi-plus-circle" style={{ color: "#fff" }}></i>
                 Kitapçığa Soru Ekle
               </Link>
+            </div>
+            <div>
+              {/* BulkPoolTeo bileşenini burada render edin */}
+              <ExportToExcel />
             </div>
           </div>
         </div>

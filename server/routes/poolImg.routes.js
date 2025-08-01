@@ -14,6 +14,9 @@ router.get("/:id",verifyToken, poolImgController.getPoolImgById);
 // GET all poolImgs
 router.get("/",verifyToken, poolImgController.getPoolImgs);
 
+//
+router.post("/excel",verifyToken,poolImgController.exportPoolImgsToExcel)
+
 // POST a new poolImg
 router.post("/", verifyToken,uploadSingle, poolImgController.createPoolImg);
 

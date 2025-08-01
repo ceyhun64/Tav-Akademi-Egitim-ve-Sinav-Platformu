@@ -1,4 +1,4 @@
-const { PoolTeo } = require("../models/index");
+const { PoolTeo, Booklet } = require("../models/index");
 const logActivity = require("../helpers/logActivity");
 const axios = require("axios");
 const XLSX = require("xlsx");
@@ -42,6 +42,10 @@ exports.createPoolTeo = async (req, res) => {
       bookletId,
       difLevelId,
     });
+    const booklet = await Booklet.findByPk(bookletId);
+
+    booklet.question_count++;
+    await booklet.save();
     await logActivity({
       userId: req.user.id,
       action: `${req.user.name} adlı kullanıcı tarafından teorik soru eklendi.`,
@@ -152,6 +156,9 @@ exports.updatePoolTeo = async (req, res) => {
       bookletId,
       difLevel,
     });
+    const booklet = await Booklet.findByPk(bookletId);
+    booklet.question_count -= 1;
+    await booklet.save();
     await logActivity({
       userId: req.user.id,
       action: `${req.user.name} adlı kullanıcı tarafından teorik soru güncellendi.`,
@@ -194,5 +201,37 @@ exports.getPoolTeosByBookletId = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.exportPoolTeosToExcel = async (req, res) => {
+  try {
+    const poolTeos = await PoolTeo.findAll({ raw: true });
+
+    // Eğer istersen veriyi sadeleştirebilir veya direkt gönderebilirsin
+    // Burada direkt tüm alanları gönderiyoruz
+
+    const worksheet = XLSX.utils.json_to_sheet(poolTeos);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "PoolTeo");
+
+    const buffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
+    });
+
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=poolteo_listesi.xlsx"
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.send(buffer);
+  } catch (error) {
+    console.error("PoolTeo Excel dışa aktarma hatası:", error);
+    res.status(500).json({ message: "Excel dışa aktarma başarısız oldu." });
   }
 };

@@ -1,6 +1,18 @@
 import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { addIllegalMovesThunk } from "../../../features/thunks/illegalMovesThunk";
 
 const ExamSecurityHandler = ({ onIllegalAction }) => {
+  const dispatch = useDispatch();
+  const userId = localStorage.getItem("userId"); // kendi yapına göre kontrol et
+
+  const handleIllegalAction = (description) => {
+    if (userId) {
+      dispatch(addIllegalMovesThunk({ move: description, userId }));
+    }
+    onIllegalAction?.(description);
+  };
+
   useEffect(() => {
     let initialFullscreenCheckDone = false;
 
@@ -23,7 +35,7 @@ const ExamSecurityHandler = ({ onIllegalAction }) => {
         return;
       }
       if (!document.fullscreenElement) {
-        onIllegalAction?.(
+        handleIllegalAction(
           "Tam ekran modundan çıktınız, tekrar tam ekran moduna geçiliyor."
         );
         requestFullscreen();
@@ -33,7 +45,7 @@ const ExamSecurityHandler = ({ onIllegalAction }) => {
     const handleKeyDown = (e) => {
       if (e.key === "F11") {
         e.preventDefault();
-        onIllegalAction?.(
+        handleIllegalAction(
           "F11 tuşu engellendi: Tam ekran modundan çıkamazsınız."
         );
         if (!document.fullscreenElement) {
@@ -49,18 +61,7 @@ const ExamSecurityHandler = ({ onIllegalAction }) => {
         "PrintScreen",
         "printscreen",
         "Escape",
-        // "U",
-        // "u",
-        // "J",
-        // "j",
-        // "P",
-        // "p",
-        // "R",
-        // "r",
-        // "W",
-        // "w",
       ];
-
       const ctrlCombos = e.ctrlKey && illegalKeys.includes(e.key);
       const ctrlShiftCombos =
         e.ctrlKey &&
@@ -77,12 +78,18 @@ const ExamSecurityHandler = ({ onIllegalAction }) => {
         isMeta
       ) {
         e.preventDefault();
-        onIllegalAction?.(e.key);
+        handleIllegalAction(`Engellenen tuş: ${e.key}`);
       }
+    };
+
+    const handleRightClick = (e) => {
+      e.preventDefault();
+      handleIllegalAction("Sağ tıklama engellendi.");
     };
 
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("contextmenu", handleRightClick);
 
     if (!document.fullscreenElement) {
       requestFullscreen();
@@ -91,8 +98,9 @@ const ExamSecurityHandler = ({ onIllegalAction }) => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("contextmenu", handleRightClick);
     };
-  }, [onIllegalAction]);
+  }, [userId]);
 
   return null;
 };

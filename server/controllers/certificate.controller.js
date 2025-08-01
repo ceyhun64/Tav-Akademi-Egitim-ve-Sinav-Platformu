@@ -15,144 +15,134 @@ const {
 const fs = require("fs");
 const fsp = require("fs").promises; // promise bazlı
 const path = require("path");
+const JSZip = require("jszip");
 const PizZip = require("pizzip");
 const Docxtemplater = require("docxtemplater");
 const archiver = require("archiver");
 const { v2: cloudinary } = require("cloudinary"); // EKLENEN SATIR
 const axios = require("axios");
 const mammoth = require("mammoth"); // For converting DOCX to HTML
-const {
-  Document,
-  Packer,
-  Paragraph,
-  ImageRun,
-  PageBreak,
-  TextRun,
-} = require("docx");
-const {
-  ServicePrincipalCredentials,
-  PDFServices,
-  MimeType,
-  ExportPDFToImagesJob,
-  ExportPDFToImagesTargetFormat,
-  ExportPDFToImagesOutputType,
-  ExportPDFToImagesParams,
-  ExportPDFToImagesResult,
-  SDKError,
-  ServiceUsageError,
-  ServiceApiError,
-} = require("@adobe/pdfservices-node-sdk");
-async function downloadFile(url, outputPath) {
-  const response = await axios({ url, responseType: "arraybuffer" });
-  await fsp.writeFile(outputPath, response.data);
+
+async function createCertificateBufferZip(certificatesData) {
+  const templatePath = path.resolve(__dirname, "template.docx");
+  const templateContent = fs.readFileSync(templatePath, "binary");
+
+
+  const zip = new JSZip();
+
+  // Her sertifika için body parçasını topla
+  let combinedBody = "";
+
+  for (let i = 0; i < certificatesData.length; i++) {
+    const certData = certificatesData[i];
+
+    const zipTemplate = new PizZip(templateContent);
+    const doc = new Docxtemplater(zipTemplate, {
+      paragraphLoop: true,
+      linebreaks: true,
+      delimiters: { start: "«", end: "»" },
+    });
+
+    doc.render({
+      AdiSoyadi: `${certData.name} ${certData.surname}`,
+      TCNo: certData.tc,
+      KursNo: certData.course_no,
+      KursAdi: certData.education_name,
+      KursBaslangicTarihi: certData.education_date,
+      KursBitisTarihi: certData.educationSet_end_date || "",
+      EgitimKurulusYetkilisi: certData.requester,
+      EgitmenAdi: certData.educatorName,
+      SertifikaNo: certData.certificate_number,
+    });
+
+    // Bireysel dosya
+    const individualBuffer = doc.getZip().generate({ type: "nodebuffer" });
+    zip.file(`${certData.tc}.docx`, individualBuffer);
+
+    // İçeriği XML olarak al
+    const xml = doc.getZip().file("word/document.xml").asText();
+    const match = xml.match(/<w:body>([\s\S]*?)<\/w:body>/);
+    if (!match) throw new Error("<w:body> bulunamadı");
+
+    const body = match[1];
+
+    if (combinedBody.length > 0) {
+      combinedBody += `
+        <w:p>
+          <w:r>
+            <w:br w:type="page"/>
+          </w:r>
+        </w:p>
+      `;
+    }
+
+    combinedBody += body;
+  }
+
+  // Yeni combined document.xml oluştur
+  const fullXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+  <w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas"
+              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+              xmlns:o="urn:schemas-microsoft-com:office:office"
+              xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+              xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
+              xmlns:v="urn:schemas-microsoft-com:vml"
+              xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing"
+              xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"
+              xmlns:w10="urn:schemas-microsoft-com:office:word"
+              xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+              xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"
+              xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+              xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk"
+              xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml"
+              xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+              mc:Ignorable="w14 wp14">
+    <w:body>
+      ${combinedBody}
+    </w:body>
+  </w:document>`;
+
+  // combined.docx üretmek için yeniden template zipini klonla
+  const baseZip = new PizZip(templateContent);
+  const combinedZip = new PizZip();
+
+  // document.xml'i değiştir
+  Object.keys(baseZip.files).forEach((filename) => {
+    if (filename === "word/document.xml") {
+      combinedZip.file(filename, fullXml);
+    } else {
+      combinedZip.file(filename, baseZip.files[filename].asNodeBuffer());
+    }
+  });
+
+  const combinedBuffer = combinedZip.generate({ type: "nodebuffer" });
+  zip.file("combined.docx", combinedBuffer);
+
+  return await zip.generateAsync({ type: "nodebuffer" });
 }
 
-async function convertToPdf(inputPath, outputPath, executionContext) {
-  const ext = path.extname(inputPath).toLowerCase();
-  const inputFile = PDFServices.FileRef.createFromLocalFile(inputPath);
-
-  if (ext === ".pdf") {
-    // Zaten pdf, kopyala
-    await fsp.copyFile(inputPath, outputPath);
-    return;
-  }
-
-  if (ext === ".docx" || ext === ".doc") {
-    const createPDFOperation = PDFServices.CreatePDF.Operation.createNew();
-    createPDFOperation.setInput(inputFile);
-    const result = await createPDFOperation.execute(executionContext);
-    await result.saveAsFile(outputPath);
-    return;
-  }
-
-  if ([".jpg", ".jpeg", ".png", ".gif"].includes(ext)) {
-    // Resimden PDF yaratmak Adobe SDK'da doğrudan yok
-    // Basit alternatif: PDF-lib veya başka kütüphane ile küçük bir PDF oluştur
-    // Burada örnek için başka kütüphane kullanman gerekecek
-    throw new Error("Resimden PDF dönüşümü için ek kütüphane kullanmalısın.");
-  }
-
-  throw new Error(`Desteklenmeyen dosya uzantısı: ${ext}`);
-}
-
-exports.combineCertificates = async (req, res) => {
-  const tempDir = path.join(__dirname, "temp");
-
-  let credentials;
-  let pdfServices;
-  let executionContext;
-
+exports.createCertificate = async (req, res) => {
   try {
-    const { certificateIds } = req.body;
-    const certificates = await Certificate.findAll({
-      where: { id: certificateIds },
-    });
-    if (certificates.length === 0) {
-      return res.status(400).json({ error: "Sertifika bulunamadı." });
+    const certificatesData = req.body.certificates;
+
+    if (!Array.isArray(certificatesData) || certificatesData.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "Sertifika verileri boş veya geçersiz." });
     }
 
-    // Adobe PDF Services Credentials
-    credentials = new ServicePrincipalCredentials({
-      clientId: "bff289c0382e4c81a70ea65fc4a9f896",
-      clientSecret: "p8e-pi8g_A-wmbHxSj08okSNidei5bHasSWK",
+    const zipBuffer = await createCertificateBufferZip(certificatesData);
+
+    res.set({
+      "Content-Type": "application/zip",
+      "Content-Disposition": `attachment; filename="sertifikalar.zip"`,
+      "Content-Length": zipBuffer.length,
     });
-    pdfServices = new PDFServices({ credentials });
-    executionContext = PDFServices.ExecutionContext.create(credentials);
 
-    await fsp.mkdir(tempDir, { recursive: true });
-
-    const pdfFiles = [];
-
-    for (const cert of certificates) {
-      const url = cert.certificate_url;
-      const originalPath = path.join(tempDir, path.basename(url));
-      await downloadFile(url, originalPath);
-
-      const pdfPath = originalPath.replace(path.extname(originalPath), ".pdf");
-
-      try {
-        await convertToPdf(originalPath, pdfPath, executionContext);
-        pdfFiles.push(pdfPath);
-      } catch (err) {
-        console.warn(`Dönüşüm hatası: ${originalPath} - ${err.message}`);
-      }
-    }
-
-    if (pdfFiles.length === 0) {
-      return res.status(500).json({ error: "Hiç PDF oluşturulamadı." });
-    }
-
-    const combineOperation = PDFServices.CombinePDF.Operation.createNew();
-    pdfFiles.forEach((pdf) =>
-      combineOperation.addInput(PDFServices.FileRef.createFromLocalFile(pdf))
-    );
-
-    const combinedResult = await combineOperation.execute(executionContext);
-    const outputPdfPath = path.join(tempDir, `combined_${Date.now()}.pdf`);
-    await combinedResult.saveAsFile(outputPdfPath);
-
-    res.download(outputPdfPath, "birlesik_sertifikalar.pdf", async (err) => {
-      if (err) {
-        console.error("PDF gönderim hatası:", err);
-        return res.status(500).json({ error: "PDF gönderim hatası oluştu." });
-      }
-      // Temizlik
-      for (const file of [...pdfFiles]) {
-        await fsp.unlink(file).catch(() => {});
-      }
-      for (const cert of certificates) {
-        const filePath = path.join(
-          tempDir,
-          path.basename(cert.certificate_url)
-        );
-        await fsp.unlink(filePath).catch(() => {});
-      }
-      await fsp.unlink(outputPdfPath).catch(() => {});
-      await fsp.rmdir(tempDir, { recursive: true }).catch(() => {});
-    });
+    return res.send(zipBuffer);
   } catch (error) {
-    console.error("Birleştirme sırasında hata:", error);
-    res.status(500).json({ error: "Birleştirme sırasında hata oluştu." });
+    console.error("Sertifikalar oluşturulurken hata:", error);
+    res.status(500).json({ error: "Sertifikalar oluşturulurken hata oluştu." });
   }
 };
 
@@ -181,86 +171,6 @@ exports.getCompletedEducationSets = async (req, res) => {
   } catch (error) {
     console.error("Kullanıcı güncelleme hatası:", error);
     res.status(500).json({ error: "Kullanıcı güncellenirken hata oluştu." });
-  }
-};
-
-exports.createCertificate = async (req, res) => {
-  try {
-    const certificatesData = req.body.certificates;
-
-    if (!Array.isArray(certificatesData) || certificatesData.length === 0) {
-      return res
-        .status(400)
-        .json({ error: "Sertifika verileri boş veya geçersiz." });
-    }
-
-    const tempDir = path.resolve(__dirname, "temp_certs");
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
-    }
-
-    const uploadedCertificates = [];
-
-    for (const certData of certificatesData) {
-      const data = {
-        AdiSoyadi: `${certData.name} ${certData.surname}`,
-        TCNo: certData.tc,
-        KursNo: certData.course_no,
-        KursAdi: certData.education_name,
-        KursBaslangicTarihi: certData.education_date,
-        KursBitisTarihi: certData.educationSet_end_date || "",
-        EgitimKurulusYetkilisi: certData.requester,
-        EgitmenAdi: certData.educatorName,
-        SertifikaNo: certData.certificate_number,
-      };
-
-      const templatePath = path.resolve(__dirname, "template.docx");
-      const content = fs.readFileSync(templatePath, "binary");
-      const zip = new PizZip(content);
-
-      const doc = new Docxtemplater(zip, {
-        paragraphLoop: true,
-        linebreaks: true,
-        delimiters: { start: "«", end: "»" },
-      });
-
-      doc.render(data);
-      const buf = doc.getZip().generate({ type: "nodebuffer" });
-
-      const outputFileName = `sertifika_${Date.now()}.docx`;
-      const outputPath = path.resolve(tempDir, outputFileName);
-      fs.writeFileSync(outputPath, buf);
-
-      // Cloudinary'e yükle
-      const result = await cloudinary.uploader.upload(outputPath, {
-        resource_type: "raw",
-        folder: "certificates",
-        public_id: `certificate_${Date.now()}`,
-      });
-
-      // DB'ye kayıt (şimdi certificate_url hazır)
-      const certificate = await Certificate.create({
-        ...certData,
-        certificate_url: result.secure_url,
-      });
-
-      fs.unlinkSync(outputPath); // Geçici dosya sil
-
-      uploadedCertificates.push({
-        id: certificate.id,
-        url: result.secure_url,
-        name: certData.name,
-        surname: certData.surname,
-      });
-    }
-
-    res.status(201).json({
-      message: "Sertifikalar başarıyla oluşturuldu ve yüklendi.",
-      data: uploadedCertificates,
-    });
-  } catch (error) {
-    console.error("Sertifikalar oluşturulurken hata:", error);
-    res.status(500).json({ error: "Sertifikalar oluşturulurken hata oluştu." });
   }
 };
 

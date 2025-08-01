@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   getTeoQuestionsThunk,
   answerTeoQuestionsThunk,
@@ -50,12 +50,15 @@ const contentWrapperStyle = {
 export default function TeoQuestion() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const sonucGizle = location.state?.sonucGizle ?? false; // default false
   const { examId: examIdParam } = useParams();
   const examId = Number(examIdParam);
   const { teoQuestions, duration, name } = useSelector(
     (state) => state.question
   );
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const userId = localStorage.getItem("userId");
 
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -75,6 +78,7 @@ export default function TeoQuestion() {
   const [illegalKeys, setIllegalKeys] = useState([]);
   const [showIllegalModal, setShowIllegalModal] = useState(false);
 
+  console.log("sonucu_gizle:", sonucGizle);
   // TAM EKRAN MODUNA GEÇİŞ FONKSİYONU
   const requestFullscreen = () => {
     const elem = examContainerRef.current;
@@ -329,8 +333,18 @@ export default function TeoQuestion() {
       })
     );
 
-    // Redirect
-    navigate("/user-panel");
+    if (sonucGizle) {
+      navigate("/user-panel"); // Eğer sonuç gizlenecekse ana panele dön
+    } else {
+      // userId'nin tanımlı olduğundan emin olun
+      if (userId) {
+        navigate(`/teo-question-report/${userId}/${examId}`); // Sonuç gösterilecekse rapor sayfasına git
+      } else {
+        // Handle case where userId is not available (e.g., redirect to login or show error)
+        console.error("User ID not available for report navigation.");
+        navigate("/user-panel"); // Fallback to user panel
+      }
+    }
   };
 
   const handleCancelExit = () => {

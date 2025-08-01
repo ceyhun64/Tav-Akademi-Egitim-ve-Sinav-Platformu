@@ -1,6 +1,7 @@
 const { User, Role, Institution, Group } = require("../models/index");
 const { Op } = require("sequelize");
 const logActivity = require("../helpers/logActivity");
+const XLSX = require("xlsx");
 
 exports.get_user_details = async (req, res) => {
   try {
@@ -51,7 +52,6 @@ exports.update_user_details = async (req, res) => {
       grup,
       lokasyon,
     } = req.body;
-   
 
     // Güncellenecek alanları bir objede toplayın
     const updates = {};
@@ -196,5 +196,42 @@ exports.aktif_pasif_user = async (req, res) => {
   } catch (error) {
     console.error("Güncelleme hatası:", error);
     res.status(500).json({ message: error.message || "Sunucu hatası." });
+  }
+};
+
+exports.export_users_to_excel = async (req, res) => {
+  try {
+    const users = await User.findAll({
+      include: [
+        { model: Role, as: "role", attributes: ["name"] },
+        { model: Institution, as: "lokasyon", attributes: ["name"] },
+        { model: Group, as: "grup", attributes: ["name"] },
+      ],
+      raw: true,
+      nest: true,
+    });
+
+    // Sadeleştirme YOK — users olduğu gibi excel'e aktarılıyor
+    const worksheet = XLSX.utils.json_to_sheet(users);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Kullanicilar");
+
+    const buffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
+    });
+
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=kullanicilar.xlsx"
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.send(buffer);
+  } catch (error) {
+    console.error("Excel dışa aktarma hatası:", error);
+    res.status(500).json({ message: "Excel dışa aktarma başarısız oldu." });
   }
 };

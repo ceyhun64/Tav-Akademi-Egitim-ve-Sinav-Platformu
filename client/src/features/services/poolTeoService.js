@@ -64,3 +64,26 @@ export const getPoolTeosByBookletId = async (bookletId) => {
   }
 };
 
+export const exportPoolTeoToExcel = async () => {
+  try {
+    const res = await axiosInstance.post(
+      "/poolTeo/excel",
+      {},
+      {
+        responseType: "blob", // Excel dosyası olarak dönecek
+      }
+    );
+    // Blob'u URL'ye çevir
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    // Link oluştur ve tıkla
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "pool_teo.xlsx"); // İndirilecek dosya adı
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error("Excel dışa aktarma hatası:", error);
+    throw error.response?.data?.message || "Bir hata oluştu";
+  }
+};

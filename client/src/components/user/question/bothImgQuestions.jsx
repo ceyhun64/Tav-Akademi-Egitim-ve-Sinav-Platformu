@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   getBothQuestionsImgThunk,
   answerImgQuestionsThunk,
@@ -70,6 +70,13 @@ const contentWrapperStyle = {
 export default function BothImgQuestion() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const location = useLocation();
+  const teoExamId = location.state?.examId ?? false; // default false
+  const sonucGizle = location.state?.sonucGizle ?? false; // default false
+
+  const userId = localStorage.getItem("userId");
+
   const { examId: examIdParam } = useParams();
   const examId = Number(examIdParam);
   const { bothImgQuestions, duration, name } = useSelector(
@@ -608,7 +615,22 @@ export default function BothImgQuestion() {
         exit_time: exitTime,
       })
     );
-    navigate("/user-panel");
+    console.log(examId);
+    console.log(userId);
+    if (sonucGizle) {
+      navigate("/user-panel"); // Eğer sonuç gizlenecekse ana panele dön
+    } else {
+      // userId'nin tanımlı olduğundan emin olun
+      if (userId) {
+        navigate(`/both-teo-question-report/${userId}/${teoExamId}`, {
+          state: { examId }, // 👈 burada veriyi gönderiyoruz
+        }); // Sonuç gösterilecekse rapor sayfasına git
+      } else {
+        // Handle case where userId is not available (e.g., redirect to login or show error)
+        console.error("User ID not available for report navigation.");
+        navigate("/user-panel"); // Fallback to user panel
+      }
+    }
   };
   // Render filter or plain image
 

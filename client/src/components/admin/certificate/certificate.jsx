@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  getCompletedEducationSetsThunk,
-  createCertificateThunk,
-} from "../../../features/thunks/certificateThunk";
+import { getCompletedEducationSetsThunk } from "../../../features/thunks/certificateThunk";
+import { createCertificate } from ".././../../features/services/certificateService";
+
 import { getEducationSetsThunk } from "../../../features/thunks/educationSetThunk";
 import Sidebar from "../adminPanel/sidebar";
 import { useNavigate } from "react-router-dom";
@@ -91,7 +90,8 @@ export default function Certificate() {
       setSelectedCertificates({});
     }
   };
-  const handleCreateCertificates = () => {
+
+  const handleCreateCertificates = async () => {
     const selectedUsers = users.filter(
       (item) => selectedCertificates[item.user.id]
     );
@@ -111,27 +111,16 @@ export default function Certificate() {
 
     const prefix = parts.slice(0, 3).join("/") + "/";
     const numberPart = parts[3];
-
     const baseNumber = parseInt(numberPart, 10);
-    if (isNaN(baseNumber)) {
-      alert("Sertifika numarasının sonunda geçerli bir sayı olmalıdır.");
-      return;
-    }
-
     const numberLength = numberPart.length;
 
-    // Numarayı sayıya çevir (başındaki sıfırlar olabilir)
-
     if (isNaN(baseNumber)) {
       alert("Sertifika numarasının sonunda geçerli bir sayı olmalıdır.");
       return;
     }
-
-    // Numarayı sıfırlarla doldurmak için padding uzunluğunu al
 
     const certificates = selectedUsers.map((item, index) => {
       const user = item.user || {};
-      // Yeni numarayı oluştur, başına sıfır ekle
       const newNumber = (baseNumber + index)
         .toString()
         .padStart(numberLength, "0");
@@ -141,21 +130,25 @@ export default function Certificate() {
         name: user.ad,
         surname: user.soyad,
         education_name: educationName,
-        educationSet_name: educationSetName, // ← bunu ekle
-
+        educationSet_name: educationSetName,
         course_no: courseCode,
         requester: requestingOfficer,
         education_date: startDate,
         educationSet_end_date: endDate,
         educatorName: educator,
         comment: "Başarılı",
-        certificate_number: `${prefix}${newNumber}`, // prefix + yeni numara
+        certificate_number: `${prefix}${newNumber}`,
         exam_date: item.exam_date || "",
         institution: "Tav Güvenlik",
       };
     });
 
-    dispatch(createCertificateThunk({ certificates }));
+    try {
+      await createCertificate({ certificates }, `${educationSetName}.docx`);
+      alert("Sertifikalar başarıyla indirildi.");
+    } catch (err) {
+      alert("Sertifikalar oluşturulurken hata oluştu.");
+    }
   };
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -439,12 +432,6 @@ export default function Certificate() {
           onClick={() => navigate("/admin/certificate-inputs")}
         >
           Sertifika Seçeneklerini Düzenle
-        </button>
-        <button
-          className="btn btn-sm btn-primary ms-2"
-          onClick={() => navigate("/admin/certificate-result")}
-        >
-          Sertifikaları Görüntüle
         </button>
 
         <div

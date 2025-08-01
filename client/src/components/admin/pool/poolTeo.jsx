@@ -11,6 +11,7 @@ import { getDifLevelsThunk } from "../../../features/thunks/queDifThunk";
 import "bootstrap/dist/css/bootstrap.min.css";
 import BulkPoolTeo from "./bulkPoolTeo";
 import Sidebar from "../adminPanel/sidebar";
+import ExportToExcel from "./exportPoolTeo";
 
 export default function PoolTeo() {
   const dispatch = useDispatch();
@@ -379,6 +380,19 @@ export default function PoolTeo() {
             >
               {/* BulkPoolTeo bileşenini burada render edin */}
               <BulkPoolTeo selectedBookletId={selectedBooklet} />
+            </div>
+            <div
+              style={{
+                flex: getFlexValue(
+                  "0 0 100%", // Mobil: Tam genişlik
+                  "0 0 calc(100% - 0.75rem)", // Tablet: Tam genişlik (tek sütun)
+                  "0 0 30%" // Masaüstü: %30
+                ),
+                minWidth: 0,
+              }}
+            >
+              {/* BulkPoolTeo bileşenini burada render edin */}
+              <ExportToExcel />
             </div>
           </div>
         </div>

@@ -30,6 +30,10 @@ import UserPracticeExam from "./pages/user/practiceExam";
 import UserPracticeQuestions from "./pages/user/practiceQuestions";
 import UserAnnouncement from "./pages/user/announcement";
 import UpdatePasswordPage from "./pages/admin/updatePassword";
+import UserImgQuestionReport from "./pages/user/imgQuestionReport";
+import UserTeoQuestionReport from "./pages/user/teoQuestionReport";
+import UserBothImgQuestionReport from "./pages/user/bothImgQuestionReport";
+import UserBothTeoQuestionReport from "./pages/user/bothTeoQuestionReport";
 
 import AdminLayout from "./layout/adminLayout"; // yukarıdaki componenti koyduğun dosya
 
@@ -77,7 +81,6 @@ import AdminLogActivity from "./pages/admin/logActivity";
 import AdminUploadFile from "./pages/admin/uploadFile";
 import AdminDownloaded from "./pages/admin/downloaded";
 import AdminCertificate from "./pages/admin/certificate";
-import AdminCertificateResult from "./pages/admin/certificateResult";
 import AdminBulkRegister from "./pages/admin/bulkRegister";
 import AdminBulkPoolTeo from "./pages/admin/bulkPoolTeo";
 import AdminUserUpdateDetail from "./pages/admin/updateDetail";
@@ -93,6 +96,7 @@ import AdminAssignTeoExams from "./pages/admin/assignTeoExams";
 import AdminAssignImgExams from "./pages/admin/assignImgExams";
 import AdminAssignEducationSetPage from "./pages/admin/assignEducationSet";
 import AdminAssignEducationSets from "./pages/admin/assignEducationSets";
+import AdminIllegalMoves from "./pages/admin/illegalMoves";
 
 import HomePage from "./pages/home/homePage";
 import About from "./pages/home/about";
@@ -164,28 +168,40 @@ function App() {
             path="/update-password/:token"
             element={<UpdatePasswordPage />}
           />
-
           <Route
             path="/practice-questions/:examId"
             element={<UserPracticeQuestions />}
           />
+          <Route
+            path="/img-question-report/:userId/:examId"
+            element={<UserImgQuestionReport />}
+          />
+          <Route
+            path="/teo-question-report/:userId/:examId"
+            element={<UserTeoQuestionReport />}
+          />
+          <Route
+            path="/both-img-question-report/:userId/:imgExamId"
+            element={<UserBothImgQuestionReport />}
+          />
+          <Route
+            path="/both-teo-question-report/:userId/:teoExamId"
+            element={<UserBothTeoQuestionReport />}
+          />
+
           <Route path="/setup-2fa" element={<Setup2FAPage />} />
-
           {/* admin sayfaları */}
-
           {/* şimdilik 20 dk lık kontrolü kapatıyorum */}
           {/* <Route path="/admin" element={<AdminLayout />}> */}
           <Route
             path="/admin/gallery-cat"
             element={<AdminCreateGalleryCat />}
           />
-
           <Route path="/admin/image-gallery" element={<AdminImageGallery />} />
           <Route
             path="/admin/update-gallery/:id"
             element={<AdminUpdateGallery />}
           />
-
           <Route
             path="/admin/create-education"
             element={<AdminCreateEducation />}
@@ -213,7 +229,6 @@ function App() {
             path="/admin/update-pool-teo/:id"
             element={<AdminUpdatePoolTeo />}
           />
-
           <Route
             path="/admin/create-teo-exam"
             element={<AdminCreateTeoExam />}
@@ -291,10 +306,6 @@ function App() {
           <Route path="/admin/upload-file" element={<AdminUploadFile />} />
           <Route path="/admin/downloaded" element={<AdminDownloaded />} />
           <Route path="/admin/certificate" element={<AdminCertificate />} />
-          <Route
-            path="/admin/certificate-result"
-            element={<AdminCertificateResult />}
-          />
           <Route path="/admin/bulk-register" element={<AdminBulkRegister />} />
           <Route path="/admin/bulk-pool-teo" element={<AdminBulkPoolTeo />} />
           <Route
@@ -304,7 +315,6 @@ function App() {
           <Route path="/admin/authorized" element={<AdminAuthorized />} />
           <Route path="/login/admin" element={<AdminLogin />} />
           <Route path="/admin/register" element={<UserRegister />} />
-
           <Route path="/admin-panel" element={<AdminPanelPage />} />
           <Route path="/admin/practice-exam" element={<AdminPracticeExam />} />
           <Route path="/admin/setup-2fa" element={<AdminSetup2FA />} />
@@ -317,7 +327,6 @@ function App() {
             path="/admin/assign-teo-exams"
             element={<AdminAssignTeoExams />}
           />
-
           <Route
             path="/admin/assign-img-exams"
             element={<AdminAssignImgExams />}
@@ -330,6 +339,7 @@ function App() {
             path="/admin/assign-education-sets"
             element={<AdminAssignEducationSets />}
           />
+          <Route path="/admin/illegal-moves" element={<AdminIllegalMoves />} />
           {/* </Route> */}
         </Routes>
       </div>

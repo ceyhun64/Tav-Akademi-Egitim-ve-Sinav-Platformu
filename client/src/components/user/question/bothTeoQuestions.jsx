@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   getBothQuestionsTeoThunk,
   answerTeoQuestionsThunk, // BU SATIRI EKLEYİN
@@ -50,6 +50,8 @@ const contentWrapperStyle = {
 export default function BothTeoQuestion() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const sonucGizle = location.state?.sonucGizle ?? false; // default false
   const { examId } = useParams();
   const { bothTeoQuestions, duration, otherExamId, name } = useSelector(
     (state) => state.question
@@ -74,6 +76,7 @@ export default function BothTeoQuestion() {
   const [illegalKeys, setIllegalKeys] = useState([]);
   const [showIllegalModal, setShowIllegalModal] = useState(false);
 
+  console.log("sonucu_gizle:", sonucGizle);
   const requestFullscreen = () => {
     const elem = examContainerRef.current;
     if (!elem) return;
@@ -307,7 +310,9 @@ export default function BothTeoQuestion() {
       })
     );
     if (otherExamId) {
-      navigate(`/both-img-questions/${otherExamId}`);
+      navigate(`/both-img-questions/${otherExamId}`, {
+        state: { examId, sonucGizle }, // 👈 burada veriyi gönderiyoruz
+      });
     } else {
       alert("Diğer sınav bulunamadı.");
     }

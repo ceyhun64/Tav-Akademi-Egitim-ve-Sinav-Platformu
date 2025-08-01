@@ -14,8 +14,10 @@ export default function ImgExams() {
     dispatch(getUserImgExamsThunk());
   }, [dispatch]);
 
-  const handleStartExam = (examId) => {
-    navigate(`/img-questions/${examId}`);
+  const handleStartExam = (examId, sonucGizle) => {
+    navigate(`/img-questions/${examId}`, {
+      state: { sonucGizle }, // 👈 burada veriyi gönderiyoruz
+    });
   };
 
   const activeExams =
@@ -140,7 +142,7 @@ export default function ImgExams() {
                   </li>
                 </ul>
                 <button
-                  onClick={() => handleStartExam(exam.id)}
+                  onClick={() => handleStartExam(exam.id, exam.sonucu_gizle)} // 👈 burada gönderiyoruz
                   className={`btn-start-exam mt-auto ${
                     !canStart ? "btn-secondary" : ""
                   }`}

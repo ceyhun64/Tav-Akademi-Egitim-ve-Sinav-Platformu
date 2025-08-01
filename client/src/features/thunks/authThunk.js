@@ -59,6 +59,7 @@ export const verify2FAThunk = createAsyncThunk(
       if (response.data.sessionId) {
         localStorage.setItem("sessionId", response.data.sessionId);
         localStorage.setItem("token", response.data.token);
+        localStorage.setItem("userId", userId);
       }
       return response.data;
     } catch (error) {
@@ -147,11 +148,7 @@ export const updatePasswordThunk = createAsyncThunk(
   "auth/updatePassword",
   async ({ token, yenisifre, tekraryenisifre }, thunkAPI) => {
     try {
-      const response = await updatePassword(
-        token,
-        yenisifre,
-        tekraryenisifre
-      );
+      const response = await updatePassword(token, yenisifre, tekraryenisifre);
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);

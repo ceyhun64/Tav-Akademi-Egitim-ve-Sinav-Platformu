@@ -3,7 +3,6 @@ import {
   getCompletedEducationSets,
   createCertificate,
   getCertificates,
-  combineCertificates,
   getCourseNos,
   getCourseTypes,
   getEducators,
@@ -30,40 +29,7 @@ export const getCompletedEducationSetsThunk = createAsyncThunk(
     }
   }
 );
-export const createCertificateThunk = createAsyncThunk(
-  "certificate/createCertificate",
-  async (data, thunkAPI) => {
-    try {
-      const response = await createCertificate(data);
-      console.log("thunk:", response.data);
-      return response.data;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error.response.data);
-    }
-  }
-);
-export const combineCertificatesThunk = createAsyncThunk(
-  "certificate/combineCertificates",
-  async (certificateIds, thunkAPI) => {
-    try {
-      const blob = await combineCertificates(certificateIds);
 
-      // Blob'u Redux state'e koyma, direkt indir:
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "sertifikalar.docx";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-
-      return "İndirme tamamlandı"; // sadece basit mesaj döndür
-    } catch (error) {
-      return thunkAPI.rejectWithValue(error.response?.data || error.message);
-    }
-  }
-);
 
 export const getCertificatesThunk = createAsyncThunk(
   "certificate/getCertificates",

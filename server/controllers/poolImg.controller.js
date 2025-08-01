@@ -1,5 +1,6 @@
 const { PoolImg, Booklet } = require("../models/index");
 const logActivity = require("../helpers/logActivity");
+const XLSX = require("xlsx");
 
 exports.getPoolImgs = async (req, res) => {
   try {
@@ -143,10 +144,42 @@ exports.getPoolImgsByBookletId = async (req, res) => {
     const poolImgs = await PoolImg.findAll({
       where: { bookletId },
     });
-    
+
     res.json(poolImgs);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.exportPoolImgsToExcel = async (req, res) => {
+  try {
+    const poolImgs = await PoolImg.findAll({ raw: true });
+
+    // Eğer "image" path'ini istemiyorsan, aşağıda silebilirsin
+    const cleanedData = poolImgs.map(({ image, ...rest }) => rest);
+
+    const worksheet = XLSX.utils.json_to_sheet(cleanedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "PoolImg");
+
+    const buffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
+    });
+
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=poolimg_listesi.xlsx"
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.send(buffer);
+  } catch (error) {
+    console.error("PoolImg Excel dışa aktarma hatası:", error);
+    res.status(500).json({ message: "Excel dışa aktarma başarısız oldu." });
   }
 };

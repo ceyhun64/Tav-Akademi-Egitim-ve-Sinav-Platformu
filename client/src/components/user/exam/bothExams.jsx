@@ -13,9 +13,9 @@ export default function BothExams() {
     dispatch(getUserUnifiedExamsThunk());
   }, [dispatch]);
 
-  const handleStartExam = (teoId, imgId) => {
+  const handleStartExam = (teoId, imgId, sonucGizle) => {
     navigate(`/both-teo-questions/${teoId}`, {
-      state: { nextExamId: imgId },
+      state: { nextExamId: imgId, sonucGizle },
     });
   };
 
@@ -152,7 +152,9 @@ export default function BothExams() {
                       yapabilirsiniz.
                     </p>
                     <button
-                      onClick={() => handleStartExam(teo.id, img.id)}
+                      onClick={() =>
+                        handleStartExam(teo.id, img.id, teo.sonucu_gizle)
+                      }
                       className={`start-btn ${
                         !canStart ? "btn-secondary" : ""
                       }`}

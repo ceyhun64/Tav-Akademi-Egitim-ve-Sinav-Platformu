@@ -1,15 +1,26 @@
-export default function QuestionList({ data, currentIndex, setCurrentIndex }) {
+export default function QuestionList({
+  data,
+  currentIndex,
+  setCurrentIndex,
+  isMobile,
+}) {
+  if (isMobile) return null;
+
   return (
-    <div className="card shadow border-0">
+    <div className="card shadow border-0 rounded-3 overflow-hidden">
       <div
         className="card-header text-white text-center fw-semibold"
-        style={{ backgroundColor: "#001b66" }}
+        style={{
+          backgroundColor: "#001b66",
+          fontSize: "1.1rem",
+          padding: "0.75rem",
+        }}
       >
         🗂 Soru Listesi
       </div>
 
       <div
-        className="card-body px-3 py-2"
+        className="card-body px-3 py-2 bg-light"
         style={{ maxHeight: "500px", overflowY: "auto" }}
       >
         <div className="d-grid gap-2">
@@ -17,31 +28,47 @@ export default function QuestionList({ data, currentIndex, setCurrentIndex }) {
             const isActive = i === currentIndex;
             const isCorrect = item.is_correct;
 
-            let btnClass =
-              "btn btn-sm text-start text-truncate fw-medium shadow-sm";
-
-            if (isActive) {
-              btnClass += " text-white";
-            }
-
-            let style = {
-              backgroundColor: isActive ? "#001b66" : "#f8f9fa",
-              border: isActive ? "2px solid #001b66" : "1px solid #dee2e6",
-              color: isActive ? "#fff" : isCorrect ? "#198754" : "#dc3545",
-              transition: "all 0.2s ease-in-out",
-              fontSize: "0.9rem",
-            };
+            let background = isActive ? "#4665bba0" : "#ffffff";
+            let borderColor = isActive ? "#001b66" : "#ced4da";
+            let textColor = isActive
+              ? "#ffffff"
+              : isCorrect
+              ? "#198754"
+              : "#dc3545";
 
             return (
               <button
                 key={i}
-                className={btnClass}
-                style={style}
+                className="btn text-start fw-semibold px-3 py-2 border rounded-2 d-flex align-items-center gap-2"
+                style={{
+                  backgroundColor: background,
+                  border: `1.5px solid ${borderColor}`,
+                  color: textColor,
+                  transition: "all 0.2s ease-in-out",
+                  fontSize: "0.95rem",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
                 onClick={() => setCurrentIndex(i)}
                 title={`Soru ${i + 1} ${isCorrect ? "- Doğru" : "- Yanlış"}`}
               >
-                <span className="me-2 fw-bold">#{i + 1}</span>
-                {item.poolTeo?.question || "Soru Metni Yok"}
+                <span
+                  className="fw-bold"
+                  style={{
+                    minWidth: "2rem",
+                    color: isActive ? "#fff" : textColor,
+                  }}
+                >
+                  #{i + 1}
+                </span>
+                <span
+                  className="flex-grow-1"
+                  style={{ overflow: "hidden" }}
+                  dangerouslySetInnerHTML={{
+                    __html: item.poolTeo?.question || "Soru Metni Yok",
+                  }}
+                />
               </button>
             );
           })}

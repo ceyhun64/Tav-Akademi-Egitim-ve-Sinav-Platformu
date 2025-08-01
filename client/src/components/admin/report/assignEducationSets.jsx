@@ -8,12 +8,14 @@ import {
   deleteAssignEducationSetThunk, // Example thunk to delete an education set
 } from "../../../features/thunks/reportThunk"; // Adjust path as necessary
 import Sidebar from "../adminPanel/sidebar"; // Assuming you have this component
+import ExportToExcel from "./exportAssignEduSet";
 
 export default function AssignEducationSets() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   // Using assignEducationSets from your Redux state
   const { assignEducationSets } = useSelector((state) => state.report);
+  console.log("assignedusets:", assignEducationSets);
 
   // State for mobile responsiveness
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -30,8 +32,10 @@ export default function AssignEducationSets() {
   const [selectedIds, setSelectedIds] = useState([]);
 
   // Filtrelenmiş sınavlar (arama ile)
-  const filteredResults = assignEducationSets.filter((exam) =>
-    exam.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredResults = assignEducationSets.filter((item) =>
+    String(item.EducationSet.name)
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
   );
 
   // Tümünü seç / seçimi kaldır
@@ -77,11 +81,11 @@ export default function AssignEducationSets() {
   }, [isMobile]);
 
   // Handle deletion of an education set
-  const handleDelete = (eduSetId) => {
+  const handleDelete = (educationSetId, userId) => {
     if (
       window.confirm("Bu eğitim setini silmek istediğinizden emin misiniz?")
     ) {
-      dispatch(deleteAssignEducationSetThunk(eduSetId)) // Use the specific delete thunk
+      dispatch(deleteAssignEducationSetThunk({ educationSetId, userId }))
         .unwrap()
         .then(() => {
           alert("Eğitim seti başarıyla silindi!");
@@ -145,7 +149,7 @@ export default function AssignEducationSets() {
           }}
         >
           <h1
-            className="mb-4 mt-2 ms-5"
+            className=" mt-2 ms-5"
             style={{
               color: "#003399",
               fontSize: "28px",
@@ -182,42 +186,40 @@ export default function AssignEducationSets() {
           </h1>
         </div>
         {/* Arama ve Toplu Seçim Alanı */}
-        <div className="mb-3 d-flex justify-content-between align-items-center flex-wrap">
+        {/* Arama ve Butonlar Container */}
+        <div
+          className="d-flex flex-wrap align-items-center justify-content-between mb-3"
+          style={{ gap: "0.75rem" }}
+        >
+          {/* Eğitim Seti Ara Input */}
           <input
             type="text"
-            placeholder="Sınav adıyla ara..."
+            placeholder="Eğitim Seti ara..."
             className="form-control"
             style={{
-              maxWidth: "280px",
-              marginBottom: isMobile ? "0.75rem" : "0.5rem",
+              flex: "1 1 280px", // Genişlik minimum 280px, büyüyebilir
+              minWidth: "200px",
+              maxWidth: "400px",
             }}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
 
-          {/* Tablet ve üstü: buton sağda */}
-          {!isMobile && (
-            <div>
-              <button
-                className="btn btn-danger btn-sm ms-3"
-                onClick={handleBulkDelete}
-              >
-                Seçilenleri Sil
-              </button>
-            </div>
-          )}
+          {/* Butonlar Container */}
+          <div
+            className="d-flex flex-wrap"
+            style={{ gap: "0.5rem", flex: "0 1 auto" }}
+          >
+            <button
+              className="btn btn-danger btn-sm"
+              onClick={handleBulkDelete}
+              style={{ whiteSpace: "nowrap" }}
+            >
+              Seçilenleri Sil
+            </button>
 
-          {/* Mobil: buton altta ve tam genişlik */}
-          {isMobile && (
-            <div style={{ width: "100%" }}>
-              <button
-                className="btn btn-danger btn-sm"
-                onClick={handleBulkDelete}
-              >
-                Seçilenleri Sil
-              </button>
-            </div>
-          )}
+            <ExportToExcel />
+          </div>
         </div>
 
         {/* Table Container with new styling */}
@@ -234,7 +236,7 @@ export default function AssignEducationSets() {
             padding: "8px",
           }}
         >
-          {assignEducationSets && assignEducationSets.length > 0 ? (
+          {filteredResults && filteredResults.length > 0 ? (
             <table
               className="table align-middle table-hover"
               style={{
@@ -247,166 +249,60 @@ export default function AssignEducationSets() {
                 textAlign: "center",
               }}
             >
-              <thead
-                style={{ backgroundColor: "#e9f1ff", borderRadius: "12px" }}
-              >
-                <tr
-                  className="text-center align-middle"
-                  style={{ fontWeight: "600", color: "#334155" }}
-                >
-                  {/* ✅ Sadece bir checkbox sütunu */}
-                  <th style={{ width: "3%", padding: "6px 8px" }} title="Seçim">
-                    <input
-                      type="checkbox"
-                      onChange={handleSelectAll}
-                      checked={
-                        selectedIds.length === filteredResults.length &&
-                        filteredResults.length > 0
-                      }
-                      id="selectAllCheckbox"
-                    />
-                  </th>
-
-                  {isMobile ? (
-                    <>
-                      <th style={{ padding: "6px 8px" }}>Set Adı</th>
-                      <th style={{ padding: "6px 8px" }}>Teorik Sınav</th>
-                      <th style={{ padding: "6px 8px" }}>Uyg. Sınav</th>
-                    </>
-                  ) : isTablet ? (
-                    [
-                      { header: "Eğitim Seti Adı", width: "35%" },
-                      { header: "Teorik Sınav ID", width: "20%" },
-                      { header: "Uygulamalı Sınav ID", width: "20%" },
-                      { header: "Tarih", width: "15%" },
-                      { header: "İşlemler", width: "10%" },
-                    ].map((col, i) => (
-                      <th
-                        key={i}
-                        style={{
-                          whiteSpace: "nowrap",
-                          padding: "6px 8px",
-                          width: col.width,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                        title={col.header}
-                      >
-                        {col.header}
-                      </th>
-                    ))
-                  ) : (
-                    [
-                      { header: "ID", width: "5%" },
-                      { header: "Eğitim Seti Adı", width: "25%" },
-                      { header: "Teorik Sınav ID", width: "15%" },
-                      { header: "Uygulamalı Sınav ID", width: "15%" },
-                      { header: "Oluşturulma Tarihi", width: "15%" },
-                      { header: "İşlemler", width: "25%" },
-                    ].map((col, i) => (
-                      <th
-                        key={i}
-                        className="text-center"
-                        style={{
-                          whiteSpace: "nowrap",
-                          padding: "6px 8px",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          width: col.width,
-                        }}
-                        title={col.header}
-                      >
-                        {col.header}
-                      </th>
-                    ))
-                  )}
+              <thead style={{ backgroundColor: "#e9f1ff" }}>
+                <tr className="text-center">
+                  <th>Seç</th>
+                  <th>Eğitim Seti</th>
+                  <th>Kullanıcı</th>
+                  {/* isMobile ise gizle */}
+                  {!isMobile && <th>Eğitmen</th>}
+                  {/* isMobile veya isTablet ise Başlangıç ve Bitiş tarihlerini gizle */}
+                  {!isMobile && !isTablet && <th>Başlangıç Tarihi</th>}
+                  {!isMobile && !isTablet && <th>Bitiş Tarihi</th>}
+                  {!isMobile && <th>Tamamlandı</th>}
+                  <th>İşlem</th>
                 </tr>
               </thead>
 
               <tbody>
-                {assignEducationSets.map((eduSet) => (
-                  <tr
-                    key={eduSet.id}
-                    style={{
-                      backgroundColor: "#fff",
-                      boxShadow: "0 2px 6px rgb(0 0 0 / 0.05)",
-                      borderRadius: "10px",
-                      cursor: "pointer",
-                      transition: "background-color 0.2s ease",
-                      fontSize: "12px",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor = "#f0f4ff")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.backgroundColor = "#fff")
-                    }
-                  >
-                    {/* ✅ Sadece bir checkbox hücresi */}
-                    <td style={{ padding: "6px 8px", verticalAlign: "middle" }}>
+                {filteredResults.map((item, index) => (
+                  <tr key={index} style={{ textAlign: "center" }}>
+                    <td>
                       <input
                         type="checkbox"
-                        checked={selectedIds.includes(eduSet.id)}
-                        onChange={() => handleCheckboxChange(eduSet.id)}
+                        checked={selectedIds.includes(item.educationSetId)}
+                        onChange={() =>
+                          handleCheckboxChange(item.educationSetId)
+                        }
                       />
                     </td>
+                    <td>{item.EducationSet?.name || "–"}</td>
+                    <td>
+                      {item.user ? `${item.user.ad} ${item.user.soyad}` : "–"}
+                    </td>
 
-                    {isMobile ? (
-                      <>
-                        <td style={{ textAlign: "center", padding: "6px 8px" }}>
-                          {eduSet.name || "-"}
-                        </td>
-                        <td style={{ textAlign: "center", padding: "6px 8px" }}>
-                          {eduSet.teoExamId || "-"}
-                        </td>
-                        <td style={{ textAlign: "center", padding: "6px 8px" }}>
-                          {eduSet.imgExamId || "-"}
-                        </td>
-                      </>
-                    ) : isTablet ? (
-                      <>
-                        <td style={{ padding: "6px 8px" }}>{eduSet.name}</td>
-                        <td style={{ padding: "6px 8px" }}>
-                          {eduSet.teoExamId}
-                        </td>
-                        <td style={{ padding: "6px 8px" }}>
-                          {eduSet.imgExamId}
-                        </td>
-                        <td style={{ padding: "6px 8px" }}>
-                          {new Date(eduSet.createdAt).toLocaleDateString()}
-                        </td>
-                        <td style={{ padding: "6px 8px" }}>
-                          <button
-                            className="btn btn-danger btn-sm"
-                            onClick={() => handleDelete(eduSet.id)}
-                          >
-                            Sil
-                          </button>
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td style={{ padding: "6px 8px" }}>{eduSet.id}</td>
-                        <td style={{ padding: "6px 8px" }}>{eduSet.name}</td>
-                        <td style={{ padding: "6px 8px" }}>
-                          {eduSet.teoExamId}
-                        </td>
-                        <td style={{ padding: "6px 8px" }}>
-                          {eduSet.imgExamId}
-                        </td>
-                        <td style={{ padding: "6px 8px" }}>
-                          {new Date(eduSet.createdAt).toLocaleDateString()}
-                        </td>
-                        <td style={{ padding: "6px 8px" }}>
-                          <button
-                            className="btn btn-danger btn-sm"
-                            onClick={() => handleDelete(eduSet.id)}
-                          >
-                            Sil
-                          </button>
-                        </td>
-                      </>
+                    {!isMobile && <td>{item.educator || "-"}</td>}
+                    {!isMobile && !isTablet && <td>{item.start_date}</td>}
+                    {!isMobile && !isTablet && <td>{item.end_date}</td>}
+                    {!isMobile && (
+                      <td>
+                        {item.completed ? (
+                          <span className="badge bg-success">Evet</span>
+                        ) : (
+                          <span className="badge bg-secondary">Hayır</span>
+                        )}
+                      </td>
                     )}
+                    <td>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() =>
+                          handleDelete(item.educationSetId, item.userId)
+                        }
+                      >
+                        Sil
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

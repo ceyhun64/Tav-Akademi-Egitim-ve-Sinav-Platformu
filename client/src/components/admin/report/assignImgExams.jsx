@@ -2,26 +2,22 @@ import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
-  getAssignImgExamsThunk, // Assuming this is the correct thunk for image exams
+  getAssignExamsThunk, // Assuming this is the correct thunk for image exams
   deleteAssignExamThunk, // Re-using the delete thunk, adjust if specific for image exams
 } from "../../../features/thunks/reportThunk";
 import Sidebar from "../adminPanel/sidebar";
+import ExportToExcel from "./exportAssignImg";
 
 export default function AssignImgExams() {
   // Changed component name to reflect image exams
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { assignImgExams } = useSelector((state) => state.report); // Using assignImgExams from state
+  const { assignExams } = useSelector((state) => state.report);
+  console.log("assignExams:", assignExams);
 
   // Mobil görünüm için sidebar state'leri
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
-  // Placeholder for checkbox functionality and filtered results (if needed, otherwise remove)
-  // For this component, assuming no checkboxes are needed based on the provided table structure
-  // If you need checkboxes for assignImgExams, you'll need to add selectedIds and handle functions.
-  // const [selectedIds, setSelectedIds] = useState([]);
-  // const filteredResults = assignImgExams;
 
   // Sınav verilerini çekmek için useEffect
   // Arama terimi (sınav adına göre filtre)
@@ -31,9 +27,11 @@ export default function AssignImgExams() {
   const [selectedIds, setSelectedIds] = useState([]);
 
   // Filtrelenmiş sınavlar (arama ile)
-  const filteredResults = assignImgExams.filter((exam) =>
-    exam.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredResults = assignExams
+    .filter((exam) => exam.exam_type === "img") // ← sadece img olanları filtrele
+    .filter((exam) =>
+      exam.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   // Tümünü seç / seçimi kaldır
   const handleSelectAll = () => {
@@ -47,6 +45,7 @@ export default function AssignImgExams() {
     }
   };
 
+  console.log(filteredResults);
   // Tek bir checkbox değiştiğinde
   const handleCheckboxChange = (examId) => {
     setSelectedIds((prev) =>
@@ -57,7 +56,7 @@ export default function AssignImgExams() {
   };
 
   useEffect(() => {
-    dispatch(getAssignImgExamsThunk()); // Dispatching the correct thunk
+    dispatch(getAssignExamsThunk()); // Dispatching the correct thunk
   }, [dispatch]);
 
   // Mobil boyutlandırma için useEffect
@@ -91,7 +90,7 @@ export default function AssignImgExams() {
       dispatch(deleteAssignExamThunk(examId)) // Re-using deleteAssignExamThunk
         .unwrap()
         .then(() => {
-          dispatch(getAssignImgExamsThunk()); // Refresh list after deletion
+          dispatch(getAssignExamsThunk()); // Refresh list after deletion
           alert("Sınav ataması başarıyla silindi!");
         })
         .catch((error) => {
@@ -189,43 +188,35 @@ export default function AssignImgExams() {
           </h1>
         </div>
 
-        {/* Arama ve Toplu Seçim Alanı */}
-        <div className="mb-3 d-flex justify-content-between align-items-center flex-wrap">
+        {/* Arama ve Butonlar Yan Yana */}
+        <div
+          className="d-flex flex-wrap align-items-center justify-content-between mb-3"
+          style={{ gap: "0.75rem" }}
+        >
           <input
             type="text"
             placeholder="Sınav adıyla ara..."
             className="form-control"
-            style={{
-              maxWidth: "280px",
-              marginBottom: isMobile ? "0.75rem" : "0.5rem",
-            }}
+            style={{ maxWidth: "280px", flexGrow: 1, minWidth: "200px" }}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
 
-          {/* Tablet ve üstü: buton sağda */}
-          {!isMobile && (
-            <div>
-              <button
-                className="btn btn-danger btn-sm ms-3"
-                onClick={handleBulkDelete}
-              >
-                Seçilenleri Sil
-              </button>
-            </div>
-          )}
+          {/* Butonlar Container */}
+          <div
+            className="d-flex flex-wrap"
+            style={{ gap: "0.5rem", flex: "0 1 auto" }}
+          >
+            <button
+              className="btn btn-danger btn-sm"
+              onClick={handleBulkDelete}
+              style={{ whiteSpace: "nowrap" }}
+            >
+              Seçilenleri Sil
+            </button>
 
-          {/* Mobil: buton altta ve tam genişlik */}
-          {isMobile && (
-            <div style={{ width: "100%" }}>
-              <button
-                className="btn btn-danger btn-sm"
-                onClick={handleBulkDelete}
-              >
-                Seçilenleri Sil
-              </button>
-            </div>
-          )}
+            <ExportToExcel />
+          </div>
         </div>
 
         {/* Tablo */}
@@ -279,7 +270,6 @@ export default function AssignImgExams() {
                   {isMobile ? (
                     <>
                       <th style={{ padding: "6px 8px" }}>Sınav Adı</th>
-                      <th style={{ padding: "6px 8px" }}>Başlangıç</th>
                       <th style={{ padding: "6px 8px" }}>Süre</th>
                       <th style={{ padding: "6px 8px" }}>İşlemler</th>
                     </>
@@ -377,9 +367,7 @@ export default function AssignImgExams() {
                         <td style={{ textAlign: "center", padding: "6px 8px" }}>
                           {exam.name || "-"}
                         </td>
-                        <td style={{ textAlign: "center", padding: "6px 8px" }}>
-                          {exam.start_date || "-"}
-                        </td>
+                     
                         <td style={{ textAlign: "center", padding: "6px 8px" }}>
                           {exam.sure ?? "-"}
                         </td>

@@ -56,7 +56,7 @@ export default function Verify2FA() {
   return (
     <div className="container d-flex flex-column align-items-center justify-content-center min-vh-100">
       <div className="text-center mb-4">
-        <img src={logo} alt="Logo" style={{ height: 80 }} />
+        <img src={logo} alt="Logo" style={{ height: 100 }} />
       </div>
       <div
         className="card shadow-sm p-4"

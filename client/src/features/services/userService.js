@@ -62,3 +62,23 @@ export const aktifPasifUser = async (userIds, durum) => {
     throw error.response?.data?.message || "Bir hata oluştu";
   }
 };
+
+export const exportUsersToExcel = async () => {
+  try {
+    const res = await axiosInstance.post("/user/excel", {}, {
+      responseType: "blob", // Excel dosyası olarak dönecek
+    });
+    // Blob'u URL'ye çevir
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    // Link oluştur ve tıkla
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "users.xlsx"); // İndirilecek dosya adı
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error("Excel dışa aktarma hatası:", error);
+    throw error.response?.data?.message || "Bir hata oluştu";
+  }
+}

@@ -12,11 +12,15 @@ import {
   getTeoQuestionResult,
   getUserImgExamResult,
   getUserTeoExamResult,
-  getAssignImgExams,
-  getAssignTeoExams,
+  getAssignExams,
   getAssignEducationSets,
   deleteAssignEducationSet,
   deleteAssignExam,
+  exportImgReportToExcel,
+  exportTeoReportToExcel,
+  exportAssignTeoToExcel,
+  exportAssignImgToExcel,
+  exportAssignEduSetsToExcel,
 } from "../services/reportService";
 
 export const getUserTeoResultsThunk = createAsyncThunk(
@@ -164,35 +168,26 @@ export const getUserTeoExamResultThunk = createAsyncThunk(
     }
   }
 );
-export const getAssignImgExamsThunk = createAsyncThunk(
-  "report/getAssignImgExams",
+export const getAssignExamsThunk = createAsyncThunk(
+  "report/getAssignExams",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await getAssignImgExams();
+      const response = await getAssignExams();
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
   }
 );
-export const getAssignTeoExamsThunk = createAsyncThunk(
-  "report/getAssignTeoExams",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await getAssignTeoExams();
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response.data);
-    }
-  }
-);
+
 export const deleteAssignExamThunk = createAsyncThunk(
   "report/deleteAssignExam",
   async (examId, { rejectWithValue }) => {
     try {
       console.log("thunk examId:", examId);
       const response = await deleteAssignExam(examId);
-      return response.data;
+      console.log("thunk:", response.data);
+      return response.data.exams;
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
@@ -211,12 +206,69 @@ export const getAssignEducationSetsThunk = createAsyncThunk(
 );
 export const deleteAssignEducationSetThunk = createAsyncThunk(
   "report/deleteAssignEducationSet",
-  async (educationSetId, { rejectWithValue }) => {
+  async ({ educationSetId, userId }, { rejectWithValue }) => {
     try {
-      const response = await deleteAssignEducationSet(educationSetId);
-      return response.data;
+      const response = await deleteAssignEducationSet(educationSetId, userId);
+      console.log("thunk:", response.data.educationSets);
+      return response.data.educationSets;
     } catch (error) {
       return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const exportImgReportToExcelThunk = createAsyncThunk(
+  "report/exportImgReportToExcel",
+  async () => {
+    try {
+      const response = await exportImgReportToExcel();
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+export const exportTeoReportToExcelThunk = createAsyncThunk(
+  "report/exportTeoReportToExcel",
+  async () => {
+    try {
+      const response = await exportTeoReportToExcel();
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+export const exportAssignTeoToExcelThunk = createAsyncThunk(
+  "report/exportAssignTeoToExcel",
+  async () => {
+    try {
+      const response = await exportAssignTeoToExcel();
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+export const exportAssignImgToExcelThunk = createAsyncThunk(
+  "report/exportAssignImgToExcel",
+  async () => {
+    try {
+      const response = await exportAssignImgToExcel();
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+export const exportAssignEduSetsToExcelThunk = createAsyncThunk(
+  "report/exportAssignEduSetsToExcel",
+  async () => {
+    try {
+      const response = await exportAssignEduSetsToExcel();
+      return response.data;
+    } catch (error) {
+      throw error;
     }
   }
 );

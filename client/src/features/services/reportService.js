@@ -134,9 +134,9 @@ export const getUserTeoExamResult = async () => {
   }
 };
 
-export const getAssignImgExams = async () => {
+export const getAssignExams = async () => {
   try {
-    const response = await axiosInstance.get(`/report/assign-img-exams`);
+    const response = await axiosInstance.get(`/report/assign-exams`);
     return response;
   } catch (error) {
     console.error("Görsel sınavları alırken hata:", error);
@@ -148,21 +148,14 @@ export const deleteAssignExam = async (examId) => {
     const response = await axiosInstance.delete(
       `/report/delete-assign-exam/${examId}`
     );
+    console.log("response:", response);
     return response;
   } catch (error) {
     console.error("Görsel sınavı silerken hata:", error);
     throw error;
   }
 };
-export const getAssignTeoExams = async () => {
-  try {
-    const response = await axiosInstance.get(`/report/assign-teo-exams`);
-    return response;
-  } catch (error) {
-    console.error("Teorik sınavları alırken hata:", error);
-    throw error;
-  }
-};
+
 export const getAssignEducationSets = async () => {
   try {
     const response = await axiosInstance.get(`/report/assign-education-sets`);
@@ -172,14 +165,132 @@ export const getAssignEducationSets = async () => {
     throw error;
   }
 };
-export const deleteAssignEducationSet = async (educationSetId) => {
+export const deleteAssignEducationSet = async (educationSetId, userId) => {
   try {
     const response = await axiosInstance.delete(
-      `/report/delete-assign-education-set/${educationSetId}`
+      `/report/delete-assign-education-set/${educationSetId}/${userId}`
     );
     return response;
   } catch (error) {
     console.error("Eğitim setini silerken hata:", error);
     throw error;
+  }
+};
+
+export const exportTeoReportToExcel = async () => {
+  try {
+    const res = await axiosInstance.post(
+      "/report/excel-teo",
+      {},
+      {
+        responseType: "blob", // Excel dosyası olarak dönecek
+      }
+    );
+    // Blob'u URL'ye çevir
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    // Link oluştur ve tıkla
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "teoReport.xlsx"); // İndirilecek dosya adı
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error("Excel dışa aktarma hatası:", error);
+    throw error.response?.data?.message || "Bir hata oluştu";
+  }
+};
+
+export const exportImgReportToExcel = async () => {
+  try {
+    const res = await axiosInstance.post(
+      "/report/excel-img",
+      {},
+      {
+        responseType: "blob", // Excel dosyası olarak dönecek
+      }
+    );
+    // Blob'u URL'ye çevir
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    // Link oluştur ve tıkla
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "uygReport.xlsx"); // İndirilecek dosya adı
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error("Excel dışa aktarma hatası:", error);
+    throw error.response?.data?.message || "Bir hata oluştu";
+  }
+};
+export const exportAssignTeoToExcel = async () => {
+  try {
+    const res = await axiosInstance.post(
+      "/report/excel-assign-teo",
+      {},
+      {
+        responseType: "blob", // Excel dosyası olarak dönecek
+      }
+    );
+    // Blob'u URL'ye çevir
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    // Link oluştur ve tıkla
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "teoExams.xlsx"); // İndirilecek dosya adı
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error("Excel dışa aktarma hatası:", error);
+    throw error.response?.data?.message || "Bir hata oluştu";
+  }
+};
+
+export const exportAssignImgToExcel = async () => {
+  try {
+    const res = await axiosInstance.post(
+      "/report/excel-assign-img",
+      {},
+      {
+        responseType: "blob", // Excel dosyası olarak dönecek
+      }
+    );
+    // Blob'u URL'ye çevir
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    // Link oluştur ve tıkla
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "imgExams.xlsx"); // İndirilecek dosya adı
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error("Excel dışa aktarma hatası:", error);
+    throw error.response?.data?.message || "Bir hata oluştu";
+  }
+};
+export const exportAssignEduSetsToExcel = async () => {
+  try {
+    const res = await axiosInstance.post(
+      "/report/excel-education-sets",
+      {},
+      {
+        responseType: "blob", // Excel dosyası olarak dönecek
+      }
+    );
+    // Blob'u URL'ye çevir
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    // Link oluştur ve tıkla
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "eduSets.xlsx"); // İndirilecek dosya adı
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error("Excel dışa aktarma hatası:", error);
+    throw error.response?.data?.message || "Bir hata oluştu";
   }
 };

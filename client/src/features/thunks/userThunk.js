@@ -5,6 +5,7 @@ import {
   getAllUsers,
   deleteUsers,
   aktifPasifUser,
+  exportUsersToExcel
 } from "../services/userService";
 
 export const getUserDetailsThunk = createAsyncThunk(
@@ -64,6 +65,18 @@ export const aktifPasifUserThunk = createAsyncThunk(
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const exportUsersToExcelThunk = createAsyncThunk(
+  "user/exportUsersToExcel",
+  async () => {
+    try {
+      const response = await exportUsersToExcel();
+      return response.data;
+    } catch (error) {
+      throw error;
     }
   }
 );

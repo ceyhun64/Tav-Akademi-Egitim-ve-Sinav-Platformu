@@ -120,9 +120,10 @@ export default function QuestionDetailCard({
         <h5
           className="text-dark mb-4"
           style={{ fontWeight: "600", fontSize: isMobile ? "1rem" : "1.25rem" }}
-        >
-          {pool?.question}
-        </h5>
+          dangerouslySetInnerHTML={{
+            __html: pool?.question || "Soru metni bulunamadı",
+          }}
+        />
 
         {imageSrc && (
           <div className="text-center mb-4">

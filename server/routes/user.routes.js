@@ -6,6 +6,9 @@ const authorize = require("../middlewares/authorize");
 
 const { uploadSingle } = require("../middlewares/upload");
 
+//dışa aktarma excel
+router.post("/excel", verifyToken, userController.export_users_to_excel);
+
 // Kullanıcı detaylarını getir
 router.get("/details/:id", verifyToken, userController.get_user_details);
 

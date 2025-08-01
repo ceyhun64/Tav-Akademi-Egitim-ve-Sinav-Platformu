@@ -18,9 +18,10 @@ import sessionReducer from "../features/slices/sessionSlice";
 import announcementReducer from "../features/slices/announcementSlice";
 import roleReducer from "../features/slices/roleSlice";
 import logActivityReducer from "../features/slices/logActivitiySlice";
-import uploadFileReducer from "../features/slices/uploadFileSlice"; 
-import certificateReducer from "../features/slices/certificateSlice"; 
+import uploadFileReducer from "../features/slices/uploadFileSlice";
+import certificateReducer from "../features/slices/certificateSlice";
 import practiceExamReducer from "../features/slices/practiceExamSlice";
+import illegalMovesReducer from "../features/slices/illegalMovesSlice";
 
 export const store = configureStore({
   reducer: {
@@ -46,5 +47,6 @@ export const store = configureStore({
     uploadFile: uploadFileReducer,
     certificate: certificateReducer,
     practiceExam: practiceExamReducer,
+    illegalMoves: illegalMovesReducer,
   },
 });

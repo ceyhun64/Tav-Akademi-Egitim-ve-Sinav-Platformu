@@ -17,13 +17,10 @@ import {
 import UserList from "./userList";
 import UserFilter from "./userFilter";
 import BulkRegister from "./bulkRegister";
-import Sidebar from "../adminPanel/sidebar";
 import exampleUser from "../../../../public/example/exampleUser.jpg";
 import "./register.css";
-import {
-  getRolesThunk,
-  assignRoleToUserThunk,
-} from "../../../features/thunks/roleThunk";
+import { getRolesThunk } from "../../../features/thunks/roleThunk";
+import ExportToExcel from "./exportToExcel";
 
 export default function Register() {
   const dispatch = useDispatch();
@@ -1571,14 +1568,31 @@ export default function Register() {
               </button>
             ))}
 
-            {/* BulkRegister butonunu da yanına koymak için */}
             <div
               style={{
-                flex: isMobile || isTablet ? "1 1 45%" : "1 1 23%",
-                minWidth: "140px",
+                display: "flex",
+                gap: "12px",
+                justifyContent: isMobile || isTablet ? "center" : "flex-start",
+                flexWrap: "nowrap", // burada wrap'ı kaldırdık
               }}
             >
-              <BulkRegister />
+              <div
+                style={{
+                  flex: "1 1 auto",
+                  minWidth: "140px",
+                }}
+              >
+                <BulkRegister />
+              </div>
+              <div
+                style={{
+                  marginTop: isMobile ? "10px" : "15px",
+                  flex: "1 1 auto",
+                  minWidth: "140px",
+                }}
+              >
+                <ExportToExcel />
+              </div>
             </div>
           </div>
 

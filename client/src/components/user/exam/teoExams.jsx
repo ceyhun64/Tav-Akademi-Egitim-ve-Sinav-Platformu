@@ -13,10 +13,14 @@ export default function TeoExams() {
     dispatch(getUserTeoExamsThunk());
   }, [dispatch]);
 
-  const handleStartExam = (examId) => {
-    navigate(`/teo-questions/${examId}`);
+  const handleStartExam = (examId, sonucGizle) => {
+    navigate(`/teo-questions/${examId}`, {
+      state: { sonucGizle }, // 👈 burada veriyi gönderiyoruz
+    });
   };
 
+  
+  console.log(exams);
   const activeExams =
     exams?.filter((exam) => {
       const user = exam.examUsers?.[0];
@@ -154,7 +158,7 @@ export default function TeoExams() {
             </div>
 
             <button
-              onClick={() => handleStartExam(exam.id)}
+              onClick={() => handleStartExam(exam.id, exam.sonucu_gizle)} // 👈 burada gönderiyoruz
               className={`btn-start-exam-teo mt-auto ${
                 !canStart ? "btn-secondary" : ""
               }`}

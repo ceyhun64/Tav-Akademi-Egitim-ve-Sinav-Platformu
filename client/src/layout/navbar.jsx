@@ -146,7 +146,7 @@ export default function Navbar() {
 
                 <ul
                   className={`dropdown-menu${dropdownOpen ? " show" : ""}`}
-                  style={{ minWidth: "160px" }}
+                  style={{ minWidth: "160px", }}
                 >
                   <li>
                     <button

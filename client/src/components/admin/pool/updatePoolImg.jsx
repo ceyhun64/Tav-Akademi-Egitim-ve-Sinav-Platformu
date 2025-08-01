@@ -95,13 +95,16 @@ function processOverlayImage(file, callback) {
 
   reader.readAsDataURL(file);
 }
-
 export default function UpdatePoolImg() {
   const { id } = useParams();
   const { poolImg } = useSelector((state) => state.poolImg);
   const dispatch = useDispatch();
 
   const { banSubs } = useSelector((state) => state.banSubs);
+
+  // poolImg ilk yüklendiğinde originalImage'ı tutmak için yeni bir state
+  const [originalImage, setOriginalImage] = useState(null);
+
   useEffect(() => {
     if (id) {
       dispatch(getPoolImgByIdThunk(id));
@@ -137,10 +140,13 @@ export default function UpdatePoolImg() {
       }
 
       setPolygons(coords);
+      // İlk yüklendiğinde hem image state'ini hem de originalImage state'ini ayarla
       setImage(poolImg.image);
-      // Set initial overlay image and blend mode if available from poolImg
+      setOriginalImage(poolImg.image); // poolImg.image'i orijinal olarak kaydet
+
       if (poolImg.overlayImage) {
         setOverlayImage(poolImg.overlayImage);
+        setShowOverlay(true); // OverlayImage varsa göster
       }
       if (poolImg.blendMode) {
         setBlendMode(poolImg.blendMode);
@@ -156,16 +162,16 @@ export default function UpdatePoolImg() {
   const containerRef = useRef(null);
   const imageBlenderRef = useRef();
 
-  const [image, setImage] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
-  const [overlayImage, setOverlayImage] = useState(null);
-  const [overlayImageFile, setOverlayImageFile] = useState(null);
+  const [image, setImage] = useState(null); // Güncel olarak gösterilen ana resim (ya poolImg.image ya da yeni yüklenen)
+  const [imageFile, setImageFile] = useState(null); // Yeni yüklenen X-RAY resmi (File nesnesi)
+  const [overlayImage, setOverlayImage] = useState(null); // Tehlikeli madde görseli URL'si
+  const [overlayImageFile, setOverlayImageFile] = useState(null); // Tehlikeli madde görseli File nesnesi
   const [showOverlay, setShowOverlay] = useState(false);
-  const [blendMode, setBlendMode] = useState("multiply"); // Default blend mode, as in CreatePoolImg
-  const [overlayPosition, setOverlayPosition] = useState({ x: 0, y: 0 }); // Added for DraggableOverlayImage
-  const [overlaySize, setOverlaySize] = useState({ width: 50, height: 50 }); // Added for DraggableOverlayImage
-  const [blendedDataUrl, setBlendedDataUrl] = useState(null); // Added for blended image URL
-  const [blendedUrl, setBlendedUrl] = useState(null); // Added for blended image URL
+  const [blendMode, setBlendMode] = useState("multiply");
+  const [overlayPosition, setOverlayPosition] = useState({ x: 0, y: 0 });
+  const [overlaySize, setOverlaySize] = useState({ width: 50, height: 50 });
+  const [blendedDataUrl, setBlendedDataUrl] = useState(null); // Harmanlanmış resim URL'si (Canvas'tan gelen)
+  const [blendedUrl, setBlendedUrl] = useState(null); // Gösterilen harmanlanmış veya ana resim URL'si
 
   const [polygons, setPolygons] = useState([]);
   const [currentPolygon, setCurrentPolygon] = useState([]);
@@ -211,9 +217,9 @@ export default function UpdatePoolImg() {
     dispatch(getImgBookletsThunk());
   }, [dispatch]);
 
-  const selectedBooklet = imgBooklets.find(
-    (b) => b.id === parseInt(form.bookletId)
-  );
+  // const selectedBooklet = imgBooklets.find(
+  //   (b) => b.id === parseInt(form.bookletId)
+  // ); // Bu değişken şu an kullanılmıyor gibi görünüyor, isterseniz kaldırabilirsiniz.
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -236,12 +242,16 @@ export default function UpdatePoolImg() {
     const displayW = imgEl.clientWidth;
     const displayH = imgEl.clientHeight;
 
+    if (!natW || !natH || !displayW || !displayH) {
+      console.warn("Görsel boyutları alınamadı.");
+      return;
+    }
+
     const scaleX = displayW / natW;
     const scaleY = displayH / natH;
 
     setImageMetrics({ offsetX: 0, offsetY: 0, scaleX, scaleY });
   };
-
   // Handlers
   const handleQuestionChange = (content) =>
     setForm((f) => ({ ...f, question: content }));
@@ -249,18 +259,29 @@ export default function UpdatePoolImg() {
   const handleImageSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    setImageFile(file);
-    setImage(URL.createObjectURL(file));
-    setPolygons([]);
+
+    setImageFile(file); // Yeni resim dosyasını kaydet
+    setImage(URL.createObjectURL(file)); // Önizleme için URL'ini oluştur
+    setPolygons([]); // Yeni resim yüklendiğinde polygonları temizle
     setCurrentPolygon([]);
+    setBlendedDataUrl(null); // Yeni resim yüklendiğinde harmanlanmış veriyi temizle
+    setBlendedUrl(null); // Yeni resim yüklendiğinde harmanlanmış URL'yi temizle
+    setOverlayImage(null); // Yeni resim yüklendiğinde tehlikeli madde görselini temizle
+    setOverlayImageFile(null); // Tehlikeli madde görseli dosyasını temizle
+    setShowOverlay(false); // Overlay'i gizle
   };
 
   const handleClearImages = () => {
+    // Hem ana resmi hem de overlay resmini temizler
     setImage(null);
     setImageFile(null);
+    setOriginalImage(null); // Orijinal resmi de temizle
+    setOverlayImage(null);
+    setOverlayImageFile(null);
     setBlendedDataUrl(null);
     setBlendedUrl(null);
-    setPolygons([]); // Also clear polygons when images are cleared
+    setShowOverlay(false);
+    setPolygons([]);
     setCurrentPolygon([]);
   };
 
@@ -325,66 +346,80 @@ export default function UpdatePoolImg() {
       }
     }
   };
-
   const handleMouseUp = () => {
     setDragging({ type: null, polygonIndex: null, pointIndex: null });
     setDragOffset(null);
   };
-
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
   };
-
   const handleSubmit = async () => {
-    if (!blendedDataUrl) {
-      window.alert("Birleşik görsel henüz hazırlanmadı. Lütfen bekleyin.");
-      return;
-    }
-
     if (!form.answer) {
       window.alert("Lütfen bir cevap seçin.");
       return;
     }
-
     try {
       const formData = new FormData();
+      let finalImageFile = null;
+      if (imageFile) {
+        if (overlayImage && blendedDataUrl) {
+          const blob = await (await fetch(blendedDataUrl)).blob();
+          finalImageFile = new File([blob], "merged-image.png", {
+            type: "image/png",
+          });
+        } else {
+          finalImageFile = imageFile;
+        }
+      } else {
+        if (overlayImage && blendedDataUrl) {
+          const blob = await (await fetch(blendedDataUrl)).blob();
+          finalImageFile = new File([blob], "merged-image.png", {
+            type: "image/png",
+          });
+        } else {
+          console.log(
+            "Resim değişmedi, orijinal resim veya harmanlanmış resim gönderilecek."
+          );
+        }
+      }
 
-      const blob = await (await fetch(blendedDataUrl)).blob();
-      const mergedFile = new File([blob], "merged-image.png", {
-        type: "image/png",
-      });
-
-      formData.append("file", mergedFile);
-      formData.append(
-        "coordinate",
-        JSON.stringify([...polygons, currentPolygon])
-      );
+      if (finalImageFile) {
+        formData.append("file", finalImageFile);
+      } else if (image && !imageFile && !blendedDataUrl) {
+        console.log(
+          "Yeni resim yok, harmanlanmış resim yok. Mevcut resim korunacak (eğer backend destekliyorsa)."
+        );
+      }
+      formData.append("coordinate", JSON.stringify([...polygons]));
       formData.append("question", form.question);
       formData.append("bookletId", parseInt(form.bookletId));
       formData.append("difLevelId", parseInt(form.difLevelId));
       formData.append("questionCategoryId", parseInt(form.questionCategoryId));
-      formData.append("blendMode", blendMode); // Append blend mode
-
+      formData.append("blendMode", form.image);
+      formData.append("overlayPositionX", overlayPosition.x);
+      formData.append("overlayPositionY", overlayPosition.y);
+      formData.append("overlaySizeWidth", overlaySize.width);
+      formData.append("overlaySizeHeight", overlaySize.height);
       Object.entries(form).forEach(([key, value]) => {
         if (
-          [
+          ![
             "bookletId",
             "difLevelId",
             "questionCategoryId",
             "question",
+            "answer",
           ].includes(key)
-        )
-          return;
-        formData.append(key, value);
+        ) {
+          formData.append(key, value);
+        }
       });
+      formData.append("answer", form.answer); // Cevabı da ekleyelim
 
       dispatch(updatePoolImgThunk({ id, formData }))
         .unwrap()
         .then((response) => {
           window.alert("Soru başarıyla güncellendi.");
-          // You might want to reset some states after a successful update,
-          // similar to createPoolImg, if appropriate for your UX.
         })
         .catch((error) => {
           console.error("Gönderme hatası:", error);
@@ -397,9 +432,8 @@ export default function UpdatePoolImg() {
   };
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  // Responsive state management
-  const [isMobile, setIsMobile] = useState(false); // < 768px
-  const [isTablet, setIsTablet] = useState(false); // 768px - 1200px
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
   const TABLET_BREAKPOINT = 768;
   const DESKTOP_BREAKPOINT = 1200;
 
@@ -408,40 +442,34 @@ export default function UpdatePoolImg() {
       const width = window.innerWidth;
       setIsMobile(width < TABLET_BREAKPOINT);
       setIsTablet(width >= TABLET_BREAKPOINT && width < DESKTOP_BREAKPOINT);
-      // Keep sidebar open on larger screens, closed on smaller
-      setSidebarOpen(width >= TABLET_BREAKPOINT); // Open on tablet and desktop
+      setSidebarOpen(width >= TABLET_BREAKPOINT);
     };
 
-    handleResize(); // Set dimensions on initial render
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const selectWidth = 300; // Common width for both mobile and desktop
-
-  // Determine grid template columns for content-columns
+  const selectWidth = 300;
   const gridTemplateColumnsStyle = isMobile || isTablet ? "1fr" : "2fr 1fr";
-
   useEffect(() => {
     if (image && overlayImage && imageBlenderRef.current) {
-      // Small delay to allow images to fully load and component to update
       const timer = setTimeout(() => {
         const blended = imageBlenderRef.current.getDataUrl();
         if (blended) {
           setBlendedUrl(blended);
-          setBlendedDataUrl(blended); // Ensure blendedDataUrl is also updated
+          setBlendedDataUrl(blended);
+          setShowOverlay(true);
         }
       }, 300);
-      return () => clearTimeout(timer); // Cleanup timeout
-    } else {
-      // If either image or overlayImage is null, clear blended URLs
+      return () => clearTimeout(timer);
+    } else if (image && !overlayImage) {
       setBlendedUrl(null);
       setBlendedDataUrl(null);
+      setShowOverlay(false); // Overlay yoksa gizle
     }
-  }, [image, overlayImage, blendMode, overlayPosition, overlaySize]); // Added overlayPosition n and overlaySize to dependencies for real-time blending
-  useEffect(() => {
-    console.log(showOverlay);
-  }, [showOverlay]); // Debugging line to check showOverlay state
+  }, [image, overlayImage, blendMode, overlayPosition, overlaySize]);
+
   return (
     <div className="poolImg-container" style={{ overflowX: "hidden" }}>
       {/* Sidebar */}
@@ -496,6 +524,7 @@ export default function UpdatePoolImg() {
             Geri Dön
           </button>
         </h2>
+        {/* ImageBlender, sadece image ve overlayImage varsa render edilir */}
         {image && overlayImage && (
           <ImageBlender
             ref={imageBlenderRef}
@@ -521,7 +550,6 @@ export default function UpdatePoolImg() {
           }}
         >
           <div className="left-column">
-            {/* Added the new features here */}
             <div
               className="d-flex flex-wrap align-items-center gap-2"
               style={{ marginTop: 10 }}
@@ -592,8 +620,8 @@ export default function UpdatePoolImg() {
                   onChange={(e) => {
                     const file = e.target.files[0];
                     if (!file) return;
+                    setOverlayImageFile(file); // Overlay dosyasını kaydet
                     processOverlayImage(file, (processedUrl) => {
-                      console.log("Overlay yüklendi:", processedUrl); // BURAYA BAK
                       setOverlayImage(processedUrl);
                       setShowOverlay(true);
                     });
@@ -657,7 +685,6 @@ export default function UpdatePoolImg() {
                 ></i>
                 Tüm Polygonları Temizle
               </button>
-              {/* New button to clear images */}
               <button
                 onClick={handleClearImages}
                 className="btn"
@@ -699,7 +726,7 @@ export default function UpdatePoolImg() {
               >
                 <img
                   ref={imageRef}
-                  src={image}
+                  src={image} // `image` state'ini kullanıyoruz
                   alt="Main"
                   style={{
                     display: "block",
@@ -708,6 +735,7 @@ export default function UpdatePoolImg() {
                   }}
                   onLoad={handleImageLoad}
                 />
+                {/* blendedUrl varsa harmanlanmış resmi göster, yoksa hiç gösterme */}
                 {blendedUrl && (
                   <img
                     src={blendedUrl}

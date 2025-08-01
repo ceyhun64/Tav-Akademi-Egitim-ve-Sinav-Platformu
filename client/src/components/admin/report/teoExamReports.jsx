@@ -10,6 +10,7 @@ import {
   getGroupsThunk,
   getInstitutionsThunk,
 } from "../../../features/thunks/grpInstThunk";
+import ExportToExcel from "./exportTeoReport";
 
 // Geçen süreyi hesaplayan fonksiyon
 function calculateDuration(entryDate, entryTime, exitDate, exitTime) {
@@ -235,9 +236,15 @@ export default function TeoExamReports() {
             </button>
           </h1>
         </div>
-        {/* Filtreleme inputları */}
-        <div className="row mb-5 gx-3 gy-3">
+        <div
+          className="d-flex flex-wrap mb-5 gx-3 gy-3 align-items-end"
+          style={{
+            gap: "1rem",
+            justifyContent: "flex-start",
+          }}
+        >
           {[
+            // filtre inputları
             {
               type: "text",
               placeholder: "Kişi Ara (Ad / Soyad / Sicil)",
@@ -272,64 +279,68 @@ export default function TeoExamReports() {
               value: endDate,
               onChange: (e) => setEndDate(e.target.value),
             },
-          ].map((input, idx) => {
-            // Ekran boyutuna göre kolon sınıfını belirle
-            let colClass = "col-12"; // mobil default
-            if (isTablet) {
-              colClass = "col-6"; // 2 sütun
-            } else if (!isMobile) {
-              // masaüstü
-              if (idx === 0) colClass = "col-12 col-md-3";
-              else if (idx === 1) colClass = "col-12 col-md-3";
-              else if (idx === 2) colClass = "col-12 col-md-2";
-              else colClass = "col-12 col-md-2";
-            }
+          ].map((input, idx) => (
+            <div
+              key={idx}
+              style={{
+                flex: isTablet ? "0 0 32%" : "1 1 180px", // tablet için 3 sütun (32% genişlik)
+                minWidth: isTablet ? "auto" : "180px",
+              }}
+            >
+              {input.type === "select" ? (
+                <select
+                  className="form-select"
+                  value={input.value}
+                  onChange={input.onChange}
+                  style={{
+                    boxShadow: "0 2px 8px rgb(0 51 153 / 0.15)",
+                    borderRadius: "8px",
+                    border: "1px solid #cbd5e0",
+                    transition: "border-color 0.25s ease",
+                    width: "100%",
+                  }}
+                  onFocus={(e) => (e.target.style.borderColor = "#003399")}
+                  onBlur={(e) => (e.target.style.borderColor = "#cbd5e0")}
+                >
+                  {input.options.map((opt) => (
+                    <option
+                      key={opt[input.keyField]}
+                      value={opt[input.keyField]}
+                    >
+                      {opt[input.labelField]}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type={input.type}
+                  className="form-control"
+                  placeholder={input.placeholder}
+                  value={input.value}
+                  onChange={input.onChange}
+                  style={{
+                    boxShadow: "0 2px 8px rgb(0 51 153 / 0.15)",
+                    borderRadius: "8px",
+                    border: "1px solid #cbd5e0",
+                    transition: "border-color 0.25s ease",
+                    width: "100%",
+                  }}
+                  onFocus={(e) => (e.target.style.borderColor = "#003399")}
+                  onBlur={(e) => (e.target.style.borderColor = "#cbd5e0")}
+                />
+              )}
+            </div>
+          ))}
 
-            return (
-              <div key={idx} className={colClass}>
-                {input.type === "select" ? (
-                  <select
-                    className="form-select"
-                    value={input.value}
-                    onChange={input.onChange}
-                    style={{
-                      boxShadow: "0 2px 8px rgb(0 51 153 / 0.15)",
-                      borderRadius: "8px",
-                      border: "1px solid #cbd5e0",
-                      transition: "border-color 0.25s ease",
-                    }}
-                    onFocus={(e) => (e.target.style.borderColor = "#003399")}
-                    onBlur={(e) => (e.target.style.borderColor = "#cbd5e0")}
-                  >
-                    {input.options.map((opt) => (
-                      <option
-                        key={opt[input.keyField]}
-                        value={opt[input.keyField]}
-                      >
-                        {opt[input.labelField]}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    type={input.type}
-                    className="form-control"
-                    placeholder={input.placeholder}
-                    value={input.value}
-                    onChange={input.onChange}
-                    style={{
-                      boxShadow: "0 2px 8px rgb(0 51 153 / 0.15)",
-                      borderRadius: "8px",
-                      border: "1px solid #cbd5e0",
-                      transition: "border-color 0.25s ease",
-                    }}
-                    onFocus={(e) => (e.target.style.borderColor = "#003399")}
-                    onBlur={(e) => (e.target.style.borderColor = "#cbd5e0")}
-                  />
-                )}
-              </div>
-            );
-          })}
+          {/* Export Button */}
+          <div
+            style={{
+              flex: isTablet ? "0 0 32%" : "0 0 auto",
+              minWidth: isTablet ? "auto" : undefined,
+            }}
+          >
+            <ExportToExcel />
+          </div>
         </div>
 
         {selectedIds.length > 0 && (

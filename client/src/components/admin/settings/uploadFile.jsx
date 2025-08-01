@@ -115,11 +115,12 @@ export default function UploadFile() {
       >
         <Sidebar />
       </div>
+
       {/* Ana İçerik */}
       <div
         className="poolImg-content"
         style={{
-          marginLeft: sidebarOpen ? 260 : 0,
+          marginLeft: isMobile ? 0 : 260,
           padding: "1rem",
           transition: "margin-left 0.3s ease",
         }}
@@ -130,15 +131,15 @@ export default function UploadFile() {
             justifyContent: "space-between",
             alignItems: "center",
             marginBottom: "2.5rem",
-            flexWrap: isMobile ? "wrap" : "nowrap",
-            gap: isMobile ? "1rem" : "0",
+            flexWrap: isMobile || isTablet ? "wrap" : "nowrap",
+            gap: isMobile || isTablet ? "1rem" : "0",
           }}
         >
           <h1
             className="mb-4 mt-2 ms-5"
             style={{
               color: "#003399",
-              fontSize: isMobile ? "22px" : "28px",
+              fontSize: isMobile ? "22px" : isTablet ? "26px" : "28px",
               fontWeight: "700",
               display: "flex",
               alignItems: "center",
@@ -156,34 +157,18 @@ export default function UploadFile() {
             )}
             Dosya Yükleme İşlemleri
           </h1>
-          <button
-            onClick={() => window.history.back()}
-            style={{
-              backgroundColor: "#001b66",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              padding: "6px 16px",
-              cursor: "pointer",
-              fontSize: "1rem",
-              whiteSpace: "nowrap",
-              flexShrink: 0,
-              alignSelf: isMobile ? "stretch" : "auto",
-              width: isMobile ? "100%" : "auto",
-            }}
-          >
-            Geri Dön
-          </button>
+        
         </div>
 
+        {/* Yükleme Formu */}
         <div
           className="card shadow-sm"
           style={{
-            maxWidth: isMobile || isTablet ? "100%" : "1200px",
-            width: isMobile || isTablet ? "100%" : "1100px",
             margin: "0 auto",
             borderRadius: "16px",
-            padding: isMobile ? "1rem" : "2rem",
+            padding: isMobile ? "1rem" : isTablet ? "1.5rem" : "2rem",
+            maxWidth: isMobile || isTablet ? "100%" : "1200px",
+            width: isMobile || isTablet ? "100%" : "1100px",
             boxShadow: "0 8px 20px rgba(0, 51, 153, 0.15)",
             backgroundColor: "#fff",
           }}
@@ -249,6 +234,7 @@ export default function UploadFile() {
           </div>
         </div>
 
+        {/* Yüklenen Dosyalar Tablosu */}
         <div
           className="card shadow-sm mt-4"
           style={{
@@ -256,7 +242,7 @@ export default function UploadFile() {
             width: isMobile || isTablet ? "100%" : "1100px",
             margin: "0 auto",
             borderRadius: "16px",
-            padding: isMobile ? "1rem" : "2rem",
+            padding: isMobile ? "1rem" : isTablet ? "1.5rem" : "2rem",
             boxShadow: "0 8px 20px rgba(0, 51, 153, 0.15)",
             backgroundColor: "#fff",
           }}
@@ -267,8 +253,8 @@ export default function UploadFile() {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                flexDirection: isMobile ? "column" : "row",
-                gap: isMobile ? "1rem" : "0",
+                flexDirection: isMobile || isTablet ? "column" : "row",
+                gap: isMobile || isTablet ? "1rem" : "0",
                 marginBottom: "1rem",
               }}
             >
@@ -289,11 +275,11 @@ export default function UploadFile() {
                   borderRadius: "16px",
                   overflowX: "auto",
                   maxWidth: "100%",
-                  maxHeight: isMobile ? "none" : "800px",
+                  maxHeight: isMobile || isTablet ? "none" : "800px",
                   boxShadow: "0 4px 20px rgb(0 0 0 / 0.07)",
                   backgroundColor: "#fff",
                   border: "1px solid #e2e8f0",
-                  padding: isMobile ? "6px" : "12px",
+                  padding: isMobile || isTablet ? "6px" : "12px",
                 }}
               >
                 <table
@@ -303,7 +289,11 @@ export default function UploadFile() {
                     borderSpacing: "0 6px",
                     minWidth: "100%",
                     tableLayout: "fixed",
-                    fontSize: isMobile ? "0.75rem" : "1rem",
+                    fontSize: isMobile
+                      ? "0.75rem"
+                      : isTablet
+                      ? "0.9rem"
+                      : "1rem",
                   }}
                 >
                   <thead

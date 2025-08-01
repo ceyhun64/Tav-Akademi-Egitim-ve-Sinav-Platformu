@@ -24,12 +24,6 @@ router.post(
   certificateController.createCertificate
 );
 
-router.post(
-  "/combine",
-  verifyToken,
-  authorize(7),
-  certificateController.combineCertificates
-);
 
 router.get(
   "/requesters",

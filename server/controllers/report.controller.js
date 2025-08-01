@@ -9,15 +9,14 @@ const {
   PoolTeo,
   UserTeoAnswers,
   EducationSet,
-  EduAndEduSet,
   Education,
-  EducationUser,
   EducationSetUser,
   UserImgAnswers,
   QuestionCategory,
 } = require("../models/index");
 const logActivity = require("../helpers/logActivity");
 const { Op, where } = require("sequelize");
+const XLSX = require("xlsx");
 
 exports.getAllUserTeoResults = async (req, res) => {
   try {
@@ -313,7 +312,8 @@ exports.getQuestionCategoryResult = async (req, res) => {
 exports.getImgQuestionResult = async (req, res) => {
   try {
     const { examId, userId } = req.params;
-
+    console.log("examId:", examId);
+    console.log("userId:", userId);
     const userImgAnswers = await UserImgAnswers.findAll({
       where: {
         user_id: userId,
@@ -360,6 +360,8 @@ exports.getTeoQuestionResult = async (req, res) => {
   try {
     const { examId, userId } = req.params;
 
+    console.log("examId:", examId);
+    console.log("userId:", userId);
     const userTeoAnswers = await UserTeoAnswers.findAll({
       where: {
         user_id: userId,
@@ -443,13 +445,9 @@ exports.getImgResultByUser = async (req, res) => {
   }
 };
 
-exports.getAssignImgExams = async (req, res) => {
+exports.getAssignExams = async (req, res) => {
   try {
-    const exams = await Exam.findAll({
-      where: {
-        exam_type: "img",
-      },
-    });
+    const exams = await Exam.findAll();
     res.json(exams);
   } catch (error) {
     console.error(error);
@@ -458,57 +456,47 @@ exports.getAssignImgExams = async (req, res) => {
 };
 exports.deleteAssignExam = async (req, res) => {
   try {
-    const { examId } = req.params; // examId'yi req.params'tan alıyoruz
-    const deletedExamUsersCount = await ExamUser.destroy({
-      where: {
-        examId: examId,
-      },
-    });
+    const { examId } = req.params;
 
-    const deletedExamQuestionsCount = await ExamQuestions.destroy({
-      where: {
-        examId: examId,
-      },
-    });
-
-    const deletedExamsCount = await Exam.destroy({
-      where: {
-        id: examId,
-      },
-    });
+    // 1. İlgili kayıtları sil
+    await ExamUser.destroy({ where: { examId } });
+    await ExamQuestions.destroy({ where: { examId } });
+    const deletedExamsCount = await Exam.destroy({ where: { id: examId } });
 
     if (deletedExamsCount > 0) {
-      res.json({
+      // 2. Güncel sınav listesini getir (örn: sadece img sınavları)
+      const updatedExams = await Exam.findAll(); // veya filtreli: { where: { exam_type: "img" } }
+
+      // 3. Yeni listeyi geri gönder
+      return res.json({
         message: "Sınav ataması ve ilgili kayıtlar başarıyla silindi.",
-        examId: examId,
+        exams: updatedExams,
       });
     } else {
-      res.status(404).json({
+      return res.status(404).json({
         message: "Belirtilen sınav bulunamadı veya daha önce silinmiş.",
       });
     }
   } catch (error) {
-    console.error("Sınav ataması silinirken hata oluştu:", error); // Daha detaylı hata loglaması
-    res.status(500).json({ message: "Sunucu hatası", error: error.message }); // Hata mesajını istemciye gönderin
+    console.error("Sınav ataması silinirken hata oluştu:", error);
+    return res
+      .status(500)
+      .json({ message: "Sunucu hatası", error: error.message });
   }
 };
 
-exports.getAssignTeoExams = async (req, res) => {
-  try {
-    const exams = await Exam.findAll({
-      where: {
-        exam_type: "teo",
-      },
-    });
-    res.json(exams);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Sunucu hatası", error });
-  }
-};
 exports.getAssignEducationSets = async (req, res) => {
   try {
-    const educationSets = await EducationSet.findAll();
+    const educationSets = await EducationSetUser.findAll({
+      include: [
+        {
+          model: User,
+        },
+        {
+          model: EducationSet,
+        },
+      ],
+    });
     res.json(educationSets);
   } catch (error) {
     console.error(error);
@@ -517,29 +505,222 @@ exports.getAssignEducationSets = async (req, res) => {
 };
 exports.deleteAssignEducationSet = async (req, res) => {
   try {
-    const { educationSetId } = req.params;
-    const deletedEducationSetUsersCount = await EducationSetUser.destroy({
-      where: {
-        educationSetId: educationSetId,
-      },
+    const { userId, educationSetId } = req.params;
+    console.log(userId, educationSetId);
+    const educationSets = await EducationSetUser.findAll({
+      where: { userId, educationSetId },
     });
-    const deletedEducationSetCount = await EducationSet.destroy({
-      where: {
-        id: educationSetId,
-      },
+    await EducationSetUser.destroy({
+      where: { userId, educationSetId },
     });
-    if (deletedEducationSetCount > 0) {
-      res.json({
-        message: "Eğitim seti ataması ve ilgili kayıtlar başarıyla silindi.",
-        educationSetId: educationSetId,
-      });
-    } else {
-      res.status(404).json({
-        message: "Belirtilen eğitim seti bulunamadı veya daha önce silinmiş.",
-      });
-    }
+    return res.json({
+      message: "Eğitim seti ataması ve ilgili kayıtlar başarıyla silindi.",
+      educationSets,
+    });
   } catch (error) {
-    console.error("Eğitim seti ataması silinirken hata oluştu:", error); // Daha detaylı hata loglaması
-    res.status(500).json({ message: "Sunucu hatası", error: error.message }); // Hata mesajını istemciye gönderin
+    // Hata durumunda konsola detaylı loglama yap ve 500 hatası dön
+    console.error("Eğitim seti ataması silinirken hata oluştu:", error);
+    return res
+      .status(500)
+      .json({ message: "Sunucu hatası", error: error.message });
+  }
+};
+
+exports.userTeoResultsToExcel = async (req, res) => {
+  try {
+    const teoExams = await Exam.findAll({ where: { exam_type: "teo" } });
+    const teoExamIds = teoExams.map((exam) => exam.id);
+
+    const userTeoExams = await ExamUser.findAll({
+      where: { examId: teoExamIds },
+      include: [
+        { model: User },
+        {
+          model: Exam,
+          include: [{ model: Booklet }],
+        },
+      ],
+      raw: true,
+      nest: true,
+    });
+
+    // Veriyi olduğu gibi Excel'e aktar (hiçbir alan sadeleştirilmeden)
+    const worksheet = XLSX.utils.json_to_sheet(userTeoExams);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Teorik Sonuçlar");
+
+    const buffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
+    });
+
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=teo-sonuclar.xlsx"
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.send(buffer);
+  } catch (error) {
+    console.error("Excel'e aktarım hatası:", error);
+    res
+      .status(500)
+      .json({ message: "Excel dışa aktarma başarısız oldu.", error });
+  }
+};
+
+exports.userImgResultsToExcel = async (req, res) => {
+  try {
+    const imgExams = await Exam.findAll({ where: { exam_type: "img" } });
+    const imgExamIds = imgExams.map((exam) => exam.id);
+
+    const userImgExams = await ExamUser.findAll({
+      where: { examId: imgExamIds },
+      include: [
+        { model: User },
+        {
+          model: Exam,
+          include: [{ model: Booklet }],
+        },
+      ],
+      raw: true,
+      nest: true,
+    });
+
+    // Veriyi olduğu gibi Excel'e aktar (hiçbir alan sadeleştirilmeden)
+    const worksheet = XLSX.utils.json_to_sheet(userImgExams);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Uygulamalı Sonuçlar");
+
+    const buffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
+    });
+
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=uyg-sonuclar.xlsx"
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.send(buffer);
+  } catch (error) {
+    console.error("Excel'e aktarım hatası:", error);
+    res
+      .status(500)
+      .json({ message: "Excel dışa aktarma başarısız oldu.", error });
+  }
+};
+
+exports.assignTeoExamsToExcel = async (req, res) => {
+  try {
+    const teoExams = await Exam.findAll({
+      where: { exam_type: "teo" },
+      raw: true,
+      nest: true,
+    });
+
+    // Veriyi olduğu gibi Excel'e aktar (hiçbir alan sadeleştirilmeden)
+    const worksheet = XLSX.utils.json_to_sheet(teoExams);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Atanan Teorik Sınavlar");
+
+    const buffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
+    });
+
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=teo-sinavlar.xlsx"
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.send(buffer);
+  } catch (error) {
+    console.error("Excel'e aktarım hatası:", error);
+    res
+      .status(500)
+      .json({ message: "Excel dışa aktarma başarısız oldu.", error });
+  }
+};
+
+exports.assignImgExamsToExcel = async (req, res) => {
+  try {
+    const imgExams = await Exam.findAll({
+      where: { exam_type: "img" },
+      raw: true,
+      nest: true,
+    });
+
+    // Veriyi olduğu gibi Excel'e aktar (hiçbir alan sadeleştirilmeden)
+    const worksheet = XLSX.utils.json_to_sheet(imgExams);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      "Atanan Uygulamalı Sınavlar"
+    );
+
+    const buffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
+    });
+
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=uyg-sinavlar.xlsx"
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.send(buffer);
+  } catch (error) {
+    console.error("Excel'e aktarım hatası:", error);
+    res
+      .status(500)
+      .json({ message: "Excel dışa aktarma başarısız oldu.", error });
+  }
+};
+
+exports.assignEducationSetsToExcel = async (req, res) => {
+  try {
+    const eduSets = await EducationSetUser.findAll({ raw: true, nest: true });
+    // Veriyi olduğu gibi Excel'e aktar (hiçbir alan sadeleştirilmeden)
+    const worksheet = XLSX.utils.json_to_sheet(eduSets);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Atanan Eğitim Setleri");
+
+    const buffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
+    });
+
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=egitim-setleri.xlsx"
+    );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.send(buffer);
+  } catch (error) {
+    console.error("Excel'e aktarım hatası:", error);
+    res
+      .status(500)
+      .json({ message: "Excel dışa aktarma başarısız oldu.", error });
   }
 };

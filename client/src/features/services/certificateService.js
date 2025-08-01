@@ -11,27 +11,31 @@ export const getCompletedEducationSets = async (educationSetId) => {
     throw error;
   }
 };
+
+
+// services/certificateService.js
 export const createCertificate = async (data) => {
   try {
     const response = await axiosInstance.post("/certificate", data, {
-      responseType: "blob", // veya "arraybuffer"
+      responseType: "blob", // ZIP dosyası gelecek
     });
-    console.log("service:", response);
-    return response;
-  } catch (error) {
-    console.error("Kullanıcı güncelleme hatası:", error);
-    throw error;
-  }
-};
-export const combineCertificates = async (certificateIds) => {
-  try {
-    const response = await axiosInstance.post("/certificate/combine", { certificateIds }, {
-      responseType: "blob", // veya "arraybuffer"
+
+    const blob = new Blob([response.data], {
+      type: "application/zip",
     });
-    console.log("service:", response);
-    return response.data;
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sertifikalar.zip";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+
+    return true;
   } catch (error) {
-    console.error("Kullanıcı güncelleme hatası:", error);
+    console.error("Sertifika indirme hatası:", error);
     throw error;
   }
 };

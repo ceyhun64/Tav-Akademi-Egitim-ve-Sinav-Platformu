@@ -128,7 +128,11 @@ export const passwordEmail = async (email) => {
 };
 
 // password güncelleme api isteği
-export const updatePassword = async (token, yenisifre, tekraryenisifre) => {
+export const updatePassword = async (
+  token,
+  yenisifre,
+  tekraryenisifre
+) => {
   try {
     const res = await axios.put(`${API_URL}/update-password/${token}`, {
       yenisifre,

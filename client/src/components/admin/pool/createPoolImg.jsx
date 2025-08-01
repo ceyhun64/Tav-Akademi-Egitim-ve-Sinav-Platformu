@@ -386,7 +386,6 @@ export default function CreatePoolImg() {
   const imageBlenderRef = useRef();
   const [blendedUrl, setBlendedUrl] = useState(null);
   useEffect(() => {
-
     if (image && overlayImage && imageBlenderRef.current) {
       // Small delay to allow images to fully load and component to update
       const timer = setTimeout(() => {
@@ -486,20 +485,22 @@ export default function CreatePoolImg() {
           </button>
         </h2>
         {image && overlayImage && (
-          <ImageBlender
-            ref={imageBlenderRef}
-            baseImageSrc={image}
-            overlayImageSrc={overlayImage}
-            overlayPosition={overlayPosition}
-            overlaySize={overlaySize}
-            imageMetrics={imageMetrics}
-            blendMode={blendMode}
-            onBlendComplete={(dataUrl) => {
-              setBlendedDataUrl(dataUrl);
-              setBlendedUrl(dataUrl);
-              setShowOverlay(true); // Ensure overlay is shown after blend
-            }}
-          />
+          
+            <ImageBlender
+              ref={imageBlenderRef}
+              baseImageSrc={image}
+              overlayImageSrc={overlayImage}
+              overlayPosition={overlayPosition}
+              overlaySize={overlaySize}
+              imageMetrics={imageMetrics}
+              blendMode={blendMode}
+              onBlendComplete={(dataUrl) => {
+                setBlendedDataUrl(dataUrl);
+                setBlendedUrl(dataUrl);
+                setShowOverlay(true); // Ensure overlay is shown after blend
+              }}
+            />
+          
         )}
         <div
           className="content-columns"

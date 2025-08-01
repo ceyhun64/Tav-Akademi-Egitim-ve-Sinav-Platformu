@@ -6,6 +6,7 @@ import {
   getPoolImgs,
   updatePoolImg,
   getPoolImgsByBookletId,
+  exportPoolImgToExcel,
 } from "../services/poolImgService";
 
 export const getPoolImgThunk = createAsyncThunk(
@@ -73,6 +74,18 @@ export const getPoolImgsByBookletIdThunk = createAsyncThunk(
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const exportPoolImgToExcelThunk = createAsyncThunk(
+  "poolImg/exportPoolImgToExcel",
+  async () => {
+    try {
+      const response = await exportPoolImgToExcel();
+      return response.data;
+    } catch (error) {
+      throw error;
     }
   }
 );

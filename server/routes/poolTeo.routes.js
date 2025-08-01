@@ -18,6 +18,11 @@ router.post(
   uploadSingle, // multer single middleware
   poolTeoController.uploadQuestionsFromExcel
 );
+router.post(
+  "/excel",
+  verifyToken,
+  poolTeoController.exportPoolTeosToExcel
+)
 
 // POST /api/poolTeos
 router.post("/", verifyToken, uploadSingle, poolTeoController.createPoolTeo);

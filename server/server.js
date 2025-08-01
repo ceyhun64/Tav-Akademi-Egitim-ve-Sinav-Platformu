@@ -37,6 +37,7 @@ const logActivityRoutes = require("./routes/logActivity.routes");
 const uploadFileRoutes = require("./routes/uploadFile.routes");
 const certificateRoutes = require("./routes/certificate.routes");
 const practiceExamRoutes = require("./routes/practiceExam.routes");
+const illegalMovesRoutes = require("./routes/illegalMoves.routes");
 
 const corsOptions = {
   origin: "https://tav-akademi-egitim-ve-sinav-platfor-rho.vercel.app",
@@ -72,6 +73,7 @@ app.use("/api/logactivity", logActivityRoutes);
 app.use("/api/uploadfile", uploadFileRoutes);
 app.use("/api/certificate", certificateRoutes);
 app.use("/api/practiceexam", practiceExamRoutes);
+app.use("/api/illegalmoves", illegalMovesRoutes);
 
 (async () => {
   await sequelize.sync({ force: true });

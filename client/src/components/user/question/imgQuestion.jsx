@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   getImgQuestionsThunk,
   answerImgQuestionsThunk,
@@ -73,12 +73,14 @@ const contentWrapperStyle = {
 export default function ImgQuestion() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const sonucGizle = location.state?.sonucGizle ?? false; // default false
   const { examId: examIdParam } = useParams();
   const examId = Number(examIdParam);
   const { imgQuestions, duration, name } = useSelector(
     (state) => state.question
   );
-
+  const userId = localStorage.getItem("userId");
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [selectedCoordinates, setSelectedCoordinates] = useState({});
   const [activeFilter, setActiveFilter] = useState("none");
@@ -101,6 +103,7 @@ export default function ImgQuestion() {
   const [showUnansweredWarning, setShowUnansweredWarning] = useState(false);
   const [unansweredCount, setUnansweredCount] = useState(0);
 
+  console.log("sonucu gizle :", sonucGizle);
   // TAM EKRAN MODUNA GEÇİŞ FONKSİYONU
   const requestFullscreen = () => {
     const elem = examContainerRef.current;
@@ -564,6 +567,8 @@ export default function ImgQuestion() {
     setSelectedAnswers((prev) => ({ ...prev, [Number(questionId)]: answer }));
   };
 
+  console.log(userId);
+  console.log(examId);
   const handleSubmit = (autoSubmit = false) => {
     if (!entryDate || !entryTime) {
       alert(
@@ -622,14 +627,20 @@ export default function ImgQuestion() {
       })
     );
 
-    // Yönlendirme
-    if (autoSubmit) {
-      navigate("/img-exams");
+    // Yönlendirme mantığı burada değişiyor
+    if (sonucGizle) {
+      navigate("/user-panel"); // Eğer sonuç gizlenecekse ana panele dön
     } else {
-      navigate("/user-panel");
+      // userId'nin tanımlı olduğundan emin olun
+      if (userId) {
+        navigate(`/img-question-report/${userId}/${examId}`); // Sonuç gösterilecekse rapor sayfasına git
+      } else {
+        // Handle case where userId is not available (e.g., redirect to login or show error)
+        console.error("User ID not available for report navigation.");
+        navigate("/user-panel"); // Fallback to user panel
+      }
     }
   };
-
   // Render filter or plain image
 
   const handleRemoveCoordinate = () => {

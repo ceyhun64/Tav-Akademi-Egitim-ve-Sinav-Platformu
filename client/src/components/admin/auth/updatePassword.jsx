@@ -19,6 +19,7 @@ export default function UpdatePassword() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { token } = useParams();
+  console.log(token)
 
   const handleUpdatePassword = async (e) => {
     e.preventDefault();

@@ -51,6 +51,7 @@ const Requester = require("./requester");
 const Educator = require("./educator");
 const CourseNo = require("./courseNo");
 const CourseType = require("./courseType");
+const IllegalMove = require("./illegalMoves");
 // İlişkiler
 
 // --- User - Exam Many-to-Many via ExamUser ---
@@ -378,6 +379,16 @@ PracticeExamQuestions.belongsTo(PracticeExam, {
   as: "practiceExam",
 });
 
+User.hasMany(IllegalMove, {
+  foreignKey: "userId",
+  as: "illegalMoves", // user.getIllegalMoves() vs.
+});
+
+IllegalMove.belongsTo(User, {
+  foreignKey: "userId",
+  as: "user", // illegalMove.getUser()
+});
+
 module.exports = {
   sequelize,
   User,
@@ -420,4 +431,5 @@ module.exports = {
   Educator,
   CourseNo,
   CourseType,
+  IllegalMove,
 };

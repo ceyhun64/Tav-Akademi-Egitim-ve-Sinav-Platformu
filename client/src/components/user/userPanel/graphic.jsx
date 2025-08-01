@@ -16,6 +16,7 @@ import {
   CartesianGrid,
 } from "recharts";
 
+
 const COLORS = ["#2E86AB", "#F26419", "#76B041", "#F7B32B", "#6A0572"];
 
 export default function Graphic() {
@@ -102,8 +103,8 @@ export default function Graphic() {
 
   const averageScoresData = [
   
-    { name: "Teorik Sınav Ortalaması", avg: Number(theoreticalAvg.toFixed(2)) },
-    { name: "Uygulama Sınav Ortalaması", avg: Number(visualAvg.toFixed(2)) },
+    { name: "Teorik Sınav Ort.", avg: Number(theoreticalAvg.toFixed(2)) },
+    { name: "Uygulama Sınav Ort.", avg: Number(visualAvg.toFixed(2)) },
   ];
 
   return (

@@ -7,6 +7,7 @@ import {
   deletePoolTeo,
   getPoolTeosByBookletId,
   uploadQuestionsFromExcel,
+  exportPoolTeoToExcel,
 } from "../services/poolTeoService";
 
 export const getPoolTeosThunk = createAsyncThunk(
@@ -90,6 +91,18 @@ export const getPoolTeosByBookletIdThunk = createAsyncThunk(
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const exportPoolTeoToExcelThunk = createAsyncThunk(
+  "poolTeo/exportPoolTeoToExcel",
+  async () => {
+    try {
+      const response = await exportPoolTeoToExcel();
+      return response.data;
+    } catch (error) {
+      throw error;
     }
   }
 );

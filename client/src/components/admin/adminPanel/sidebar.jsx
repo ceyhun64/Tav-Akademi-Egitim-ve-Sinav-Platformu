@@ -988,6 +988,38 @@ export default function Sidebar() {
               Atanmış Uygulamalı Sınavlar
             </Link>
           </li>
+          <li>
+            <Link
+              to="/admin/assign-education-sets"
+              className={`sidebar-sublink ${
+                location.pathname === "/admin/assign-education-sets"
+                  ? "active-link"
+                  : ""
+              }`}
+              onClick={handleLinkClick}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "0.5rem 1rem",
+                color: "#003399",
+                fontWeight: 400,
+                textDecoration: "none",
+                borderRadius: "4px",
+                transition: "background-color 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#001b66";
+                e.currentTarget.style.color = "#fff";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "#003399";
+              }}
+            >
+              <i className="bi bi-ui-checks-grid me-2"></i>
+              Atanmış Eğitim Setleri
+            </Link>
+          </li>
         </ul>
       )}
       {settingsDropdownOpen && (
@@ -1301,6 +1333,35 @@ export default function Sidebar() {
               }}
             >
               <i className="bi bi-journal-check me-2"></i> İşlem Kayıtları
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/admin/illegal-moves"
+              className={`sidebar-sublink ${
+                location.pathname === "/admin/ban-subs" ? "active-link" : ""
+              }`}
+              onClick={() => setSettingsDropdownOpen(false)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "0.5rem 1rem",
+                color: "#003399",
+                fontWeight: 400,
+                textDecoration: "none",
+                borderRadius: "4px",
+                transition: "background-color 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#001b66";
+                e.currentTarget.style.color = "#fff";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "#003399";
+              }}
+            >
+              <i className="bi bi-slash-circle me-2"></i> İllegal Hareketler
             </Link>
           </li>
         </ul>

@@ -14,13 +14,11 @@ export default function UpcomingExam() {
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 1500);
-     
     };
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
 
   useEffect(() => {
     dispatch(getExamByUserIdThunk());
@@ -62,9 +60,10 @@ export default function UpcomingExam() {
 
   // Filtrelenmiş ve aranan sınavlar
   const filteredExams = upcomingExams.filter((exam) => {
-    const matchesSearch = exam.name
+    const matchesSearch = (exam.name ?? "")
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
+
     // Burada exam_type yerine exam.category kullandık
     const matchesCategory =
       filterCategory === "all" || exam.category === filterCategory;
@@ -216,7 +215,7 @@ export default function UpcomingExam() {
                             className="bi bi-clock me-2"
                             style={{ color: "#d6336c" }}
                           ></i>
-                          {daysLeft} gün kaldı
+                          {daysLeft === 0 ? "Bugün" : `${daysLeft} gün kaldı`}
                         </p>
                       </div>
                     </div>
@@ -244,7 +243,11 @@ export default function UpcomingExam() {
 
               <p
                 className="fw-semibold text-center"
-                style={{ color: "#001b66", width: "100%", marginLeft: isMobile ? "auto" : "180px" }}
+                style={{
+                  color: "#001b66",
+                  width: "100%",
+                  marginLeft: isMobile ? "auto" : "180px",
+                }}
               >
                 Bugün: {today.format("dddd, DD MMMM YYYY")}
               </p>

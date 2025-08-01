@@ -4,34 +4,35 @@ const reportController = require("../controllers/report.controller");
 const verifyToken = require("../middlewares/verifyToken");
 const authorize = require("../middlewares/authorize");
 
-// --- Rotaları Gruplama ve Sıralama Tavsiyesi ---
-// Genel prensip:
-// 1. Atama (Assignment) İşlemleri
-// 2. Detay Görüntüleme (Specific Details)
-// 3. Kategoriye Göre Sonuçlar
-// 4. Tüm Sonuçları Listeleme
-// 5. Silme İşlemleri (Genellikle en alta veya kendi grubuna)
-// 6. Kullanıcıya Özel Sonuçlar (Genel sonuçlardan sonra)
+router.post(
+  "/excel-education-sets",
+  verifyToken,
+  reportController.assignEducationSetsToExcel
+);
+router.post(
+  "/excel-assign-teo",
+  verifyToken,
+  reportController.assignTeoExamsToExcel
+);
 
-// --- Atama ve Tanımlama İşlemleri ---
-// Sınav/Eğitim Seti Atamalarını Listeleme
-router.get(
-  "/assign-img-exams",
+router.post(
+  "/excel-assign-img",
   verifyToken,
-  reportController.getAssignImgExams
+  reportController.assignImgExamsToExcel
 );
-router.get(
-  "/assign-teo-exams",
-  verifyToken,
-  reportController.getAssignTeoExams
-);
+
+router.post("/excel-teo", verifyToken, reportController.userTeoResultsToExcel);
+
+router.post("/excel-img", verifyToken, reportController.userImgResultsToExcel);
+
+router.get("/assign-exams", verifyToken, reportController.getAssignExams);
+
 router.get(
   "/assign-education-sets",
   verifyToken,
   reportController.getAssignEducationSets
 );
 
-// --- Detaylı Sonuç Görüntüleme (Kullanıcı ve Sınav/Eğitim Seti Bazında) ---
 // Sınav sonuçları detayları
 router.get(
   "/result-detail/:userId/:examId",
@@ -91,11 +92,6 @@ router.get(
   reportController.getAllUserImgResults
 );
 
-// --- Kullanıcıya Göre Kendi Sonuçlarını Getirme ---
-// Not: Bu endpoint'lerde ":userId" parametresi olmaması,
-// genellikle token'dan veya oturumdan gelen kullanıcı ID'sini kullandığınız anlamına gelir.
-// Bu yüzden authorize(8) yerine, sadece verifyToken yeterli olabilir veya
-// kendi yetkilendirme mantığınızı uygulayabilirsiniz.
 router.get(
   "/user-teo-result",
   verifyToken,
@@ -118,7 +114,7 @@ router.delete(
   reportController.deleteAssignExam
 );
 router.delete(
-  "/delete-assign-education-set/:educationSetId",
+  "/delete-assign-education-set/:educationSetId/:userId",
   verifyToken,
   authorize(8), // Genellikle bu tür silmeler için Admin yetkisi gereklidir
   reportController.deleteAssignEducationSet

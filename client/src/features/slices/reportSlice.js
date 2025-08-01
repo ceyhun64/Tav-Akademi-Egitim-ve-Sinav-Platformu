@@ -12,8 +12,7 @@ import {
   getTeoQuestionResultThunk,
   getUserImgExamResultThunk,
   getUserTeoExamResultThunk,
-  getAssignImgExamsThunk,
-  getAssignTeoExamsThunk,
+  getAssignExamsThunk,
   getAssignEducationSetsThunk,
   deleteAssignEducationSetThunk,
   deleteAssignExamThunk,
@@ -25,8 +24,7 @@ const initialState = {
   userTeoResults: [],
   userImgResults: [],
   userResultDetail: {},
-  assignImgExams: [],
-  assignTeoExams: [],
+  assignExams: [],
   assignEducationSets: [],
 
   userEducationResultDetail: {},
@@ -204,30 +202,19 @@ const reportSlice = createSlice({
         state.error = action.payload;
       })
       //Atanan sınavlar
-      .addCase(getAssignImgExamsThunk.pending, (state) => {
+      .addCase(getAssignExamsThunk.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(getAssignImgExamsThunk.fulfilled, (state, action) => {
+      .addCase(getAssignExamsThunk.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.assignImgExams = action.payload;
+        state.assignExams = action.payload;
       })
-      .addCase(getAssignImgExamsThunk.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      })
-      .addCase(getAssignTeoExamsThunk.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(getAssignTeoExamsThunk.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.assignTeoExams = action.payload;
-      })
-      .addCase(getAssignTeoExamsThunk.rejected, (state, action) => {
+      .addCase(getAssignExamsThunk.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
+
       .addCase(getAssignEducationSetsThunk.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -247,7 +234,7 @@ const reportSlice = createSlice({
       })
       .addCase(deleteAssignExamThunk.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.assignImgExams = action.payload;
+        state.assignExams = action.payload;
       })
       .addCase(deleteAssignExamThunk.rejected, (state, action) => {
         state.isLoading = false;

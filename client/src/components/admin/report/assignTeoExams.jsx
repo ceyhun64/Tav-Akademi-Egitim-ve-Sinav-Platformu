@@ -2,15 +2,16 @@ import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
-  getAssignTeoExamsThunk,
+  getAssignExamsThunk,
   deleteAssignExamThunk,
 } from "../../../features/thunks/reportThunk";
 import Sidebar from "../adminPanel/sidebar";
+import ExportToExcel from "./exportAssignTeo";
 
-export default function AssignTeoExams() {
+export default function assignExams() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { assignTeoExams } = useSelector((state) => state.report);
+  const { assignExams } = useSelector((state) => state.report);
 
   // Mobil görünüm için sidebar state'leri
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -26,9 +27,11 @@ export default function AssignTeoExams() {
   const [selectedIds, setSelectedIds] = useState([]);
 
   // Filtrelenmiş sınavlar (arama ile)
-  const filteredResults = assignTeoExams.filter((exam) =>
-    exam.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredResults = assignExams
+    .filter((exam) => exam.exam_type === "teo") // ← sadece img olanları filtrele
+    .filter((exam) =>
+      exam.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   // Tümünü seç / seçimi kaldır
   const handleSelectAll = () => {
@@ -53,7 +56,7 @@ export default function AssignTeoExams() {
 
   // Sınav verilerini çekmek için useEffect
   useEffect(() => {
-    dispatch(getAssignTeoExamsThunk());
+    dispatch(getAssignExamsThunk());
   }, [dispatch]);
 
   // Ekran boyutu değişikliklerini takip et
@@ -83,7 +86,7 @@ export default function AssignTeoExams() {
       dispatch(deleteAssignExamThunk(examId))
         .unwrap()
         .then(() => {
-          dispatch(getAssignTeoExamsThunk());
+          dispatch(getAssignExamsThunk());
           alert("Sınav ataması başarıyla silindi!");
           setSelectedIds((prev) => prev.filter((id) => id !== examId));
         })
@@ -104,7 +107,7 @@ export default function AssignTeoExams() {
         selectedIds.map((id) => dispatch(deleteAssignExamThunk(id)).unwrap())
       )
         .then(() => {
-          dispatch(getAssignTeoExamsThunk());
+          dispatch(getassignExamsThunk());
           alert("Seçilen sınavlar başarıyla silindi.");
           setSelectedIds([]);
         })
@@ -185,43 +188,35 @@ export default function AssignTeoExams() {
         </div>
 
         {/* Arama ve Toplu Seçim Alanı */}
-        {/* Arama ve Toplu Seçim Alanı */}
-        <div className="mb-3 d-flex justify-content-between align-items-center flex-wrap">
+        {/* Arama ve Butonlar Yan Yana */}
+        <div
+          className="d-flex flex-wrap align-items-center justify-content-between mb-3"
+          style={{ gap: "0.75rem" }}
+        >
           <input
             type="text"
             placeholder="Sınav adıyla ara..."
             className="form-control"
-            style={{
-              maxWidth: "280px",
-              marginBottom: isMobile ? "0.75rem" : "0.5rem",
-            }}
+            style={{ maxWidth: "280px", flexGrow: 1, minWidth: "200px" }}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
 
-          {/* Tablet ve üstü: buton sağda */}
-          {!isMobile && (
-            <div>
-              <button
-                className="btn btn-danger btn-sm ms-3"
-                onClick={handleBulkDelete}
-              >
-                Seçilenleri Sil
-              </button>
-            </div>
-          )}
+          {/* Butonlar Container */}
+          <div
+            className="d-flex flex-wrap"
+            style={{ gap: "0.5rem", flex: "0 1 auto" }}
+          >
+            <button
+              className="btn btn-danger btn-sm"
+              onClick={handleBulkDelete}
+              style={{ whiteSpace: "nowrap" }}
+            >
+              Seçilenleri Sil
+            </button>
 
-          {/* Mobil: buton altta ve tam genişlik */}
-          {isMobile && (
-            <div style={{ width: "100%" }}>
-              <button
-                className="btn btn-danger btn-sm"
-                onClick={handleBulkDelete}
-              >
-                Seçilenleri Sil
-              </button>
-            </div>
-          )}
+            <ExportToExcel />
+          </div>
         </div>
         {/* Tablo */}
         <div
@@ -274,7 +269,6 @@ export default function AssignTeoExams() {
                   {isMobile ? (
                     <>
                       <th style={{ padding: "6px 8px" }}>Sınav Adı</th>
-                      <th style={{ padding: "6px 8px" }}>Başlangıç</th>
                       <th style={{ padding: "6px 8px" }}>Süre</th>
                       <th style={{ padding: "6px 8px" }}>İşlemler</th>
                     </>
@@ -371,9 +365,7 @@ export default function AssignTeoExams() {
                         <td style={{ textAlign: "center", padding: "6px 8px" }}>
                           {exam.name || "-"}
                         </td>
-                        <td style={{ textAlign: "center", padding: "6px 8px" }}>
-                          {exam.start_date || "-"}
-                        </td>
+                     
                         <td style={{ textAlign: "center", padding: "6px 8px" }}>
                           {exam.sure ?? "-"}
                         </td>

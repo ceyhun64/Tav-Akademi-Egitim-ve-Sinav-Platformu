@@ -1,7 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
   getCompletedEducationSetsThunk,
-  createCertificateThunk,
   getCertificatesThunk,
   getCourseNosThunk,
   getCourseTypesThunk,
@@ -15,13 +14,10 @@ import {
   deleteCourseTypeThunk,
   deleteEducatorThunk,
   deleteRequesterThunk,
-  combineCertificatesThunk,
 } from "../thunks/certificateThunk";
 
 const initialState = {
   completedEducationSets: [],
-  combineCertificates: [],
-  certificates: [],
   educators: [],
   courseNos: [],
   courseTypes: [],
@@ -55,20 +51,7 @@ const certificateSlice = createSlice({
       })
       .addCase(getCompletedEducationSetsThunk.rejected, setError)
 
-      .addCase(createCertificateThunk.pending, setLoading)
-      .addCase(createCertificateThunk.fulfilled, (state, action) => {
-        state.loading = false;
-        state.completedEducationSets = action.payload;
-      })
-      .addCase(createCertificateThunk.rejected, setError)
-
-      // Combine Certificates
-      .addCase(combineCertificatesThunk.pending, setLoading)
-      .addCase(combineCertificatesThunk.fulfilled, (state, action) => {
-        state.loading = false;
-        state.combineCertificates = action.payload; // artık string mesaj var
-      })
-      .addCase(combineCertificatesThunk.rejected, setError)
+   
 
       // Certificates
       .addCase(getCertificatesThunk.pending, setLoading)

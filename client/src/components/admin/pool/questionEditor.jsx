@@ -1,42 +1,47 @@
 // src/components/QuestionEditor.jsx
 import React from "react";
-import { Editor } from "@tinymce/tinymce-react";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
 export default function QuestionEditor({ value, onChange }) {
   return (
-    <Editor
-      apiKey="xn50ad2ygs7eafud4euo8ttbi8vqu3o0we4ombgrh60c3yqx"
-      value={value} /* dışarıdan gelen HTML içeriğini buraya koy */
-      init={{
-        height: 300,
-        menubar: false,
-        plugins: [
-          "advlist",
-          "autolink",
-          "lists",
+    <CKEditor
+      editor={ClassicEditor}
+      data={value}
+      config={{
+        toolbar: [
+          "undo",
+          "redo",
+          "|",
+          "heading",
+          "|",
+          "bold",
+          "italic",
+          "underline",
+          "strikethrough",
+          "removeFormat",
+          "|",
+          "fontColor",
+          "fontBackgroundColor",
+          "|",
           "link",
-          "image",
-          "charmap",
-          "preview",
-          "anchor",
-          "searchreplace",
-          "visualblocks",
+          "blockQuote",
+          "|",
+          "numberedList",
+          "bulletedList",
+          "|",
+          "alignment",
+          "|",
+          "codeBlock",
           "code",
+          "|",
           "fullscreen",
-          "insertdatetime",
-          "media",
-          "table",
-          "help",
-          "wordcount",
         ],
-        toolbar:
-          "undo redo | formatselect | bold italic underline | " +
-          "forecolor backcolor | " +
-          "alignleft aligncenter alignright alignjustify | " +
-          "bullist numlist | removeformat | help",
+        // CKEditor Classic build'ın height ayarı için css kullanılır
       }}
-      onEditorChange={(content, editor) => {
-        onChange(content); /* her değişmede CreatePoolImg’e bildir */
+      onChange={(event, editor) => {
+        const data = editor.getData();
+        onChange(data);
       }}
     />
   );

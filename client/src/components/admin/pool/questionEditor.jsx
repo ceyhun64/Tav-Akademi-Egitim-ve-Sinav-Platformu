@@ -1,47 +1,42 @@
 // src/components/QuestionEditor.jsx
 import React from "react";
-import { CKEditor } from "@ckeditor/ckeditor5-react";
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { Editor } from "@tinymce/tinymce-react";
 
 export default function QuestionEditor({ value, onChange }) {
   return (
-    <CKEditor
-      editor={ClassicEditor}
-      data={value}
-      config={{
-        toolbar: [
-          "undo",
-          "redo",
-          "|",
-          "heading",
-          "|",
-          "bold",
-          "italic",
-          "underline",
-          "strikethrough",
-          "removeFormat",
-          "|",
-          "fontColor",
-          "fontBackgroundColor",
-          "|",
+    <Editor
+      apiKey="9hajysd1lxduo622xk9stunofpbko3eftnwayii3bhf9wwbw"
+      value={value} /* dışarıdan gelen HTML içeriğini buraya koy */
+      init={{
+        height: 300,
+        menubar: false,
+        plugins: [
+          "advlist",
+          "autolink",
+          "lists",
           "link",
-          "blockQuote",
-          "|",
-          "numberedList",
-          "bulletedList",
-          "|",
-          "alignment",
-          "|",
-          "codeBlock",
+          "image",
+          "charmap",
+          "preview",
+          "anchor",
+          "searchreplace",
+          "visualblocks",
           "code",
-          "|",
           "fullscreen",
+          "insertdatetime",
+          "media",
+          "table",
+          "help",
+          "wordcount",
         ],
-        // CKEditor Classic build'ın height ayarı için css kullanılır
+        toolbar:
+          "undo redo | formatselect | bold italic underline | " +
+          "forecolor backcolor | " +
+          "alignleft aligncenter alignright alignjustify | " +
+          "bullist numlist | removeformat | help",
       }}
-      onChange={(event, editor) => {
-        const data = editor.getData();
-        onChange(data);
+      onEditorChange={(content, editor) => {
+        onChange(content); /* her değişmede CreatePoolImg’e bildir */
       }}
     />
   );

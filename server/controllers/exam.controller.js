@@ -130,7 +130,6 @@ exports.create_img_exam = async (req, res) => {
       end_date,
       start_time,
       end_time,
-      sure,
       attemp_limit,
       passing_score,
       mail,
@@ -144,6 +143,11 @@ exports.create_img_exam = async (req, res) => {
       toplam_soru,
       category_percentages, // { "1": 20, "2": 30, ... }
     } = req.body;
+    
+    const sure =
+      req.body.sure === "" || req.body.sure == null
+        ? 0
+        : parseInt(req.body.sure);
 
     const booklet = await Booklet.findOne({ where: { id: bookletId } });
 
@@ -651,7 +655,7 @@ exports.get_user_img_exams = async (req, res, next) => {
         },
       },
       attributes: {
-        exclude: ["timed",  "bookletId"],
+        exclude: ["timed", "bookletId"],
       },
     });
 
@@ -691,7 +695,7 @@ exports.get_user_unified_exams = async (req, res, next) => {
         },
       },
       attributes: {
-        exclude: ["timed",  "bookletId"],
+        exclude: ["timed", "bookletId"],
       },
     });
 

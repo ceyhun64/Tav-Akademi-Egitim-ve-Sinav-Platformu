@@ -525,8 +525,7 @@ export default function CreatePoolImg() {
                   userSelect: "none",
                 }}
               >
-                ⚠️ Lütfen efekt vermeden önce yasaklı maddenin yerini ayarlamayı
-                ve polygonu çizmeyi unutmayınız !
+                ⚠️ X-RAY görseli ve tehlikeli madde seçildiğinde resmin aşağısındaki resimde polygon belirleyiniz !
               </div>
               <label
                 style={{

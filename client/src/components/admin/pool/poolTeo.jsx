@@ -396,7 +396,7 @@ export default function PoolTeo() {
               }}
             >
               {/* BulkPoolTeo bileşenini burada render edin */}
-              <ExportToExcel />
+              <ExportToExcel bookletId={selectedBooklet} />
             </div>
           </div>
         </div>

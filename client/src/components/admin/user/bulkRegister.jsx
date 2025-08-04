@@ -1,21 +1,19 @@
-import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useState, useRef } from "react";
+import { useDispatch } from "react-redux";
 import {
   bulkRegisterThunk,
   uploadUserImagesThunk,
 } from "../../../features/thunks/authThunk";
 
-export default function BulkRegister() {
+export default function BulkRegister({ isMobile }) {
   const dispatch = useDispatch();
   const [excelFile, setExcelFile] = useState(null);
   const [imageFiles, setImageFiles] = useState([]);
   const [loadingExcel, setLoadingExcel] = useState(false);
   const [loadingImages, setLoadingImages] = useState(false);
 
-  const result = useSelector((state) => state.auth.bulkRegisterResult);
-  const imageUploadResult = useSelector(
-    (state) => state.auth.imageUploadResult
-  );
+  const excelInputRef = useRef();
+  const imageInputRef = useRef();
 
   const handleExcelChange = (e) => {
     setExcelFile(e.target.files[0]);
@@ -25,25 +23,33 @@ export default function BulkRegister() {
     setImageFiles(e.target.files);
   };
 
-  const handleExcelSubmit = async (e) => {
-    e.preventDefault();
-    if (!excelFile) return;
+  const handleExcelSubmit = async () => {
+    if (!excelFile) {
+      window.alert("Lütfen önce bir Excel dosyası seçin.");
+      return;
+    }
     const formData = new FormData();
     formData.append("file", excelFile);
 
     setLoadingExcel(true);
     try {
-      await dispatch(bulkRegisterThunk(formData)).unwrap();
+      const response = await dispatch(bulkRegisterThunk(formData)).unwrap();
+      window.alert(
+        `Excel Yükleme Sonucu:\n${JSON.stringify(response, null, 2)}`
+      );
     } catch (err) {
+      window.alert(`Excel yükleme hatası: ${err.message || err}`);
       console.error(err);
     } finally {
       setLoadingExcel(false);
     }
   };
 
-  const handleImageSubmit = async (e) => {
-    e.preventDefault();
-    if (!imageFiles.length) return;
+  const handleImageSubmit = async () => {
+    if (!imageFiles.length) {
+      window.alert("Lütfen önce resim dosyaları seçin.");
+      return;
+    }
 
     const formData = new FormData();
     for (let i = 0; i < imageFiles.length; i++) {
@@ -52,8 +58,12 @@ export default function BulkRegister() {
 
     setLoadingImages(true);
     try {
-      await dispatch(uploadUserImagesThunk(formData)).unwrap();
+      const response = await dispatch(uploadUserImagesThunk(formData)).unwrap();
+      window.alert(
+        `Resim Yükleme Sonucu:\n${JSON.stringify(response, null, 2)}`
+      );
     } catch (err) {
+      window.alert(`Resim yükleme hatası: ${err.message || err}`);
       console.error(err);
     } finally {
       setLoadingImages(false);
@@ -61,47 +71,87 @@ export default function BulkRegister() {
   };
 
   return (
-    <div className="d-flex gap-4 p-2 fs-3">
-      {/* Excel Yükleme */}
-      <form onSubmit={handleExcelSubmit}>
-        <label
-          htmlFor="excelUpload"
-          className="text-success"
-          title="Excel Yükle"
-          style={{ cursor: "pointer" }}
-        >
-          <i className="bi bi-file-earmark-excel-fill"></i>
-        </label>
-        <input
-          id="excelUpload"
-          type="file"
-          accept=".xlsx, .xls"
-          onChange={handleExcelChange}
-          disabled={loadingExcel}
-          hidden
-        />
-      </form>
+    <div
+      style={{
+        display: "flex",
+        flexWrap: isMobile ? "wrap" : "nowrap",
+        gap: "12px",
+        alignItems: "center",
+        overflowX: isMobile ? "visible" : "auto",
+      }}
+    >
+      {/* Gizli Excel input */}
+      <input
+        ref={excelInputRef}
+        type="file"
+        accept=".xlsx, .xls"
+        onChange={handleExcelChange}
+        disabled={loadingExcel}
+        style={{ display: "none" }}
+      />
+      <button
+        style={{
+          width: "100px",
+          fontSize: "12px",
+          height: "40px",
+          flexShrink: 0,
+        }}
+        className="btn btn-outline-success"
+        onClick={() => excelInputRef.current.click()}
+        disabled={loadingExcel}
+      >
+        Excel Seç
+      </button>
+      <button
+        style={{
+          width: "100px",
+          fontSize: "12px",
+          height: "40px",
+          flexShrink: 0,
+        }}
+        className="btn btn-success"
+        onClick={handleExcelSubmit}
+        disabled={loadingExcel}
+      >
+        {loadingExcel ? "Yükleniyor..." : "Yükle"}
+      </button>
 
-      {/* Resim Yükleme */}
-      <form onSubmit={handleImageSubmit}>
-        <label
-          htmlFor="imageUpload"
-          className="text-primary"
-          title="Resim Yükle"
-          style={{ cursor: "pointer" }}
-        >
-          <i className="bi bi-file-earmark-image-fill"></i>
-        </label>
-        <input
-          id="imageUpload"
-          type="file"
-          multiple
-          accept=".jpg,.jpeg,.png"
-          onChange={handleImageChange}
-          disabled={loadingImages}
-          hidden
-        />
-      </form>
+      {/* Gizli Resim input */}
+      <input
+        ref={imageInputRef}
+        type="file"
+        multiple
+        accept=".jpg,.jpeg,.png"
+        onChange={handleImageChange}
+        disabled={loadingImages}
+        style={{ display: "none" }}
+      />
+      <button
+        style={{
+          width: "100px",
+          fontSize: "12px",
+          height: "40px",
+          flexShrink: 0,
+        }}
+        className="btn btn-outline-success"
+        onClick={() => imageInputRef.current.click()}
+        disabled={loadingImages}
+      >
+        Resim Seç
+      </button>
+      <button
+        style={{
+          width: "100px",
+          fontSize: "12px",
+          height: "40px",
+          flexShrink: 0,
+        }}
+        className="btn btn-success"
+        onClick={handleImageSubmit}
+        disabled={loadingImages}
+      >
+        {loadingImages ? "Yükleniyor..." : "Yükle"}
+      </button>
     </div>
   );
 }

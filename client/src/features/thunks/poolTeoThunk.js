@@ -97,9 +97,10 @@ export const getPoolTeosByBookletIdThunk = createAsyncThunk(
 
 export const exportPoolTeoToExcelThunk = createAsyncThunk(
   "poolTeo/exportPoolTeoToExcel",
-  async () => {
+  async (bookletId) => {
     try {
-      const response = await exportPoolTeoToExcel();
+      console.log("bookletId", bookletId);
+      const response = await exportPoolTeoToExcel(bookletId);
       return response.data;
     } catch (error) {
       throw error;

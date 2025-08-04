@@ -1582,11 +1582,11 @@ export default function Register() {
                   minWidth: "140px",
                 }}
               >
-                <BulkRegister />
+                <BulkRegister isMobile={isMobile} />
               </div>
               <div
                 style={{
-                  marginTop: isMobile ? "10px" : "15px",
+                  marginLeft: isMobile || isTablet ? "0" : "20px",
                   flex: "1 1 auto",
                   minWidth: "140px",
                 }}

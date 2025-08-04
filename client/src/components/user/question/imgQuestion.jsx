@@ -80,6 +80,10 @@ export default function ImgQuestion() {
   const { imgQuestions, duration, name } = useSelector(
     (state) => state.question
   );
+  const [remainingTimes, setRemainingTimes] = useState(
+    () => imgQuestions.map(() => duration) // Her soru için başlangıç süresi
+  );
+
   const userId = localStorage.getItem("userId");
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [selectedCoordinates, setSelectedCoordinates] = useState({});
@@ -539,29 +543,29 @@ export default function ImgQuestion() {
     return <div>Yükleniyor veya soru bulunamadı...</div>;
   }
 
-  const handleNext = () => {
-    const currentQuestionId = q.id;
+const handleNext = () => {
+  const currentQuestionId = q.id;
 
-    // Eğer kullanıcı cevap vermediyse null olarak işaretle
-    if (!selectedAnswers.hasOwnProperty(currentQuestionId)) {
-      setSelectedAnswers((prev) => ({
-        ...prev,
-        [currentQuestionId]: null,
-      }));
-    }
+  if (!selectedAnswers.hasOwnProperty(currentQuestionId)) {
+    setSelectedAnswers((prev) => ({
+      ...prev,
+      [currentQuestionId]: null,
+    }));
+  }
 
-    if (!selectedCoordinates.hasOwnProperty(currentQuestionId)) {
-      setSelectedCoordinates((prev) => ({
-        ...prev,
-        [currentQuestionId]: null,
-      }));
-    }
+  if (!selectedCoordinates.hasOwnProperty(currentQuestionId)) {
+    setSelectedCoordinates((prev) => ({
+      ...prev,
+      [currentQuestionId]: null,
+    }));
+  }
 
-    if (currentIndex < imgQuestions.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-      setActiveFilter("none");
-    }
-  };
+  if (currentIndex < imgQuestions.length - 1) {
+    setCurrentIndex((prevIndex) => prevIndex + 1);
+    setActiveFilter("none");
+  }
+};
+
 
   const handleAnswerChange = (questionId, answer) => {
     setSelectedAnswers((prev) => ({ ...prev, [Number(questionId)]: answer }));
@@ -667,6 +671,11 @@ export default function ImgQuestion() {
       return updated;
     });
   };
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex((prevIndex) => prevIndex - 1);
+    }
+  };
 
   return (
     <div style={containerStyle} ref={examContainerRef}>
@@ -676,7 +685,7 @@ export default function ImgQuestion() {
         <div className="d-lg-none bg-light shadow-sm sticky-top z-3">
           <div className="d-flex justify-content-center">
             <CountdownTimer
-              duration={duration}
+              duration={remainingTimes[currentIndex]}
               onTimeUp={() => {
                 if (currentIndex < imgQuestions.length - 1) {
                   handleNext();
@@ -685,7 +694,13 @@ export default function ImgQuestion() {
                   setExamEnded(true); // Optio
                 }
               }}
-              resetKey={currentIndex}
+              onTick={(timeLeft) => {
+                setRemainingTimes((prev) => {
+                  const copy = [...prev];
+                  copy[currentIndex] = timeLeft;
+                  return copy;
+                });
+              }}
             />
           </div>
         </div>
@@ -1077,7 +1092,13 @@ export default function ImgQuestion() {
               >
                 <div className="d-flex gap-2">
                   {/* Önceki butonu kaldırıldı */}
-
+                  <button
+                    className="btn btn-outline-primary"
+                    onClick={handlePrev}
+                    disabled={currentIndex === imgQuestions.length - 1}
+                  >
+                    Önceki
+                  </button>
                   {/* Sonraki butonu aktif */}
                   <button
                     className="btn btn-outline-primary"
@@ -1085,7 +1106,6 @@ export default function ImgQuestion() {
                     disabled={currentIndex === imgQuestions.length - 1}
                   >
                     Sonraki
-                    <i className="bi bi-arrow-right-circle ms-1" />
                   </button>
                 </div>
 

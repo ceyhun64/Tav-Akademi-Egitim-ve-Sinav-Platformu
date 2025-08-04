@@ -55,11 +55,11 @@ export const getPoolImgsByBookletId = async (bookletId) => {
   }
 };
 
-export const exportPoolImgToExcel = async () => {
+export const exportPoolImgToExcel = async (bookletId) => {
   try {
     const res = await axiosInstance.post(
       "/poolImg/excel",
-      {},
+      {bookletId},
       {
         responseType: "blob", // Excel dosyası olarak dönecek
       }

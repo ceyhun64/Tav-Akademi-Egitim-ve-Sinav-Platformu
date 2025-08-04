@@ -64,11 +64,11 @@ export const getPoolTeosByBookletId = async (bookletId) => {
   }
 };
 
-export const exportPoolTeoToExcel = async () => {
+export const exportPoolTeoToExcel = async (bookletId) => {
   try {
     const res = await axiosInstance.post(
       "/poolTeo/excel",
-      {},
+      { bookletId },
       {
         responseType: "blob", // Excel dosyası olarak dönecek
       }

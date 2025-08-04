@@ -1,6 +1,7 @@
 const { PoolImg, Booklet } = require("../models/index");
 const logActivity = require("../helpers/logActivity");
 const XLSX = require("xlsx");
+const { where } = require("sequelize");
 
 exports.getPoolImgs = async (req, res) => {
   try {
@@ -154,7 +155,11 @@ exports.getPoolImgsByBookletId = async (req, res) => {
 
 exports.exportPoolImgsToExcel = async (req, res) => {
   try {
-    const poolImgs = await PoolImg.findAll({ raw: true });
+    const { bookletId } = req.body;
+    const poolImgs = await PoolImg.findAll({
+      where: { bookletId },
+      raw: true,
+    });
 
     // Eğer "image" path'ini istemiyorsan, aşağıda silebilirsin
     const cleanedData = poolImgs.map(({ image, ...rest }) => rest);

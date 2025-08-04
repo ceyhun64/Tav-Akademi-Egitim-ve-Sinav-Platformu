@@ -76,7 +76,7 @@ export default function PoolImg() {
   const handleDelete = async (id) => {
     if (!window.confirm("Bu soruyu silmek istediğinize emin misiniz?")) return;
 
- await dispatch(deletePoolImgThunk(id));
+    await dispatch(deletePoolImgThunk(id));
 
     selectedBooklet
       ? dispatch(getPoolImgsByBookletIdThunk(selectedBooklet))
@@ -360,7 +360,7 @@ export default function PoolImg() {
             </div>
             <div>
               {/* BulkPoolTeo bileşenini burada render edin */}
-              <ExportToExcel />
+              <ExportToExcel bookletId={selectedBooklet} />
             </div>
           </div>
         </div>

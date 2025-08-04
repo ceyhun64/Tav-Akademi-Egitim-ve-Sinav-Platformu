@@ -80,9 +80,9 @@ export const getPoolImgsByBookletIdThunk = createAsyncThunk(
 
 export const exportPoolImgToExcelThunk = createAsyncThunk(
   "poolImg/exportPoolImgToExcel",
-  async () => {
+  async (bookletId) => {
     try {
-      const response = await exportPoolImgToExcel();
+      const response = await exportPoolImgToExcel(bookletId);
       return response.data;
     } catch (error) {
       throw error;

@@ -5,6 +5,12 @@ const { uploadSingle, uploadMultiple } = require("../middlewares/upload");
 const authorize = require("../middlewares/authorize");
 const verifyToken = require("../middlewares/verifyToken");
 
+router.post(
+  "/upload-user-images",
+  uploadMultiple,
+  authController.uploadUserImages
+);
+
 router.post("/setup-2fa", authController.setup2FA);
 
 router.post("/verify-2fa", authController.verify2FA);

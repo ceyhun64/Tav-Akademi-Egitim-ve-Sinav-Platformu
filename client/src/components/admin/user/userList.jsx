@@ -142,7 +142,7 @@ export default function UserList({
         style={{
           overflowX: "auto",
           fontSize: isMobile ? "0.6rem" : isTablet ? "0.7rem" : "0.75rem",
-          maxWidth: "1100px",
+          maxWidth: "1180px",
         }}
       >
         <table

@@ -53,11 +53,7 @@ export const bulkRegister = async (formData) => {
 
 export const uploadUserImages = async (formData) => {
   try {
-    const res = await axiosInstance.post("/auth/upload-user-images", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    const res = await axiosInstance.post("/auth/upload-user-images", formData);
     return res;
   } catch (error) {
     console.error("API'den veri çekerken hata oluştu:", error);

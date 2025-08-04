@@ -2,11 +2,11 @@ import React from "react";
 import { useDispatch } from "react-redux";
 import { exportPoolTeoToExcelThunk } from "../../../features/thunks/poolTeoThunk";
 
-export default function ExportToExcel() {
+export default function ExportToExcel({ bookletId }) {
   const dispatch = useDispatch();
 
   const handleExport = () => {
-    dispatch(exportPoolTeoToExcelThunk());
+    dispatch(exportPoolTeoToExcelThunk(bookletId));
     window.alert("Sorular excel'e aktarılsın mı?");
   };
 

@@ -14,7 +14,7 @@ export default function ExportToExcel() {
     <button
       style={{ width: "100px", fontSize: "12px", height: "40px" }}
       onClick={handleExport}
-className="btn btn-outline-primary"
+      className="btn btn-outline-success"
     >
       Excel'e Aktar
     </button>

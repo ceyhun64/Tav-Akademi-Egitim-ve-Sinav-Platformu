@@ -2,11 +2,11 @@ import React from "react";
 import { useDispatch } from "react-redux";
 import { exportPoolImgToExcelThunk } from "../../../features/thunks/poolImgThunk";
 
-export default function ExportToExcel() {
+export default function ExportToExcel({bookletId}) {
   const dispatch = useDispatch();
 
   const handleExport = () => {
-    dispatch(exportPoolImgToExcelThunk()).unwrap();
+    dispatch(exportPoolImgToExcelThunk(bookletId)).unwrap();
     window.alert("Sorular excel'e aktarılsın mı?");
   };
 

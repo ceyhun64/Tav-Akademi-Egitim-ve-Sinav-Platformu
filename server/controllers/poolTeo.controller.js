@@ -2,6 +2,8 @@ const { PoolTeo, Booklet } = require("../models/index");
 const logActivity = require("../helpers/logActivity");
 const axios = require("axios");
 const XLSX = require("xlsx");
+const { where } = require("sequelize");
+
 exports.getPoolTeos = async (req, res) => {
   try {
     const poolTeos = await PoolTeo.findAll();
@@ -206,7 +208,12 @@ exports.getPoolTeosByBookletId = async (req, res) => {
 
 exports.exportPoolTeosToExcel = async (req, res) => {
   try {
-    const poolTeos = await PoolTeo.findAll({ raw: true });
+    const bookletId = req.body.bookletId;
+    console.log("bookletId:", bookletId);
+    const poolTeos = await PoolTeo.findAll({
+      where: { bookletId },
+      raw: true,
+    });
 
     // Eğer istersen veriyi sadeleştirebilir veya direkt gönderebilirsin
     // Burada direkt tüm alanları gönderiyoruz

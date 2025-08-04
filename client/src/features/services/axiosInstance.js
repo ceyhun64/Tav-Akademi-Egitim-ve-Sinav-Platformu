@@ -34,8 +34,8 @@ axiosInstance.interceptors.response.use(
       alert("Oturumunuz sona erdi. Lütfen tekrar giriş yapınız.");
       window.location.href = "/login/user";
     } else if (error.response && error.response.status === 403) {
-      // 403 geldiğinde event yayınla
-      emitter.emit("showUnauthorizedModal");
+      // 403 durumunda yetkisiz sayfasına yönlendir
+      window.location.href = "/unauthorized";
     }
     return Promise.reject(error);
   }

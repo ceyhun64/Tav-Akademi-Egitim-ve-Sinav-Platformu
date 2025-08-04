@@ -15,7 +15,6 @@ export default function AssignEducationSets() {
   const navigate = useNavigate();
   // Using assignEducationSets from your Redux state
   const { assignEducationSets } = useSelector((state) => state.report);
-  console.log("assignedusets:", assignEducationSets);
 
   // State for mobile responsiveness
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);

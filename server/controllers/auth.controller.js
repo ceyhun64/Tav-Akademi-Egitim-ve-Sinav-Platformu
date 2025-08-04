@@ -223,7 +223,6 @@ exports.uploadUsersFromExcel = async (req, res) => {
           roleId,
           image: imageUrl, // URL olarak kaydet
           durum: 1,
-          yetki: "kullanici",
         });
 
         results.created.push({

@@ -59,7 +59,15 @@ export default function CreateGallery() {
     formData.append("file", singleFile);
     formData.append("imageCatId", selectedCategoryId);
     formData.append("imageSubCatId", selectedSubCategoryId);
-    dispatch(uploadSingleImageThunk(formData));
+
+    dispatch(uploadSingleImageThunk(formData))
+      .unwrap()
+      .then(() => {
+        alert(" Tekli dosya yükleme tamamlandı.");
+      })
+      .catch(() => {
+        alert(" Dosya yüklenirken bir hata oluştu.");
+      });
   };
 
   const handleMultipleUpload = (e) => {
@@ -72,11 +80,20 @@ export default function CreateGallery() {
       alert("Tüm alanları doldurun ve en az bir dosya seçin.");
       return;
     }
+
     const formData = new FormData();
     multipleFiles.forEach((file) => formData.append("files", file));
     formData.append("imageCatId", selectedCategoryId);
     formData.append("imageSubCatId", selectedSubCategoryId);
-    dispatch(uploadMultipleImagesThunk(formData));
+
+    dispatch(uploadMultipleImagesThunk(formData))
+      .unwrap()
+      .then(() => {
+        alert(" Çoklu dosya yükleme tamamlandı.");
+      })
+      .catch(() => {
+        alert(" Dosyalar yüklenirken bir hata oluştu.");
+      });
   };
 
   return (

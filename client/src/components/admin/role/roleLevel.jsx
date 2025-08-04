@@ -30,6 +30,10 @@ export default function RoleLevel() {
     dispatch(getPermissionsThunk());
   }, [dispatch]);
 
+  console.log("roleLevels:", roleLevels);
+  console.log("permissions:", permissions);
+  console.log("roleLevelPerms:", roleLevelPerms);
+
   useEffect(() => {
     if (selectedRoleLevelId) {
       dispatch(getRoleLevelPermsThunk(selectedRoleLevelId));
@@ -194,17 +198,21 @@ export default function RoleLevel() {
                     htmlFor="roleLevelLevel"
                     className="form-label text-dark fw-semibold"
                   >
-                    Level (Sayı)
+                    Derece (Sayı)
                   </label>
                   <input
                     id="roleLevelLevel"
                     type="number"
                     className="form-control rounded-3"
                     placeholder="Level"
-                    value={level}
+                    value={1}
                     onChange={(e) => setLevel(Number(e.target.value))}
                     required
                   />
+                  <div className="form-text text-muted mt-1">
+                    En düşük derece sayısına sahip olanlar, en yüksek yetki ve
+                    role sahiptir.
+                  </div>
                 </div>
 
                 <div className="d-flex gap-2">
@@ -258,6 +266,7 @@ export default function RoleLevel() {
                       className="list-group-item d-flex justify-content-between align-items-center"
                     >
                       <div>
+                        <strong>{role.level}</strong>{" "}
                         <strong>{role.name}</strong>{" "}
                       </div>
                       <div>

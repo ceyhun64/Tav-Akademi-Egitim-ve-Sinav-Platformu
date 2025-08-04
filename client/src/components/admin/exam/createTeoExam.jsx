@@ -15,7 +15,8 @@ export default function CreateTeoExam() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { users, isLoading, error } = useSelector((state) => state.user);
+  const { users, error } = useSelector((state) => state.user);
+  const { isLoading } = useSelector((state) => state.exam);
   const { booklets } = useSelector((state) => state.booklet);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -336,7 +337,7 @@ export default function CreateTeoExam() {
                     backgroundColor: "#fff",
                   }}
                 >
-                  <option value="0">Süresiz</option>
+                  <option value="999999">Süresiz</option>
 
                   {Array.from({ length: 11 }, (_, i) => 5 + i).map((value) => (
                     <option key={value} value={value}>
@@ -399,7 +400,7 @@ export default function CreateTeoExam() {
                     backgroundColor: "#fff",
                   }}
                 >
-                  <option value="0">Süresiz</option>
+                  <option value="999999">Süresiz</option>
                   {Array.from({ length: 10 }, (_, i) => i + 1)
                     .concat(Array.from({ length: 9 }, (_, i) => 20 + i * 10))
                     .map((value) => (
@@ -651,15 +652,18 @@ export default function CreateTeoExam() {
           <button
             type="submit"
             className="btn btn-primary mt-3"
+            disabled={isSubmitting || isLoading}
             style={{
               fontSize: "16px",
-              gridColumn: isMobile ? undefined : "1 / -1",
-              justifySelf: "center", // Ortalamak için start yerine center
-              width: isMobile ? "50%" : "150px", // Masaüstünde sabit, küçük genişlik
+              gridColumn: isMobile ? undefined : "1 / -1", // Grid varsa ortalamak için
+              justifySelf: "center", // Grid ile ortalama
+              alignSelf: "center",
+              width: isMobile ? "50%" : "150px",
+              opacity: isSubmitting || isLoading ? 0.7 : 1,
+              pointerEvents: isSubmitting || isLoading ? "none" : "auto", // tıklamayı tamamen engelle
             }}
           >
-            {" "}
-            Sınav Oluştur
+            {isSubmitting || isLoading ? "Oluşturuluyor..." : "Sınav Oluştur"}
           </button>
         </form>
       </div>

@@ -40,7 +40,7 @@ export default function PracticeExam() {
     <div className="practice-exams-container">
       <h2 className="practice-exams-header">
         <i className="bi bi-image me-2" style={{ color: "#001b66" }}></i>
-        Pratik Sınav
+        Pratik Sınavlar
       </h2>
 
       <div className="row g-4">
@@ -59,11 +59,11 @@ export default function PracticeExam() {
                         style={{ color: "#0056cc" }}
                       ></i>
                       <strong>Sınav Süresi:</strong>{" "}
-                      {exam?.duration === 0
+                      {exam?.duration === 0 || exam?.duration == null
                         ? "Süresiz"
-                        : exam?.duration ?? "Belirtilmemiş"}{" "}
-                      dakika
+                        : `${exam.duration} dakika`}
                     </li>
+
                     <li>
                       <i
                         className="bi bi-person"
@@ -73,15 +73,6 @@ export default function PracticeExam() {
                       {exam?.question_count ?? "Belirtilmemiş"}
                     </li>
                   </ul>
-
-                  <li>
-                    <i
-                      className="bi bi-person"
-                      style={{ color: "#0056cc" }}
-                    ></i>
-                    <strong>Soru Sayısı:</strong>{" "}
-                    {exam?.question_count ?? "Belirtilmemiş"}
-                  </li>
                 </ul>
 
                 <button

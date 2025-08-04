@@ -4,8 +4,8 @@ import "react-circular-progressbar/dist/styles.css";
 
 const blinkStyle = `
 @keyframes blink {
-  0%, 100% { background-color: #fee2e2; }
-  50% { background-color: #fecaca; }
+  0%, 100% { background-color: #fee2e2; }
+  50% { background-color: #fecaca; }
 }
 `;
 
@@ -15,14 +15,12 @@ export default function CircleCountdownTimer({
   resetKey,
   isPaused = false,
 }) {
-  // duration 0 ise süresiz, yani kalan süre sonsuz kabul ediliyor
-  const isTimeless = duration === 0;
-
-  // Başlangıçta duration veya sonsuz (süresiz) olarak ayarla
+  const isTimeless = duration === 999999;
   const [remainingTime, setRemainingTime] = useState(
     isTimeless ? null : duration
   );
   const intervalRef = useRef(null);
+  const onTimeUpCalled = useRef(false); // <--- Yeni Ref
 
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
 
@@ -34,26 +32,28 @@ export default function CircleCountdownTimer({
 
   useEffect(() => {
     setRemainingTime(isTimeless ? null : duration);
+    onTimeUpCalled.current = false; // <--- Yeni anahtar değiştiğinde sıfırla
   }, [duration, resetKey, isTimeless]);
 
   useEffect(() => {
     if (isTimeless) {
-      // Süresizse interval yok, fonksiyon çağrılmaz
       clearInterval(intervalRef.current);
       return;
-    }
+    } // Kontrol ekledik: Eğer süre bittiyse ve fonksiyon zaten çağrıldıysa tekrar çağırma
 
-    if (remainingTime <= 0) {
+    if (remainingTime <= 0 && !onTimeUpCalled.current) {
       clearInterval(intervalRef.current);
       onTimeUp?.();
+      onTimeUpCalled.current = true; // <--- Fonksiyonun çağrıldığını işaretle
       return;
     }
 
     if (isPaused) {
       clearInterval(intervalRef.current);
       return;
-    }
+    } // Interval zaten varsa temizle, yenisini kur
 
+    clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
       setRemainingTime((prev) => prev - 1);
     }, 1000);
@@ -63,7 +63,6 @@ export default function CircleCountdownTimer({
 
   const percentage = isTimeless ? 100 : (remainingTime / duration) * 100;
 
-  // Renk seçimi (süresiz için default renk)
   let color = "#3b82f6";
   if (!isTimeless) {
     if (remainingTime <= 10) color = "#ef4444";
@@ -71,8 +70,6 @@ export default function CircleCountdownTimer({
   }
 
   const isDanger = !isTimeless && remainingTime <= 10;
-
-  // Format zamanı MM:SS yapacak fonksiyon
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60)
       .toString()
@@ -81,48 +78,19 @@ export default function CircleCountdownTimer({
     return `${m}:${s}`;
   };
 
-  // Mobil görünümde metinsel sayaç için stiller ve renkler
-  const mobileStyles = {
-    fontSize: "0.9rem",
-    fontWeight: "600",
-    color: isDanger ? "#ffebee" : "#c5cae9",
-    background: isDanger
-      ? "linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)"
-      : "linear-gradient(135deg, #283593 0%, #3949ab 100%)",
-    borderRadius: "10px",
-    marginBottom: "0.5rem",
-    boxShadow: isDanger
-      ? "0 4px 10px rgba(211, 47, 47, 0.6)"
-      : "0 4px 10px rgba(40, 53, 147, 0.6)",
-    transition: "all 0.3s ease",
-    userSelect: "none",
-    textAlign: "center",
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    letterSpacing: "0.03em",
-    display: "inline-block",
-    minWidth: "160px",
-    padding: "0.4rem 0.6rem",
-    boxSizing: "border-box",
-    border: isDanger ? "1px solid #b71c1c" : "1px solid #1a237e",
-    animation: isDanger ? "blink 1s infinite" : "none",
-  };
-
-  // Masaüstü boyutları
   const size = isMobile ? 90 : 140;
   const padding = isMobile ? 8 : 12;
   const textSize = isMobile ? "16px" : "22px";
 
   return (
     <>
-      <style>{blinkStyle}</style>
-
+            <style>{blinkStyle}</style>     {" "}
       {isMobile ? (
-        // Mobilde metinsel gösterim
         <div style={mobileStyles} aria-live="polite" role="timer">
-          Kalan Süre: {isTimeless ? "Süresiz" : formatTime(remainingTime)}
+                    Kalan Süre:{" "}
+          {isTimeless ? "Süresiz" : formatTime(remainingTime)}       {" "}
         </div>
       ) : (
-        // Masaüstünde dairesel gösterim
         <div
           style={{
             width: size,
@@ -138,6 +106,7 @@ export default function CircleCountdownTimer({
             transition: "background-color 0.3s ease",
           }}
         >
+                   {" "}
           <CircularProgressbar
             value={percentage}
             text={isTimeless ? "Süresiz" : `${remainingTime}s`}
@@ -150,8 +119,10 @@ export default function CircleCountdownTimer({
               strokeLinecap: "round",
             })}
           />
+                 {" "}
         </div>
       )}
+         {" "}
     </>
   );
 }

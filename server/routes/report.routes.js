@@ -44,7 +44,6 @@ router.get(
 router.get(
   "/education-result-detail/:userId/:educationSetId",
   verifyToken,
-  authorize(8), // Yönetici veya ilgili kullanıcı yetkisi
   reportController.getUserEducationResultDetail
 );
 
@@ -54,21 +53,17 @@ router.get(
 router.get(
   "/question-category-result/:userId/:examId",
   verifyToken,
-  authorize(8),
   reportController.getQuestionCategoryResult
 );
 router.get(
   "/img-question-result/:userId/:examId",
   verifyToken,
-  authorize(8),
-  authorize(23), // Resim sınavı sonuçlarını görme yetkisi
   reportController.getImgQuestionResult
 );
 router.get(
   "/teo-question-result/:userId/:examId",
   verifyToken,
-  authorize(8),
-  authorize(22), // Teorik sınav sonuçlarını görme yetkisi
+
   reportController.getTeoQuestionResult
 );
 
@@ -76,21 +71,10 @@ router.get(
 router.get(
   "/education-set-result",
   verifyToken,
-  authorize(8), // Tüm eğitim seti sonuçlarını görme yetkisi
   reportController.getAllUserEducationSetsResult
 );
-router.get(
-  "/teo-result",
-  verifyToken,
-  authorize(8), // Tüm teorik sınav sonuçlarını görme yetkisi
-  reportController.getAllUserTeoResults
-);
-router.get(
-  "/img-result",
-  verifyToken,
-  authorize(8), // Tüm görsel sınav sonuçlarını görme yetkisi
-  reportController.getAllUserImgResults
-);
+router.get("/teo-result", verifyToken, reportController.getAllUserTeoResults);
+router.get("/img-result", verifyToken, reportController.getAllUserImgResults);
 
 router.get(
   "/user-teo-result",
@@ -110,13 +94,11 @@ router.get(
 router.delete(
   "/delete-assign-exam/:examId",
   verifyToken,
-  authorize(8), // Genellikle bu tür silmeler için Admin yetkisi gereklidir
   reportController.deleteAssignExam
 );
 router.delete(
   "/delete-assign-education-set/:educationSetId/:userId",
   verifyToken,
-  authorize(8), // Genellikle bu tür silmeler için Admin yetkisi gereklidir
   reportController.deleteAssignEducationSet
 );
 
@@ -124,15 +106,11 @@ router.delete(
 router.delete(
   "/delete-user-education-result",
   verifyToken,
-  authorize(8), // Admin yetkisi
-  authorize(34), // Eğitim seti sonuçlarını silme yetkisi
   reportController.deleteUserEducationResult
 );
 router.delete(
   "/delete-user-result",
   verifyToken,
-  authorize(8), // Admin yetkisi
-  authorize(32), // Sınav sonuçlarını silme yetkisi
   reportController.deleteUserExamResult
 );
 

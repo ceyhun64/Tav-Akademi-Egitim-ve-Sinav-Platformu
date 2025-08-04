@@ -615,8 +615,7 @@ export default function BothImgQuestion() {
         exit_time: exitTime,
       })
     );
-    console.log(examId);
-    console.log(userId);
+
     if (sonucGizle) {
       navigate("/user-panel"); // Eğer sonuç gizlenecekse ana panele dön
     } else {

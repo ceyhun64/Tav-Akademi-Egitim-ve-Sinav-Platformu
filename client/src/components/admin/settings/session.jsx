@@ -102,7 +102,7 @@ export default function Session() {
           style={{
             borderRadius: "16px",
             overflowY: "auto",
-            overflowX: isTablet ? "hidden" : "auto", // Tablet'te yatay kaydırmayı kaldır
+            overflowX: isTablet ? "hidden" : "auto",
             maxWidth: isMobile ? "700px" : isTablet ? "100%" : "1200px",
             maxHeight: isMobile ? "400px" : "800px",
             boxShadow: "0 4px 20px rgb(0 0 0 / 0.07)",
@@ -116,7 +116,7 @@ export default function Session() {
             style={{
               borderCollapse: "separate",
               borderSpacing: "0 8px",
-              minWidth: isMobile ? "350px" : isTablet ? "500px" : "1100px", // Tablet genişliği küçültüldü
+              minWidth: isMobile ? "350px" : isTablet ? "500px" : "1100px",
               userSelect: "none",
             }}
           >
@@ -131,30 +131,19 @@ export default function Session() {
                 style={{ fontWeight: "600", color: "#334155" }}
               >
                 <th style={{ width: "40px" }}>#</th>
-                <th>Session ID</th>
 
-                {isMobile && (
-                  <>
-                    <th>Ad</th>
-                    <th>Soyad</th>
-                  </>
-                )}
+                {/* Sadece masaüstü için Session ID */}
+                {!isMobile && !isTablet && <th>Session ID</th>}
 
-                {isTablet && (
-                  <>
-                    <th>Ad</th>
-                    <th>Soyad</th>
-                  </>
-                )}
+                <th>Ad</th>
+                <th>Soyad</th>
+                <th>Kullanıcı Adı</th>
+                <th>Lokasyon</th>
 
                 {!isMobile && !isTablet && (
                   <>
-                    <th>Ad</th>
-                    <th>Soyad</th>
                     <th>Kullanıcı ID</th>
-                    <th>Kullanıcı Adı</th>
                     <th>Email</th>
-                    <th>Lokasyon</th>
                     <th>Oturum Durumu</th>
                     <th>Oluşturulma Tarihi</th>
                     <th>Güncellenme Tarihi</th>
@@ -162,6 +151,7 @@ export default function Session() {
                 )}
               </tr>
             </thead>
+
             <tbody>
               {sessions && sessions.length > 0 ? (
                 sessions.map((session, index) => (
@@ -187,61 +177,52 @@ export default function Session() {
                     >
                       {index + 1}
                     </td>
+
+                    {/* Session ID sadece masaüstü */}
+                    {!isMobile && !isTablet && (
+                      <td
+                        className="text-center"
+                        style={{ verticalAlign: "middle" }}
+                      >
+                        {session.sessionId}
+                      </td>
+                    )}
+
+                    {/* Ortak alanlar */}
                     <td
                       className="text-center"
                       style={{ verticalAlign: "middle" }}
                     >
-                      {session.sessionId}
+                      {session.user?.ad || "-"}
+                    </td>
+                    <td
+                      className="text-center"
+                      style={{ verticalAlign: "middle" }}
+                    >
+                      {session.user?.soyad || "-"}
+                    </td>
+                    <td
+                      className="text-center"
+                      style={{ verticalAlign: "middle" }}
+                    >
+                      {session.user?.kullanici_adi || "-"}
+                    </td>
+                    <td
+                      className="text-center"
+                      style={{ verticalAlign: "middle" }}
+                    >
+                      {(() => {
+                        const locId = session.user?.lokasyonId;
+                        const institution = institutions.find(
+                          (inst) => inst.id === locId
+                        );
+                        return institution ? institution.name : "-";
+                      })()}
                     </td>
 
-                    {isMobile && (
-                      <>
-                        <td
-                          className="text-center"
-                          style={{ verticalAlign: "middle" }}
-                        >
-                          {session.user?.ad || "-"}
-                        </td>
-                        <td
-                          className="text-center"
-                          style={{ verticalAlign: "middle" }}
-                        >
-                          {session.user?.soyad || "-"}
-                        </td>
-                      </>
-                    )}
-
-                    {isTablet && (
-                      <>
-                        <td
-                          className="text-center"
-                          style={{ verticalAlign: "middle" }}
-                        >
-                          {session.user?.ad || "-"}
-                        </td>
-                        <td
-                          className="text-center"
-                          style={{ verticalAlign: "middle" }}
-                        >
-                          {session.user?.soyad || "-"}
-                        </td>
-                      </>
-                    )}
-
+                    {/* Sadece masaüstü için kalan sütunlar */}
                     {!isMobile && !isTablet && (
                       <>
-                        <td
-                          className="text-center"
-                          style={{ verticalAlign: "middle" }}
-                        >
-                          {session.user?.ad}
-                        </td>
-                        <td
-                          className="text-center"
-                          style={{ verticalAlign: "middle" }}
-                        >
-                          {session.user?.soyad}
-                        </td>
                         <td
                           className="text-center"
                           style={{ verticalAlign: "middle" }}
@@ -252,25 +233,7 @@ export default function Session() {
                           className="text-center"
                           style={{ verticalAlign: "middle" }}
                         >
-                          {session.user?.kullanici_adi || "-"}
-                        </td>
-                        <td
-                          className="text-center"
-                          style={{ verticalAlign: "middle" }}
-                        >
                           {session.user?.email || "-"}
-                        </td>
-                        <td
-                          className="text-center"
-                          style={{ verticalAlign: "middle" }}
-                        >
-                          {(() => {
-                            const locId = session.user?.lokasyonId;
-                            const institution = institutions.find(
-                              (inst) => inst.id === locId
-                            );
-                            return institution ? institution.name : "-";
-                          })()}
                         </td>
                         <td
                           className="text-center"
@@ -297,7 +260,7 @@ export default function Session() {
               ) : (
                 <tr>
                   <td
-                    colSpan={isMobile ? 4 : isTablet ? 3 : 11} // Tablet için colspan 3 yapıldı
+                    colSpan={isMobile || isTablet ? 6 : 11}
                     className="text-center"
                   >
                     Aktif oturum bulunamadı.

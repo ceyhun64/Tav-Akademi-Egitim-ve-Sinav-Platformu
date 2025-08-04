@@ -76,7 +76,6 @@ export default function BothTeoQuestion() {
   const [illegalKeys, setIllegalKeys] = useState([]);
   const [showIllegalModal, setShowIllegalModal] = useState(false);
 
-  console.log("sonucu_gizle:", sonucGizle);
   const requestFullscreen = () => {
     const elem = examContainerRef.current;
     if (!elem) return;

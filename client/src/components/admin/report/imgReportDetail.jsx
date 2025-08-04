@@ -287,12 +287,12 @@ export default function ImgReportDetail() {
               <QuestionCategory />
             </div>
 
-            <div className="card shadow-sm border-0">
+            <div className="card shadow-sm border-0 w-100">
               <div
                 className="card-header text-white text-center fw-semibold"
                 style={{
                   backgroundColor: "#001b66",
-                  maxWidth: isMobile ? "50%" : "400px",
+                  width: "100%", // Tam genişlik
                 }}
               >
                 Performans

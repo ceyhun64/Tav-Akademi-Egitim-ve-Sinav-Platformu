@@ -41,7 +41,6 @@ export default function BothTeoQuestionResult() {
     const action = dispatch(
       getTeoQuestionResultThunk({ userId, examId: teoExamId })
     ).unwrap();
-    console.log("action:", action);
   }, [dispatch, userId, teoExamId]);
 
   if (!data?.userTeoAnswers || !data.userTeoAnswers.length) {

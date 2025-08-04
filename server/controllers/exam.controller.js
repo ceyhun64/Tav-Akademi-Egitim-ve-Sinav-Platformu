@@ -87,6 +87,7 @@ exports.create_teo_exam = async (req, res) => {
       examId: exam.id,
       userId,
       completed: false,
+      attemp_count: attemp_limit,
     }));
 
     await ExamUser.bulkCreate(examUserRelations);
@@ -143,7 +144,7 @@ exports.create_img_exam = async (req, res) => {
       toplam_soru,
       category_percentages, // { "1": 20, "2": 30, ... }
     } = req.body;
-    
+
     const sure =
       req.body.sure === "" || req.body.sure == null
         ? 0
@@ -228,6 +229,7 @@ exports.create_img_exam = async (req, res) => {
       examId: exam.id,
       userId,
       completed: false,
+      attemp_count: attemp_limit,
     }));
 
     await ExamUser.bulkCreate(examUserRelations);
@@ -544,6 +546,7 @@ exports.create_unified_exam = async (req, res, next) => {
         examId: examImg.id,
         userId,
         completed: false,
+        attemp_count: attemp_limit,
       }));
       await ExamUser.bulkCreate(examUserImgRelations, { transaction: t });
     }

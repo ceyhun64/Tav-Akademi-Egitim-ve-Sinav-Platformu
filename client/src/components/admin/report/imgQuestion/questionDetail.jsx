@@ -7,18 +7,42 @@ export default function QuestionDetailCard({
 }) {
   const canvasRef = useRef(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const [loading, setLoading] = useState(true);
 
+  // poolImg içindeki bilgiler
   const pool = question.poolImg || {};
   const correctAnswer = question.answer?.toLowerCase();
+
+  // Seçenekler: a-f arası ama sadece pool'da olanlar
   const options = ["a", "b", "c", "d", "e", "f"].filter((opt) => pool[opt]);
+
+  // Soru resmi
   const imageSrc = pool.image;
 
-  const userClick =
-    typeof question.coordinate === "string" && question.coordinate.length > 0
-      ? JSON.parse(question.coordinate)
-      : null;
+  // Kullanıcının işaretlediği nokta (coordinate) güvenli parse
+  let userClick = null;
+  try {
+    const parsed = JSON.parse(question.coordinate);
+    if (
+      parsed &&
+      typeof parsed.x === "number" &&
+      typeof parsed.y === "number"
+    ) {
+      userClick = parsed;
+    }
+  } catch {}
 
-  const polygons = pool.coordinate || [];
+  // Polygonlar (pool.coordinate) — dizi içinde dizi
+  let polygons = [];
+
+  try {
+    polygons = JSON.parse(pool.coordinate);
+    if (!Array.isArray(polygons)) polygons = [];
+  } catch {
+    polygons = [];
+  }
+
+  // Maksimum canvas genişlik/yükseklik (mobil/desktop)
   const MAX_WIDTH = isMobile ? 300 : 600;
   const MAX_HEIGHT = isMobile ? 200 : 400;
 
@@ -32,21 +56,21 @@ export default function QuestionDetailCard({
     img.src = imageSrc;
 
     img.onload = () => {
+      
       const naturalWidth = img.width;
       const naturalHeight = img.height;
 
+      // Canvas boyutunu resmin doğal boyutuna ayarla
       canvas.width = naturalWidth;
       canvas.height = naturalHeight;
 
       setCanvasSize({ width: naturalWidth, height: naturalHeight });
 
-      const scaleX = Math.min(1, MAX_WIDTH / naturalWidth);
-      const scaleY = Math.min(1, MAX_HEIGHT / naturalHeight);
-      const scale = Math.min(scaleX, scaleY);
-
+      // Temizle ve resmi çiz
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
 
+      // Polygonları çiz
       polygons.forEach((polygon) => {
         if (!polygon || polygon.length < 2) return;
 
@@ -74,7 +98,8 @@ export default function QuestionDetailCard({
         });
       });
 
-      if (userClick?.x !== undefined && userClick?.y !== undefined) {
+      // Kullanıcının işaretlediği noktayı çiz
+      if (userClick) {
         ctx.beginPath();
         ctx.arc(userClick.x, userClick.y, 10, 0, 2 * Math.PI);
         ctx.fillStyle = "rgba(255, 0, 0, 0.8)";
@@ -91,6 +116,7 @@ export default function QuestionDetailCard({
     };
   }, [imageSrc, polygons, userClick]);
 
+  // Canvas doğal boyutuna göre ekranda gösterilecek boyut (responsive küçültme)
   const getDisplaySize = () => {
     const { width, height } = canvasSize;
     if (!width || !height) return { width: 0, height: 0 };
@@ -147,8 +173,7 @@ export default function QuestionDetailCard({
         <ul className="list-group mb-4">
           {options.map((opt) => {
             const isCorrect = correctAnswer === opt;
-            const isUserSelected =
-              question.selected_answer?.toLowerCase() === opt;
+            const isUserSelected = question.answer?.toLowerCase() === opt;
 
             let bgColor = "";
             let borderColor = "";
@@ -159,7 +184,7 @@ export default function QuestionDetailCard({
               borderColor = "#001b66";
               textColor = "#001b66";
             } else if (isUserSelected && !isCorrect) {
-              bgColor = "rgba(220, 53, 69, 0.15)"; // Bootstrap danger-light
+              bgColor = "rgba(220, 53, 69, 0.15)";
               borderColor = "#dc3545";
               textColor = "#dc3545";
             }
@@ -176,8 +201,8 @@ export default function QuestionDetailCard({
                   fontWeight: isCorrect ? "600" : "500",
                   cursor: "default",
                   transition: "background-color 0.3s ease",
-                  fontSize: isMobile ? "0.875rem" : "1rem", // Responsive font size
-                  padding: isMobile ? "0.5rem 0.75rem" : "0.75rem 1.25rem", // Adjust spacing
+                  fontSize: isMobile ? "0.875rem" : "1rem",
+                  padding: isMobile ? "0.5rem 0.75rem" : "0.75rem 1.25rem",
                 }}
               >
                 <span style={{ userSelect: "none" }}>

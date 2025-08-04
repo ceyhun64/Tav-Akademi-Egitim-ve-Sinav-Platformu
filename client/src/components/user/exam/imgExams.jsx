@@ -22,15 +22,14 @@ export default function ImgExams() {
 
   const activeExams =
     exams?.filter((exam) => {
-      if (!exam.examUsers?.[0]) return false;
-
-      const isNotCompleted = exam.examUsers[0].completed === false;
+      const user = exam.examUsers?.[0];
+      if (!user) return false;
 
       const examEndDateTime = new Date(`${exam.end_date}T${exam.end_time}`);
       const now = new Date();
       const isBeforeEnd = now <= examEndDateTime;
 
-      return isNotCompleted && isBeforeEnd;
+      return isBeforeEnd;
     }) || [];
 
   if (isLoading) {
@@ -95,11 +94,20 @@ export default function ImgExams() {
             year: "numeric",
           });
 
+          const now = new Date();
           const examStartDateTime = new Date(
             `${exam.start_date}T${exam.start_time}`
           );
-          const now = new Date();
-          const canStart = now >= examStartDateTime;
+          const canStartByTime = now >= examStartDateTime;
+
+          const user = exam.examUsers?.[0];
+          const attemptLimit = exam.attemp_limit ?? 0;
+          const attemptCount = user?.attemp_count ?? 0;
+          const remainingAttempts =
+            attemptLimit > 100 ? "Sınırsız" : attemptCount;
+
+          const hasAttemptRight = attemptLimit > 100 || remainingAttempts > 0;
+          const canStart = canStartByTime && hasAttemptRight;
 
           return (
             <div key={exam.id} className="col-12">
@@ -128,10 +136,11 @@ export default function ImgExams() {
                     ></i>
                     <strong>Bitiş:</strong> {endDate} - {exam.end_time}
                   </li>
-                  <li>
-                    <i className="bi bi-clock" style={{ color: "#0056cc" }}></i>
-                    <strong>Sınav Süresi:</strong> {exam.sure} dakika
-                  </li>
+                  <p>
+                    <i className="bi bi-clock" style={{ color: "#0056cc" }}></i>{" "}
+                    <strong>Sınav Süresi:</strong>{" "}
+                    {exam.sure === 999999 ? "Süresiz" : `${exam.sure} dakika`}
+                  </p>
 
                   <li>
                     <i
@@ -140,6 +149,16 @@ export default function ImgExams() {
                     ></i>
                     <strong>Geçme Puanı:</strong> {exam.passing_score}
                   </li>
+                  <p>
+                    <i
+                      className="bi bi-arrow-repeat"
+                      style={{ color: "#0056cc" }}
+                    ></i>{" "}
+                    <strong>Hakkınız:</strong>{" "}
+                    {attemptLimit > 100
+                      ? "Sınırsız"
+                      : `${remainingAttempts} hakkınız kaldı`}
+                  </p>
                 </ul>
                 <button
                   onClick={() => handleStartExam(exam.id, exam.sonucu_gizle)} // 👈 burada gönderiyoruz

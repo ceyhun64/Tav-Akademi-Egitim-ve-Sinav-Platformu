@@ -76,13 +76,13 @@ export default function PoolImg() {
   const handleDelete = async (id) => {
     if (!window.confirm("Bu soruyu silmek istediğinize emin misiniz?")) return;
 
-    await dispatch(deletePoolImgThunk(id));
-    // Silme işleminden sonra, mevcut filtreye göre veya tüm soruları yeniden getir
-    if (selectedBooklet) {
-      dispatch(getPoolImgsByBookletIdThunk(selectedBooklet));
-    } else {
-      dispatch(getPoolImgThunk());
-    }
+ await dispatch(deletePoolImgThunk(id));
+
+    selectedBooklet
+      ? dispatch(getPoolImgsByBookletIdThunk(selectedBooklet))
+      : dispatch(getPoolImgThunk());
+
+    alert("Soru başarıyla silindi.");
   };
 
   // Kitapçık seçimi değiştiğinde çalışacak fonksiyon

@@ -35,7 +35,6 @@ export default function TeoQuestionResult() {
     const action = dispatch(
       getTeoQuestionResultThunk({ userId, examId })
     ).unwrap();
-    console.log("action:", action);
   }, [dispatch, userId, examId]);
   if (!data?.userTeoAnswers || !data.userTeoAnswers.length) {
     return <p className="text-center mt-5">Yükleniyor...</p>;

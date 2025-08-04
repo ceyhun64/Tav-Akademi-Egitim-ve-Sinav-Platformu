@@ -78,7 +78,6 @@ export default function TeoQuestion() {
   const [illegalKeys, setIllegalKeys] = useState([]);
   const [showIllegalModal, setShowIllegalModal] = useState(false);
 
-  console.log("sonucu_gizle:", sonucGizle);
   // TAM EKRAN MODUNA GEÇİŞ FONKSİYONU
   const requestFullscreen = () => {
     const elem = examContainerRef.current;
@@ -404,22 +403,40 @@ export default function TeoQuestion() {
 
         {/* Uyarı: Cevapsız Sorular */}
         {showUnansweredWarning && (
-          <div style={{ ...overlayStyle, backgroundColor: "white" }}>
+          <div style={overlayStyle}>
             <div style={alertBoxStyle}>
               <h4 className="text-warning">
                 <i className="bi bi-exclamation-circle-fill me-2" />
                 Uyarı
               </h4>
               <p>{unansweredCount} tane soruyu boş bıraktınız.</p>
-              <button
-                className="btn btn-primary mt-3"
-                onClick={() => {
-                  setShowUnansweredWarning(false);
-                  setIsPaused(false);
-                }}
-              >
-                Tamam
-              </button>
+              <p>Sınavı yine de bitirmek istediğinizden emin misiniz?</p>
+              <div className="d-flex justify-content-center gap-3 mt-4">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setShowUnansweredWarning(false);
+                    setIsPaused(false);
+                  }}
+                >
+                  <i className="bi bi-x-circle me-1" />
+                  Geri Dön
+                </button>
+                <button
+                  className="btn btn-success"
+                  onClick={() => {
+                    setShowUnansweredWarning(false); // Uyarıyı kapat
+                    // Sınavı bitirme akışını başlat (onay kodu adımına geç)
+                    const code = generateRandomCode();
+                    setConfirmExitCode(code);
+                    setShowCodeInput(true);
+                    setUserInputCode("");
+                  }}
+                >
+                  <i className="bi bi-check-circle me-1" />
+                  Yine de Bitir
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -668,14 +685,18 @@ export default function TeoQuestion() {
                         />
                         <div className="d-flex justify-content-end gap-2 mt-2">
                           <button
-                            className="btn btn-danger"
-                            onClick={handleCancelExit} // Allow canceling from code input
-                          >
-                            İptal
-                          </button>
-                          <button
                             className="btn btn-success"
-                            onClick={() => handleSubmit(false)} // Submit after entering code
+                            onClick={() => {
+                              if (
+                                userInputCode.toUpperCase() === confirmExitCode
+                              ) {
+                                handleSubmit(true); // Gerçek bitirme
+                              } else {
+                                alert(
+                                  "Girdiğiniz kod yanlış. Lütfen doğru kodu girin."
+                                );
+                              }
+                            }}
                           >
                             Kodu Onayla
                           </button>

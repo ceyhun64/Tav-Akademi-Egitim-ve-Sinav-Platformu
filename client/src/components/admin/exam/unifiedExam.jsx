@@ -16,10 +16,11 @@ import {
 
 export default function UnifiedExamForm({ educationExam, onExamCreate }) {
   const dispatch = useDispatch();
-  const { users, isLoading, error } = useSelector((state) => state.user);
+  const { users, error } = useSelector((state) => state.user);
   const [oranToplam, setOranToplam] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { questionCats, difLevels } = useSelector((state) => state.queDif);
+  const { isLoading } = useSelector((state) => state.exam);
 
   // Teorik ve Görüntü kitapçık listeleri için local state
   const [teoBooklets, setTeoBooklets] = useState([]);
@@ -578,7 +579,7 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
                       onChange={handleChange}
                       className="form-select"
                     >
-                      <option value="0">Süresiz</option>
+                      <option value="999999">Süresiz</option>
 
                       {Array.from({ length: 11 }, (_, i) => 5 + i).map((v) => (
                         <option key={v} value={v}>
@@ -659,7 +660,8 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
                     onChange={handleChange}
                     className="form-select"
                   >
-                    <option value="0">Süresiz</option> {/* Süresiz seçeneği */}
+                    <option value="999999">Süresiz</option>{" "}
+                    {/* Süresiz seçeneği */}
                     {[...Array(10)].map((_, i) => (
                       <option key={i + 1} value={i + 1}>
                         {i + 1}
@@ -907,8 +909,21 @@ export default function UnifiedExamForm({ educationExam, onExamCreate }) {
           </div>
 
           <div className="d-flex justify-content-center">
-            <button type="submit" className="btn btn-primary px-4">
-              Sınav Oluştur
+            <button
+              type="submit"
+              className="btn btn-primary mt-3"
+              disabled={isSubmitting || isLoading}
+              style={{
+                fontSize: "16px",
+                gridColumn: isMobile ? undefined : "1 / -1", // Grid varsa ortalamak için
+                justifySelf: "center", // Grid ile ortalama
+                alignSelf: "center",
+                width: isMobile ? "50%" : "150px",
+                opacity: isSubmitting || isLoading ? 0.7 : 1,
+                pointerEvents: isSubmitting || isLoading ? "none" : "auto", // tıklamayı tamamen engelle
+              }}
+            >
+              {isSubmitting || isLoading ? "Oluşturuluyor..." : "Sınav Oluştur"}
             </button>
           </div>
         </form>

@@ -62,22 +62,22 @@ export default function PracticeExam() {
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isTablet, setIsTablet] = useState(
-     window.innerWidth >= 768 && window.innerWidth < 1350
-   );
-  
-    useEffect(() => {
-      const handleResize = () => {
-        const width = window.innerWidth;
-        setIsMobile(width < 768);
-        setIsTablet(width >= 768 && width < 1350);
-        if (width >= 768) {
-          setSidebarOpen(true); // büyük ekranlarda sidebar açık
-        }
-      };
-  
-      window.addEventListener("resize", handleResize);
-      return () => window.removeEventListener("resize", handleResize);
-    }, []);
+    window.innerWidth >= 768 && window.innerWidth < 1350
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1350);
+      if (width >= 768) {
+        setSidebarOpen(true); // büyük ekranlarda sidebar açık
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   useEffect(() => {
     // ilk yüklemede sidebar büyük ekranda açık, küçükte kapalı
     setSidebarOpen(!isMobile);
@@ -254,8 +254,12 @@ export default function PracticeExam() {
                     className="list-group-item d-flex justify-content-between align-items-center"
                   >
                     Süre:{" "}
-                    {item.duration === 0 ? "Süresiz" : `${item.duration} dk`},
-                    Soru Sayısı: {item.question_count}
+                    {item.duration === null
+                      ? "Süresiz"
+                      : item.duration === 0
+                      ? "Süresiz"
+                      : `${item.duration} dk`}
+                    , Soru Sayısı: {item.question_count}
                     <div>
                       <button
                         className="btn btn-sm btn-outline-warning me-2"

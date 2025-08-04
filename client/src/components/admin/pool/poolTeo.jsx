@@ -65,10 +65,14 @@ export default function PoolTeo() {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Bu soruyu silmek istediğinize emin misiniz?")) return;
+
     await dispatch(deletePoolTeoThunk(id));
+
     selectedBooklet
       ? dispatch(getPoolTeosByBookletIdThunk(selectedBooklet))
       : dispatch(getPoolTeosThunk());
+
+    alert("Soru başarıyla silindi.");
   };
 
   const handleBookletChange = (e) => {

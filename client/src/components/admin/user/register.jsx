@@ -1454,7 +1454,7 @@ export default function Register() {
                   flexGrow: isMobile ? 1 : 0,
                 }}
               >
-                Inputları Temizle
+                Temizle
               </button>
             </div>
           </form>

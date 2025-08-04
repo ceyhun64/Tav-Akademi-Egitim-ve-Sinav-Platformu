@@ -18,13 +18,12 @@ export default function BothExams() {
       state: { nextExamId: imgId, sonucGizle },
     });
   };
+  console.log("exams:", exams);
 
   // examUsers dizisi varsa, ilkinin completed değeri false olanları alıyoruz
   const activeExams =
     exams?.filter(({ teo }) => {
       if (!teo) return false;
-
-      const isNotCompleted = teo.examUsers?.[0]?.completed === false;
 
       // Sınav bitiş zamanı
       const examEndDateTime = new Date(`${teo.end_date}T${teo.end_time}`);
@@ -33,7 +32,7 @@ export default function BothExams() {
       // Henüz sınav bitmemiş olmalı
       const isBeforeEnd = now <= examEndDateTime;
 
-      return isNotCompleted && isBeforeEnd;
+      return isBeforeEnd;
     }) || [];
 
   if (isLoading)
@@ -77,6 +76,35 @@ export default function BothExams() {
         {activeExams.map(({ unifiedId, teo, img }) => {
           if (!teo) return null;
 
+          const examStartDateTime = new Date(
+            `${teo.start_date}T${teo.start_time}`
+          );
+          const now = new Date();
+          const canStartByTime = now >= examStartDateTime;
+
+          const user = teo.examUsers?.[0] || {};
+          const attempCount = user.attemp_count;
+          const attemptLimit = teo.attemp_limit ?? 0;
+
+          // Kalan hak hesabı
+          const remainingAttempts =
+            // Eğer attemp_limit 100'den büyükse, hakkı sınırsızdır.
+            attemptLimit > 100
+              ? "Sınırsız"
+              : // attemp_count değeri null ise, bu sınav hiç denenmemiştir.
+              // Bu durumda kalan hak, sınavın toplam hakkı olan `attemptLimit` değeridir.
+              attempCount === null
+              ? attemptLimit
+              : // Aksi takdirde, kalan hak `attemp_count` değeridir.
+                attempCount;
+
+          const hasAttemptRight =
+            remainingAttempts === "Sınırsız" ||
+            (typeof remainingAttempts === "number" && remainingAttempts > 0);
+
+          // Butonun aktif olup olmaması
+          const canStart = canStartByTime && hasAttemptRight;
+
           const examStartDate = new Date(teo.start_date).toLocaleDateString(
             "tr-TR",
             {
@@ -96,17 +124,10 @@ export default function BothExams() {
             }
           );
 
-          // Sınav başlangıç zamanı ve mevcut zaman
-          const examStartDateTime = new Date(
-            `${teo.start_date}T${teo.start_time}`
-          );
-          const now = new Date();
-          const canStart = now >= examStartDateTime;
-
+          // Süre hesaplamaları (senin koddan)
           const imgQuestionCount = img?.question_count || 0;
           const imgSureSeconds = img?.sure || 0;
           const imgDurationMinutes = (imgQuestionCount * imgSureSeconds) / 60;
-
           const totalDuration = Math.round(
             Number(teo.sure) + imgDurationMinutes
           );
@@ -131,25 +152,33 @@ export default function BothExams() {
                     <strong>Sınav Süresi Toplam:</strong> {totalDuration} dk
                   </li>
                   <li>
-                    <strong>Teorik Sınav Süresi:</strong> {teo.sure} dk
+                    <strong>Teorik Sınav Süresi:</strong>{" "}
+                    {teo.sure === 999999 ? "Süresiz" : `${teo.sure} dakika`}
                   </li>
                   {img && (
                     <li>
-                      <strong>Uygulama Sınav Süresi:</strong>{" "}
+                      <strong>Uygulamalı Sınav Süresi:</strong>{" "}
                       {Math.round((img.sure * img.question_count) / 60)} dk
                     </li>
                   )}
                   <li>
                     <strong>Geçme Puanı:</strong> {teo.passing_score}
                   </li>
+                  <li>
+                    <strong>Kalan Deneme Hakkı:</strong>{" "}
+                    {
+                      typeof remainingAttempts === "number"
+                        ? remainingAttempts
+                        : remainingAttempts /* Sınırsız */
+                    }
+                  </li>
                 </ul>
 
                 {img && (
                   <div className="mt-auto">
                     <p className="info-text">
-                      <i className="bi bi-info-circle icon"></i>
-                      Teorik sınav bittikten sonra uygulama sınavına geçiş
-                      yapabilirsiniz.
+                      <i className="bi bi-info-circle icon"></i> Teorik sınav
+                      bittikten sonra uygulama sınavına geçiş yapabilirsiniz.
                     </p>
                     <button
                       onClick={() =>
@@ -160,7 +189,13 @@ export default function BothExams() {
                       }`}
                       aria-label={`Karma sınavı başlat: ${teo.name}`}
                       disabled={!canStart}
-                      title={!canStart ? "Sınav henüz başlamadı." : undefined}
+                      title={
+                        !canStartByTime
+                          ? "Sınav henüz başlamadı."
+                          : !hasAttemptRight
+                          ? "Sınav giriş hakkınız kalmadı."
+                          : undefined
+                      }
                     >
                       Sınava Başla
                     </button>

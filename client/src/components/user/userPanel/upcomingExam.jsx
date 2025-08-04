@@ -2,6 +2,25 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getExamByUserIdThunk } from "../../../features/thunks/examThunk";
 import dayjs from "dayjs";
+function groupUnifiedExams(exams) {
+  const grouped = [];
+  const seenUnifiedIds = new Set();
+
+  for (const exam of exams) {
+    if (exam.unifiedId) {
+      if (seenUnifiedIds.has(exam.unifiedId)) continue;
+      const unifiedExam = exams.find((e) => e.unifiedId === exam.unifiedId);
+      if (unifiedExam) {
+        grouped.push(unifiedExam);
+        seenUnifiedIds.add(exam.unifiedId);
+      }
+    } else {
+      grouped.push(exam);
+    }
+  }
+
+  return grouped;
+}
 
 export default function UpcomingExam() {
   const dispatch = useDispatch();
@@ -29,19 +48,19 @@ export default function UpcomingExam() {
       const today = dayjs().startOf("day");
 
       const filtered = exams
-        .filter(
-          (exam) =>
-            dayjs(exam.start_date).isSame(today, "day") ||
-            dayjs(exam.start_date).isAfter(today)
-        )
+        .filter((exam) => {
+          const examDate = dayjs(exam.start_date).startOf("day");
+          return examDate.isSame(today, "day") || examDate.isAfter(today);
+        })
         .map((exam) => {
-          const examDate = dayjs(exam.start_date);
+          const examDate = dayjs(exam.start_date).startOf("day");
           const daysLeft = examDate.diff(today, "day");
           return { ...exam, daysLeft };
         })
         .sort((a, b) => a.daysLeft - b.daysLeft);
 
-      setUpcomingExams(filtered);
+      const groupedExams = groupUnifiedExams(filtered);
+      setUpcomingExams(groupedExams);
     }
   }, [exams]);
 

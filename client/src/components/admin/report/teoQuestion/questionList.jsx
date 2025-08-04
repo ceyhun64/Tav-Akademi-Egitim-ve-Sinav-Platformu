@@ -6,6 +6,36 @@ export default function QuestionList({
 }) {
   if (isMobile) return null;
 
+  if (!data || data.length === 0) {
+    return (
+      <div className="card shadow border-0 rounded-3 overflow-hidden">
+        <div
+          className="card-header text-white text-center fw-semibold"
+          style={{
+            backgroundColor: "#001b66",
+            fontSize: "1.1rem",
+            padding: "0.75rem",
+          }}
+        >
+          🗂 Soru Listesi
+        </div>
+        <div
+          className="card-body px-3 py-2 bg-light d-flex justify-content-center align-items-center"
+          style={{ height: "150px" }}
+        >
+          <div
+            className="spinner-border text-primary"
+            role="status"
+            aria-hidden="true"
+          ></div>
+          <span className="ms-2 fw-semibold" style={{ color: "#001b66" }}>
+            Sorular yükleniyor...
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="card shadow border-0 rounded-3 overflow-hidden">
       <div

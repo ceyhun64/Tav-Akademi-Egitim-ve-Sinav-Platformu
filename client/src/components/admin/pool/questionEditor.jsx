@@ -5,7 +5,7 @@ import { Editor } from "@tinymce/tinymce-react";
 export default function QuestionEditor({ value, onChange }) {
   return (
     <Editor
-      apiKey="9hajysd1lxduo622xk9stunofpbko3eftnwayii3bhf9wwbw"
+      apiKey="xn50ad2ygs7eafud4euo8ttbi8vqu3o0we4ombgrh60c3yqx"
       value={value} /* dışarıdan gelen HTML içeriğini buraya koy */
       init={{
         height: 300,

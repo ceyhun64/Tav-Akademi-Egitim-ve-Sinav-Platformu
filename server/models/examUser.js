@@ -56,6 +56,10 @@ const ExamUser = sequelize.define(
       type: DataTypes.TIME,
       allowNull: true,
     },
+    attemp_count: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   },
   {
     timestamps: false,

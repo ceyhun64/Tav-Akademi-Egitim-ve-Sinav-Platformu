@@ -9,6 +9,7 @@ export default function TeoExams() {
   const navigate = useNavigate();
   const { exams, isLoading } = useSelector((state) => state.exam);
 
+  console.log("exams:", exams);
   useEffect(() => {
     dispatch(getUserTeoExamsThunk());
   }, [dispatch]);
@@ -19,19 +20,16 @@ export default function TeoExams() {
     });
   };
 
-  
-  console.log(exams);
   const activeExams =
     exams?.filter((exam) => {
       const user = exam.examUsers?.[0];
       if (!user) return false;
 
-      const isNotCompleted = user.completed === false;
       const examEndDateTime = new Date(`${exam.end_date}T${exam.end_time}`);
       const now = new Date();
       const isBeforeEnd = now <= examEndDateTime;
 
-      return isNotCompleted && isBeforeEnd;
+      return isBeforeEnd;
     }) || [];
 
   if (isLoading) {
@@ -103,14 +101,15 @@ export default function TeoExams() {
 
         const user = exam.examUsers?.[0];
         const attemptLimit = exam.attemp_limit ?? 0;
-        const currentAttempts = user?.attempt_count ?? 0;
+        const attemptCount = user?.attemp_count ?? 0;
+        const remainingAttempts =
+          attemptLimit > 100 ? "Sınırsız" : attemptCount;
 
-        const hasAttemptRight =
-          attemptLimit === 0 || currentAttempts < attemptLimit;
+        const hasAttemptRight = attemptLimit > 100 || remainingAttempts > 0;
         const canStart = canStartByTime && hasAttemptRight;
 
         return (
-          <div key={exam.id} className="teo-exam-card">
+          <div key={exam.id} className="teo-exam-card mb-4">
             <h5 className="teo-exam-title">{exam.name}</h5>
             <div className="teo-exam-info">
               <p>
@@ -136,8 +135,10 @@ export default function TeoExams() {
               </p>
               <p>
                 <i className="bi bi-clock" style={{ color: "#0056cc" }}></i>{" "}
-                <strong>Sınav Süresi:</strong> {exam.sure} dakika
+                <strong>Sınav Süresi:</strong>{" "}
+                {exam.sure === 999999 ? "Süresiz" : `${exam.sure} dakika`}
               </p>
+
               <p>
                 <i
                   className="bi bi-check-circle"
@@ -151,9 +152,9 @@ export default function TeoExams() {
                   style={{ color: "#0056cc" }}
                 ></i>{" "}
                 <strong>Hakkınız:</strong>{" "}
-                {attemptLimit === 0
+                {attemptLimit > 100
                   ? "Sınırsız"
-                  : `${currentAttempts} / ${attemptLimit}`}
+                  : `${remainingAttempts} hakkınız kaldı`}
               </p>
             </div>
 

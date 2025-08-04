@@ -18,7 +18,8 @@ import "./createImgExam.css";
 
 export default function CreateImgExam({ onCreated }) {
   const dispatch = useDispatch();
-  const { users, isLoading, error } = useSelector((state) => state.user);
+  const { users, error } = useSelector((state) => state.user);
+  const { isLoading } = useSelector((state) => state.exam);
   const { booklets, booklet } = useSelector((state) => state.booklet);
   const { questionCats, difLevels } = useSelector((state) => state.queDif);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -411,7 +412,7 @@ export default function CreateImgExam({ onCreated }) {
                     backgroundColor: "#fff",
                   }}
                 >
-                  <option value="0">Süresiz</option>
+                  <option value="999999">Süresiz</option>
 
                   {/* 5'ten 15'e kadar 1'erli artış */}
                   {Array.from({ length: 11 }, (_, i) => 5 + i).map((value) => (
@@ -440,7 +441,7 @@ export default function CreateImgExam({ onCreated }) {
                   className="custom-select"
                 >
                   {/* Süresiz seçeneği */}
-                  <option value="0">Süresiz</option>
+                  <option value="999999">Süresiz</option>
 
                   {/* 1'den 10'a kadar 1'erli artış */}
                   {Array.from({ length: 10 }, (_, i) => i + 1).map((value) => (
@@ -705,15 +706,18 @@ export default function CreateImgExam({ onCreated }) {
           <button
             type="submit"
             className="btn btn-primary mt-3"
+            disabled={isSubmitting || isLoading}
             style={{
               fontSize: "16px",
-              gridColumn: isMobile ? undefined : "1 / -1",
-              justifySelf: "center", // Ortalamak için start yerine center
-              width: isMobile ? "50%" : "150px", // Masaüstünde sabit, küçük genişlik
+              gridColumn: isMobile ? undefined : "1 / -1", // Grid varsa ortalamak için
+              justifySelf: "center", // Grid ile ortalama
+              alignSelf: "center",
+              width: isMobile ? "50%" : "150px",
+              opacity: isSubmitting || isLoading ? 0.7 : 1,
+              pointerEvents: isSubmitting || isLoading ? "none" : "auto", // tıklamayı tamamen engelle
             }}
           >
-            {" "}
-            Sınav Oluştur
+            {isSubmitting || isLoading ? "Oluşturuluyor..." : "Sınav Oluştur"}
           </button>
         </form>
       </div>

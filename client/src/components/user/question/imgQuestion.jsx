@@ -102,8 +102,8 @@ export default function ImgQuestion() {
   const [showCodeInput, setShowCodeInput] = useState(false);
   const [showUnansweredWarning, setShowUnansweredWarning] = useState(false);
   const [unansweredCount, setUnansweredCount] = useState(0);
+  const [showExitConfirmation, setShowExitConfirmation] = useState(false); // New state for exit confirmation
 
-  console.log("sonucu gizle :", sonucGizle);
   // TAM EKRAN MODUNA GEÇİŞ FONKSİYONU
   const requestFullscreen = () => {
     const elem = examContainerRef.current;
@@ -567,8 +567,6 @@ export default function ImgQuestion() {
     setSelectedAnswers((prev) => ({ ...prev, [Number(questionId)]: answer }));
   };
 
-  console.log(userId);
-  console.log(examId);
   const handleSubmit = (autoSubmit = false) => {
     if (!entryDate || !entryTime) {
       alert(
@@ -579,10 +577,20 @@ export default function ImgQuestion() {
 
     if (!autoSubmit) {
       // Kod giriş isteği ve kontrolü sadece manuel gönderimde
+      // If exit confirmation is not shown yet, show it
+      if (!showExitConfirmation) {
+        setShowExitConfirmation(true);
+        setIsPaused(true); // Pause exam during confirmation
+        return;
+      }
+
+      // If exit confirmation is shown and confirmed, proceed to code input or final submission
       if (!showCodeInput) {
         const code = generateRandomCode();
         setConfirmExitCode(code);
         setShowCodeInput(true);
+        setUserInputCode(""); // Clear previous input
+        setIsPaused(true); // Keep exam paused for code input
         return;
       }
       if (userInputCode.toUpperCase() !== confirmExitCode) {
@@ -615,7 +623,10 @@ export default function ImgQuestion() {
         };
       }
     );
-
+    setExamEnded(true);
+    setIsPaused(true);
+    setShowCodeInput(false); // Hide code input on final submission
+    setShowExitConfirmation(false); // Hide exit confirmation
     dispatch(
       answerImgQuestionsThunk({
         answers: answersArray,
@@ -642,6 +653,12 @@ export default function ImgQuestion() {
     }
   };
   // Render filter or plain image
+  const handleCancelExit = () => {
+    setShowExitConfirmation(false);
+    setShowCodeInput(false); // Hide code input if user cancels from confirmation
+    setUserInputCode(""); // Clear input if user cancels
+    setIsPaused(false); // Resume exam
+  };
 
   const handleRemoveCoordinate = () => {
     setSelectedCoordinates((prev) => {
@@ -727,37 +744,72 @@ export default function ImgQuestion() {
               </button>
             </div>
           </div>
-          {/* Uyarılar */}
-          {(showUnansweredWarning ||
-            (isPaused && !examEnded) ||
-            showFullscreenWarning) && (
-            <div style={{ ...overlayStyle, backgroundColor: "white" }}>
+          {/* Uyarı: Cevapsız Sorular */}
+          {showUnansweredWarning && (
+            <div style={overlayStyle}>
               <div style={alertBoxStyle}>
                 <h4 className="text-warning">
                   <i className="bi bi-exclamation-circle-fill me-2" />
                   Uyarı
                 </h4>
-                <p>
-                  {showUnansweredWarning
-                    ? `${unansweredCount} tane soruyu boş bıraktınız.`
-                    : showFullscreenWarning
-                    ? "Tam ekran modundan çıktınız."
-                    : "Sınav dışına çıktığınız için duraklatıldı."}
-                </p>
-                <button
-                  className="btn btn-primary mt-3"
-                  onClick={() => {
-                    if (showUnansweredWarning) setShowUnansweredWarning(false);
-                    onConfirmFullscreenWarning();
-                    setIsPaused(false);
-                  }}
-                >
-                  Tamam
-                </button>
+                <p>{unansweredCount} tane soruyu boş bıraktınız.</p>
+                <p>Sınavı yine de bitirmek istediğinizden emin misiniz?</p>
+                <div className="d-flex justify-content-center gap-3 mt-4">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      setShowUnansweredWarning(false);
+                      setIsPaused(false);
+                    }}
+                  >
+                    <i className="bi bi-x-circle me-1" />
+                    Geri Dön
+                  </button>
+                  <button
+                    className="btn btn-success"
+                    onClick={() => {
+                      setShowUnansweredWarning(false); // Uyarıyı kapat
+                      // Sınavı bitirme akışını başlat (onay kodu adımına geç)
+                      const code = generateRandomCode();
+                      setConfirmExitCode(code);
+                      setShowCodeInput(true);
+                      setUserInputCode("");
+                    }}
+                  >
+                    <i className="bi bi-check-circle me-1" />
+                    Yine de Bitir
+                  </button>
+                </div>
               </div>
             </div>
           )}
 
+          {/* Sınavı Bitirme Onayı Modalı */}
+          {showExitConfirmation && !showCodeInput && !examEnded && (
+            <div style={overlayStyle}>
+              <div style={alertBoxStyle}>
+                <h4 className="text-info">
+                  <i className="bi bi-question-circle-fill me-2" />
+                  Sınavı Bitir
+                </h4>
+                <p>Sınavı bitirmek istediğinizden emin misiniz?</p>
+                <div className="d-flex justify-content-center gap-3 mt-4">
+                  <button className="btn btn-danger" onClick={handleCancelExit}>
+                    İptal
+                  </button>
+                  <button
+                    className="btn btn-success"
+                    onClick={() => {
+                      setShowExitConfirmation(false); // Hide this modal
+                      handleSubmit(false); // Proceed to code input (or final submit if no code is needed)
+                    }}
+                  >
+                    Evet, Bitir
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Sınav Sonlandı */}
           {examEnded && (
             <div style={overlayStyle}>

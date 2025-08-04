@@ -206,6 +206,7 @@ exports.answer_teo_questions = async (req, res) => {
     examUser.true_count = correctAnswer;
     examUser.false_count = answeredCount - correctAnswer;
     examUser.completed = true;
+    examUser.attemp_count -= 1;
 
     // Tarih ve saat bilgilerini ata (varsa modelde alanlar olmalı)
     if (entry_date) examUser.entry_date = entry_date;
@@ -341,6 +342,7 @@ exports.answer_img_questions = async (req, res) => {
     examUser.score = score;
     examUser.pass = score >= exam.passing_score;
     examUser.completed = true;
+    examUser.attemp_count -= 1;
 
     // Gelen veriler varsa kaydet
     if (entry_date) examUser.entry_date = new Date(entry_date);

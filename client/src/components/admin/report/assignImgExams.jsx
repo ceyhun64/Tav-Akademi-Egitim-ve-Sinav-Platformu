@@ -13,7 +13,6 @@ export default function AssignImgExams() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { assignExams } = useSelector((state) => state.report);
-  console.log("assignExams:", assignExams);
 
   // Mobil görünüm için sidebar state'leri
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -45,7 +44,6 @@ export default function AssignImgExams() {
     }
   };
 
-  console.log(filteredResults);
   // Tek bir checkbox değiştiğinde
   const handleCheckboxChange = (examId) => {
     setSelectedIds((prev) =>

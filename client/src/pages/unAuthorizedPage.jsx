@@ -21,7 +21,13 @@ export default function UnauthorizedPage() {
         Bu sayfaya erişme yetkiniz yoktur.
       </p>
       <button
-        onClick={() => window.history.back()}
+        onClick={() => {
+          if (window.history.length > 2) {
+            window.history.go(-2);
+          } else {
+            window.location.href = "/admin-panel"; // veya istediğin ana sayfa URL'si
+          }
+        }}
         style={{
           padding: "0.75rem 1.5rem",
           fontSize: "1rem",

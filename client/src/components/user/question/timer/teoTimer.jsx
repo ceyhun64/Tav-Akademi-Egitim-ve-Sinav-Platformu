@@ -1,16 +1,29 @@
 import { useEffect, useState, useRef } from "react";
 
 export default function CountdownTimer({ duration, onTimeUp, isPaused }) {
-  const [remainingTime, setRemainingTime] = useState(duration * 60); // saniye
+  const [remainingTime, setRemainingTime] = useState(
+    duration === 999999 ? null : duration * 60
+  );
   const intervalRef = useRef(null);
 
   useEffect(() => {
-    setRemainingTime(duration * 60);
+    if (duration === 999999) {
+      setRemainingTime(null); // süresiz
+    } else {
+      setRemainingTime(duration * 60);
+    }
   }, [duration]);
 
   useEffect(() => {
+    if (duration === 999999) {
+      // Süresiz, interval yok
+      clearInterval(intervalRef.current);
+      return;
+    }
+
     if (remainingTime <= 0) {
       onTimeUp();
+      clearInterval(intervalRef.current);
       return;
     }
 
@@ -24,9 +37,10 @@ export default function CountdownTimer({ duration, onTimeUp, isPaused }) {
     }, 1000);
 
     return () => clearInterval(intervalRef.current);
-  }, [remainingTime, isPaused, onTimeUp]);
+  }, [remainingTime, isPaused, onTimeUp, duration]);
 
   const formatTime = (seconds) => {
+    if (seconds === null) return "Süresiz";
     const m = Math.floor(seconds / 60)
       .toString()
       .padStart(2, "0");
@@ -37,17 +51,18 @@ export default function CountdownTimer({ duration, onTimeUp, isPaused }) {
   return (
     <div
       style={{
-        fontSize: "0.9rem", // küçültüldü
+        fontSize: "0.9rem",
         fontWeight: "600",
-        color: remainingTime <= 30 ? "#ffebee" : "#c5cae9",
+        color:
+          remainingTime !== null && remainingTime <= 30 ? "#ffebee" : "#c5cae9",
         background:
-          remainingTime <= 30
+          remainingTime !== null && remainingTime <= 30
             ? "linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%)"
             : "linear-gradient(135deg, #283593 0%, #3949ab 100%)",
-        borderRadius: "10px", // biraz daha küçük
+        borderRadius: "10px",
         marginBottom: "0.5rem",
         boxShadow:
-          remainingTime <= 30
+          remainingTime !== null && remainingTime <= 30
             ? "0 4px 10px rgba(211, 47, 47, 0.6)"
             : "0 4px 10px rgba(40, 53, 147, 0.6)",
         transition: "all 0.3s ease",
@@ -56,10 +71,13 @@ export default function CountdownTimer({ duration, onTimeUp, isPaused }) {
         fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
         letterSpacing: "0.03em",
         display: "inline-block",
-        minWidth: "200px", // küçültüldü
-        padding: "0.4rem 0.6rem", // eklendi, daha sıkı
+        minWidth: "200px",
+        padding: "0.4rem 0.6rem",
         boxSizing: "border-box",
-        border: remainingTime <= 30 ? "1px solid #b71c1c" : "1px solid #1a237e",
+        border:
+          remainingTime !== null && remainingTime <= 30
+            ? "1px solid #b71c1c"
+            : "1px solid #1a237e",
       }}
       aria-live="polite"
       role="timer"

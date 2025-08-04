@@ -485,22 +485,20 @@ export default function CreatePoolImg() {
           </button>
         </h2>
         {image && overlayImage && (
-          
-            <ImageBlender
-              ref={imageBlenderRef}
-              baseImageSrc={image}
-              overlayImageSrc={overlayImage}
-              overlayPosition={overlayPosition}
-              overlaySize={overlaySize}
-              imageMetrics={imageMetrics}
-              blendMode={blendMode}
-              onBlendComplete={(dataUrl) => {
-                setBlendedDataUrl(dataUrl);
-                setBlendedUrl(dataUrl);
-                setShowOverlay(true); // Ensure overlay is shown after blend
-              }}
-            />
-          
+          <ImageBlender
+            ref={imageBlenderRef}
+            baseImageSrc={image}
+            overlayImageSrc={overlayImage}
+            overlayPosition={overlayPosition}
+            overlaySize={overlaySize}
+            imageMetrics={imageMetrics}
+            blendMode={blendMode}
+            onBlendComplete={(dataUrl) => {
+              setBlendedDataUrl(dataUrl);
+              setBlendedUrl(dataUrl);
+              setShowOverlay(true); // Ensure overlay is shown after blend
+            }}
+          />
         )}
         <div
           className="content-columns"
@@ -717,46 +715,52 @@ export default function CreatePoolImg() {
                     onSizeChange={setOverlaySize}
                   />
                 )}
-                <PolygonEditor
-                  style={{ position: "relative", zIndex: 10000 }}
-                  imageRef={imageRef}
-                  imageSrc={image}
-                  polygons={polygons}
-                  currentPolygon={currentPolygon}
-                  hoverPoint={hoverPoint}
-                  dragging={dragging}
-                  onClick={handleClick}
-                  onMove={handleMouseMove}
-                  onUp={handleMouseUp}
-                  onStartDragPolygon={(e, idx) => {
-                    e.stopPropagation();
-                    const rect = imageRef.current.getBoundingClientRect();
-                    setDragging({ type: "polygon", polygonIndex: idx });
-                    setDragOffset({
-                      x: e.clientX - rect.left,
-                      y: e.clientY - rect.top,
-                    });
-                  }}
-                  onStartDragPoint={(e, pIdx, ptIdx) => {
-                    e.stopPropagation();
-                    setDragging({
-                      type: "point",
-                      polygonIndex: pIdx,
-                      pointIndex: ptIdx,
-                    });
-                  }}
-                  onAddMidPoint={(e, pIdx, i, mid) => {
-                    e.stopPropagation();
-                    setPolygons((prev) =>
-                      prev.map((poly, idx) =>
-                        idx === pIdx
-                          ? [...poly.slice(0, i + 1), mid, ...poly.slice(i + 1)]
-                          : poly
-                      )
-                    );
-                  }}
-                  onRightClickFinish={handleRightClickFinish}
-                />
+                {blendedUrl && (
+                  <PolygonEditor
+                    style={{ position: "relative", zIndex:100  }}
+                    imageRef={imageRef}
+                    imageSrc={blendedUrl || image} // <--- Değişiklik burada
+                    polygons={polygons}
+                    currentPolygon={currentPolygon}
+                    hoverPoint={hoverPoint}
+                    dragging={dragging}
+                    onClick={handleClick}
+                    onMove={handleMouseMove}
+                    onUp={handleMouseUp}
+                    onStartDragPolygon={(e, idx) => {
+                      e.stopPropagation();
+                      const rect = imageRef.current.getBoundingClientRect();
+                      setDragging({ type: "polygon", polygonIndex: idx });
+                      setDragOffset({
+                        x: e.clientX - rect.left,
+                        y: e.clientY - rect.top,
+                      });
+                    }}
+                    onStartDragPoint={(e, pIdx, ptIdx) => {
+                      e.stopPropagation();
+                      setDragging({
+                        type: "point",
+                        polygonIndex: pIdx,
+                        pointIndex: ptIdx,
+                      });
+                    }}
+                    onAddMidPoint={(e, pIdx, i, mid) => {
+                      e.stopPropagation();
+                      setPolygons((prev) =>
+                        prev.map((poly, idx) =>
+                          idx === pIdx
+                            ? [
+                                ...poly.slice(0, i + 1),
+                                mid,
+                                ...poly.slice(i + 1),
+                              ]
+                            : poly
+                        )
+                      );
+                    }}
+                    onRightClickFinish={handleRightClickFinish}
+                  />
+                )}
               </div>
             )}
             <div className="mt-3">
@@ -884,18 +888,24 @@ export default function CreatePoolImg() {
               {/* Booklet selection */}
               <div
                 style={{
-                  marginBottom: 8,
-                  display: "flex", // Use flex for alignment
-                  alignItems: "center",
+                  marginBottom: 16,
                   width: isMobile || isTablet ? "90%" : 300,
-                  justifyContent:
-                    isMobile || isTablet ? "center" : "flex-start",
+                  display: "flex",
+                  flexDirection: "column",
                 }}
               >
-                <label style={{ display: "inline-block", width: 120 }}>
+                <label
+                  htmlFor="bookletId"
+                  style={{
+                    marginBottom: 6,
+                    fontSize: 14,
+                    fontWeight: "bold",
+                  }}
+                >
                   Kitapçık
                 </label>
                 <select
+                  id="bookletId"
                   name="bookletId"
                   value={form.bookletId}
                   onChange={handleFormChange}
@@ -927,16 +937,21 @@ export default function CreatePoolImg() {
               {/* Difficulty Level */}
               <div
                 style={{
-                  marginBottom: 8,
-                  display: "flex", // Use flex for alignment
-                  alignItems: "center",
+                  marginBottom: 16,
                   width: isMobile || isTablet ? "90%" : 300,
-                  justifyContent:
-                    isMobile || isTablet ? "center" : "flex-start",
+                  display: "flex",
+                  flexDirection: "column",
                 }}
               >
-                <label style={{ display: "inline-block", width: 120 }}>
-                  Zorluk Seviyesi:
+                <label
+                  htmlFor="bookletId"
+                  style={{
+                    marginBottom: 6,
+                    fontSize: 14,
+                    fontWeight: "bold",
+                  }}
+                >
+                  Zorluk Seviyesi
                 </label>
                 <select
                   name="difLevelId"
@@ -969,16 +984,21 @@ export default function CreatePoolImg() {
               {/* Question Category */}
               <div
                 style={{
-                  marginBottom: 8,
-                  display: "flex", // Use flex for alignment
-                  alignItems: "center",
+                  marginBottom: 16,
                   width: isMobile || isTablet ? "90%" : 300,
-                  justifyContent:
-                    isMobile || isTablet ? "center" : "flex-start",
+                  display: "flex",
+                  flexDirection: "column",
                 }}
               >
-                <label style={{ display: "inline-block", width: 120 }}>
-                  Soru Kategorisi:
+                <label
+                  htmlFor="bookletId"
+                  style={{
+                    marginBottom: 6,
+                    fontSize: 14,
+                    fontWeight: "bold",
+                  }}
+                >
+                  Soru Kategorisi
                 </label>
                 <select
                   name="questionCategoryId"

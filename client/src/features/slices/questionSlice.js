@@ -21,12 +21,21 @@ const initialState = {
   answerStatus: "idle", // 'idle' | 'loading' | 'succeeded' | 'failed'
   isError: false,
   error: null,
+  questionTimers: {}, // <-- EKLENDİ
 };
 
 const questionSlice = createSlice({
   name: "question",
   initialState,
-  reducers: {},
+  reducers: {
+    setQuestionRemainingTime: (state, action) => {
+      const { questionId, timeLeft } = action.payload;
+      state.questionTimers[questionId] = timeLeft;
+    },
+    resetAllQuestionTimers: (state) => {
+      state.questionTimers = {};
+    },
+  },
   extraReducers: (builder) => {
     builder
       // FETCH: Teorik sorular
@@ -138,4 +147,6 @@ const questionSlice = createSlice({
   },
 });
 
+export const { setQuestionRemainingTime, resetAllQuestionTimers } =
+  questionSlice.actions;
 export default questionSlice.reducer;

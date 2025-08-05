@@ -1,128 +1,112 @@
 import { useEffect, useRef, useState } from "react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import { useDispatch, useSelector } from "react-redux";
+import { setRemainingTime } from "../../../../features/slices/durationSlice"; // <- Yolunu özelleştir
 
 const blinkStyle = `
 @keyframes blink {
-  0%, 100% { background-color: #fee2e2; }
-  50% { background-color: #fecaca; }
+  0%, 100% { background-color: #fee2e2; }
+  50% { background-color: #fecaca; }
 }
 `;
 
-export default function CircleCountdownTimer({
+export default function CountdownTimer({
+  questionId,
   duration,
   onTimeUp,
-  resetKey,
+  onTick,
   isPaused = false,
 }) {
-  const isTimeless = duration === 999999;
-  const [remainingTime, setRemainingTime] = useState(
-    isTimeless ? null : duration
+  const dispatch = useDispatch();
+
+  const storedTime = useSelector(
+    (state) => state.duration.remainingTimes[questionId]
   );
+  const defaultDuration = useSelector(
+    (state) => state.duration.defaultTimePerQuestion
+  );
+
+  const initialTime = storedTime ?? duration ?? defaultDuration;
+
+  const [remainingTime, setRemainingTimeLocal] = useState(initialTime);
   const intervalRef = useRef(null);
-  const onTimeUpCalled = useRef(false); // <--- Yeni Ref
+  const onTimeUpCalled = useRef(false);
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
-
+  // Eğer questionId değişirse, store'daki süreyi al
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 600);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+    const restoredTime = storedTime ?? duration ?? defaultDuration;
+    setRemainingTimeLocal(restoredTime);
+    onTimeUpCalled.current = false;
+  }, [questionId, storedTime, duration, defaultDuration]);
 
+  // Sayaç
   useEffect(() => {
-    setRemainingTime(isTimeless ? null : duration);
-    onTimeUpCalled.current = false; // <--- Yeni anahtar değiştiğinde sıfırla
-  }, [duration, resetKey, isTimeless]);
-
-  useEffect(() => {
-    if (isTimeless) {
+    if (isPaused || remainingTime <= 0 || onTimeUpCalled.current) {
       clearInterval(intervalRef.current);
-      return;
-    } // Kontrol ekledik: Eğer süre bittiyse ve fonksiyon zaten çağrıldıysa tekrar çağırma
-
-    if (remainingTime <= 0 && !onTimeUpCalled.current) {
-      clearInterval(intervalRef.current);
-      onTimeUp?.();
-      onTimeUpCalled.current = true; // <--- Fonksiyonun çağrıldığını işaretle
       return;
     }
 
-    if (isPaused) {
-      clearInterval(intervalRef.current);
-      return;
-    } // Interval zaten varsa temizle, yenisini kur
-
-    clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
-      setRemainingTime((prev) => prev - 1);
+      setRemainingTimeLocal((prev) => {
+        const newTime = prev - 1;
+
+        // Redux store'a her saniye kalan süreyi yaz
+        dispatch(setRemainingTime({ questionId, time: newTime }));
+
+        if (newTime >= 0) onTick?.(newTime);
+        return newTime;
+      });
     }, 1000);
 
     return () => clearInterval(intervalRef.current);
-  }, [remainingTime, isPaused, onTimeUp, isTimeless]);
+  }, [isPaused, remainingTime, dispatch, questionId, onTick]);
 
-  const percentage = isTimeless ? 100 : (remainingTime / duration) * 100;
+  // Süre bittiyse
+  useEffect(() => {
+    if (remainingTime <= 0 && !onTimeUpCalled.current) {
+      onTimeUpCalled.current = true;
+      onTimeUp?.();
+    }
+  }, [remainingTime, onTimeUp]);
 
-  let color = "#3b82f6";
-  if (!isTimeless) {
-    if (remainingTime <= 10) color = "#ef4444";
-    else if (remainingTime <= duration / 2) color = "#f59e0b";
-  }
+  // Yüzdelik oran ve görünüm
+  const percentage = (remainingTime / (duration ?? defaultDuration)) * 100;
+  const isDanger = remainingTime <= 10;
 
-  const isDanger = !isTimeless && remainingTime <= 10;
-  const formatTime = (seconds) => {
-    const m = Math.floor(seconds / 60)
-      .toString()
-      .padStart(2, "0");
-    const s = (seconds % 60).toString().padStart(2, "0");
-    return `${m}:${s}`;
+  const formatTime = (s) => {
+    const m = String(Math.floor(s / 60)).padStart(2, "0");
+    const sec = String(s % 60).padStart(2, "0");
+    return `${m}:${sec}`;
   };
-
-  const size = isMobile ? 90 : 140;
-  const padding = isMobile ? 8 : 12;
-  const textSize = isMobile ? "16px" : "22px";
 
   return (
     <>
-            <style>{blinkStyle}</style>     {" "}
-      {isMobile ? (
-        <div style={mobileStyles} aria-live="polite" role="timer">
-                    Kalan Süre:{" "}
-          {isTimeless ? "Süresiz" : formatTime(remainingTime)}       {" "}
-        </div>
-      ) : (
-        <div
-          style={{
-            width: size,
-            height: size,
-            padding: padding,
-            backgroundColor: isDanger ? "#fee2e2" : "#ffffff",
-            borderRadius: "50%",
-            boxShadow: "0 6px 20px rgba(30, 58, 138, 0.4)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            animation: isDanger ? "blink 1s infinite" : "none",
-            transition: "background-color 0.3s ease",
-          }}
-        >
-                   {" "}
-          <CircularProgressbar
-            value={percentage}
-            text={isTimeless ? "Süresiz" : `${remainingTime}s`}
-            styles={buildStyles({
-              pathColor: color,
-              textColor: color,
-              trailColor: "rgba(255, 255, 255, 0.15)",
-              textSize: textSize,
-              pathTransitionDuration: 0.3,
-              strokeLinecap: "round",
-            })}
-          />
-                 {" "}
-        </div>
-      )}
-         {" "}
+      <style>{blinkStyle}</style>
+      <div
+        style={{
+          width: 120,
+          height: 120,
+          backgroundColor: isDanger ? "#fee2e2" : "#fff",
+          borderRadius: "50%",
+          boxShadow: "0 6px 20px rgba(30, 58, 138, 0.4)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          animation: isDanger ? "blink 1s infinite" : "none",
+        }}
+      >
+        <CircularProgressbar
+          value={percentage}
+          text={formatTime(remainingTime)}
+          styles={buildStyles({
+            pathColor: isDanger ? "#ef4444" : "#3b82f6",
+            textColor: isDanger ? "#ef4444" : "#3b82f6",
+            trailColor: "#eee",
+            textSize: "18px",
+          })}
+        />
+      </div>
     </>
   );
 }

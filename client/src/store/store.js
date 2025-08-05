@@ -22,6 +22,7 @@ import uploadFileReducer from "../features/slices/uploadFileSlice";
 import certificateReducer from "../features/slices/certificateSlice";
 import practiceExamReducer from "../features/slices/practiceExamSlice";
 import illegalMovesReducer from "../features/slices/illegalMovesSlice";
+import durationReducer from "../features/slices/durationSlice";
 
 export const store = configureStore({
   reducer: {
@@ -48,5 +49,6 @@ export const store = configureStore({
     certificate: certificateReducer,
     practiceExam: practiceExamReducer,
     illegalMoves: illegalMovesReducer,
+    duration: durationReducer,
   },
 });

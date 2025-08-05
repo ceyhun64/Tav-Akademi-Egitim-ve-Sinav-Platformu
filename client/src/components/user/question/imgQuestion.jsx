@@ -80,8 +80,8 @@ export default function ImgQuestion() {
   const { imgQuestions, duration, name } = useSelector(
     (state) => state.question
   );
-  const [remainingTimes, setRemainingTimes] = useState(
-    () => imgQuestions.map(() => duration) // Her soru için başlangıç süresi
+  const [remainingTimes, setRemainingTimes] = useState(() =>
+    imgQuestions.map(() => duration)
   );
 
   const userId = localStorage.getItem("userId");
@@ -543,29 +543,27 @@ export default function ImgQuestion() {
     return <div>Yükleniyor veya soru bulunamadı...</div>;
   }
 
-const handleNext = () => {
-  const currentQuestionId = q.id;
+  const handleNext = () => {
+    // Sonraki soruya geçmeden önce
+    // mevcut sorunun kalan süresini state'e kaydediyoruz.
+    // Bu, CountdownTimer'ın onTick fonksiyonu sayesinde zaten yapılıyor.
 
-  if (!selectedAnswers.hasOwnProperty(currentQuestionId)) {
-    setSelectedAnswers((prev) => ({
-      ...prev,
-      [currentQuestionId]: null,
-    }));
-  }
+    // ... (cevapları kaydetme ve diğer işlemler)
 
-  if (!selectedCoordinates.hasOwnProperty(currentQuestionId)) {
-    setSelectedCoordinates((prev) => ({
-      ...prev,
-      [currentQuestionId]: null,
-    }));
-  }
+    if (currentIndex < imgQuestions.length - 1) {
+      setCurrentIndex((prevIndex) => prevIndex + 1);
+      setActiveFilter("none");
+    }
+  };
 
-  if (currentIndex < imgQuestions.length - 1) {
-    setCurrentIndex((prevIndex) => prevIndex + 1);
-    setActiveFilter("none");
-  }
-};
+  const handlePrev = () => {
+    // Önceki soruya geçmeden önce
+    // mevcut sorunun kalan süresini state'e kaydediyoruz.
 
+    if (currentIndex > 0) {
+      setCurrentIndex((prevIndex) => prevIndex - 1);
+    }
+  };
 
   const handleAnswerChange = (questionId, answer) => {
     setSelectedAnswers((prev) => ({ ...prev, [Number(questionId)]: answer }));
@@ -671,12 +669,8 @@ const handleNext = () => {
       return updated;
     });
   };
-  const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prevIndex) => prevIndex - 1);
-    }
-  };
-
+  console.log("currentIndex:", currentIndex);
+  const questionId = currentIndex + 1;
   return (
     <div style={containerStyle} ref={examContainerRef}>
       {/* Mobil Sayaç (sadece mobilde görünür) */}
@@ -685,13 +679,13 @@ const handleNext = () => {
         <div className="d-lg-none bg-light shadow-sm sticky-top z-3">
           <div className="d-flex justify-content-center">
             <CountdownTimer
+              questionId={questionId} // ← Eksik olan burası
               duration={remainingTimes[currentIndex]}
               onTimeUp={() => {
                 if (currentIndex < imgQuestions.length - 1) {
                   handleNext();
                 } else {
-                  handleSubmit(true); // Pass 'true' to indicate auto-submission
-                  setExamEnded(true); // Optio
+                  handleSubmit(true);
                 }
               }}
               onTick={(timeLeft) => {
@@ -701,6 +695,7 @@ const handleNext = () => {
                   return copy;
                 });
               }}
+              isPaused={isPaused} // Durdurma mantığı için bu prop'u eklemeniz önemlidir.
             />
           </div>
         </div>

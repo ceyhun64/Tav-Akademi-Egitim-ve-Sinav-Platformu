@@ -1,7 +1,7 @@
 import axios from "axios";
 import axiosInstance from "./axiosInstance";
 
-const API_URL = `https://tav-akademi-egitim-ve-sinav-platformu-1.onrender.com/api/auth`;
+const API_URL = `http://localhost:3000/api/auth`;
 // https://tav-akademi-egitim-ve-sinav-platformu-1.onrender.com/api/auth
 
 // login api isteği

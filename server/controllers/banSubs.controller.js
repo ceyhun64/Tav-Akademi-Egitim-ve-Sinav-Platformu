@@ -46,6 +46,7 @@ exports.createBanSubs = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 exports.updateBanSubs = async (req, res) => {
   try {
     const { id } = req.params;

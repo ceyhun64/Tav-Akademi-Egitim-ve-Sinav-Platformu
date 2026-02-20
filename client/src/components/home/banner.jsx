@@ -95,8 +95,6 @@ export default function Banner() {
           </div>
         </div>
       </div>
-    </section>
-    // aynen aynen siz takılın takılın sonra siz kötüsünüz aynen
-    
+    </section>    
   );
 }

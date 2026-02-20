@@ -3,6 +3,7 @@ const express = require("express"); //expressi dahil ettik
 const cors = require("cors"); //cors dahil ettik
 const app = express(); //app adlı uygulamayı oluşturduk
 
+//manuel cors ayarı , cors paketi ile daha kısa hale getirildi
 // app.use((req, res, next) => {
 //   //middleware'leri kullanarak istekleri yönetiyoruz(req:istek, res:yeniden yönlendirme, next:bir sonraki middleware'e geçiş)
 //   res.header("Access-Control-Allow-Origin", process.env.FRONTEND_URL); // İzin verilen kaynaklar
@@ -40,7 +41,7 @@ const practiceExamRoutes = require("./routes/practiceExam.routes");
 const illegalMovesRoutes = require("./routes/illegalMoves.routes");
 
 const corsOptions = {
-  origin: "https://tav-akademi-egitim-ve-sinav-platfor-rho.vercel.app",
+  origin: "*",
   //https://tav-akademi-egitim-ve-sinav-platfor-rho.vercel.app
   methods: ["GET", "POST", "PUT", "DELETE"],
 };

@@ -633,3 +633,5 @@ exports.updatePassword = async (req, res) => {
     res.status(400).json({ message: "Geçersiz veya süresi dolmuş token." });
   }
 };
+
+

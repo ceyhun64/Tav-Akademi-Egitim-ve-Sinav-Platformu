@@ -1,7 +1,7 @@
 import axios from "axios";
 import emitter from "./eventEmitter"; // event emitter’ı import et
 
-const API_URL = `https://tav-akademi-egitim-ve-sinav-platformu-1.onrender.com/api`;
+const API_URL = `http://localhost:3000/api`;
 //https://tav-akademi-egitim-ve-sinav-platformu-1.onrender.com/api
 console.log("API URL:", API_URL); // API URL'yi konsola yazdır
 const axiosInstance = axios.create({

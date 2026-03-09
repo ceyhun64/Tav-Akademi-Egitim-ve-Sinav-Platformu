@@ -1,0 +1,603 @@
+├── client
+│   ├── .gitignore
+│   ├── README.md
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── public
+│   │   ├── about
+│   │   │   ├── about1.jpg
+│   │   │   ├── about2.jpg
+│   │   │   ├── about3.jpg
+│   │   │   ├── about4.jpg
+│   │   │   ├── about5.jpg
+│   │   │   ├── about6.jpg
+│   │   │   ├── about7.jpg
+│   │   │   └── about8.jpg
+│   │   ├── admin
+│   │   │   ├── admin1.png
+│   │   │   ├── admin2.jpg
+│   │   │   ├── admin3.png
+│   │   │   └── admin4.png
+│   │   ├── background
+│   │   │   ├── background1.jpg
+│   │   │   ├── background2.jpg
+│   │   │   ├── background3.jpg
+│   │   │   ├── background4.jpg
+│   │   │   ├── background5.jpg
+│   │   │   ├── background6.jpg
+│   │   │   └── background7.jpg
+│   │   ├── banner
+│   │   │   ├── banner1.jpg
+│   │   │   ├── banner2.jpg
+│   │   │   ├── banner3.jpg
+│   │   │   ├── banner4.jpg
+│   │   │   ├── banner5.jpg
+│   │   │   ├── banner6.jpg
+│   │   │   └── banner7.jpg
+│   │   ├── brand
+│   │   │   ├── brand1.png
+│   │   │   ├── brand2.png
+│   │   │   ├── brand3.png
+│   │   │   ├── brand4.png
+│   │   │   └── brand5.png
+│   │   ├── example
+│   │   │   └── exampleUser.jpg
+│   │   ├── login
+│   │   │   ├── login1.png
+│   │   │   ├── login2.jpg
+│   │   │   ├── login2.png
+│   │   │   ├── login3.jpg
+│   │   │   └── login4.jpg
+│   │   └── logo
+│   │       ├── logo.png
+│   │       └── logo2.png
+│   ├── src
+│   │   ├── App.jsx
+│   │   ├── assets
+│   │   │   └── x-ray
+│   │   │       ├── DARKERLIGHTER.png
+│   │   │       ├── blackandwhite.png
+│   │   │       ├── hi.png
+│   │   │       ├── negative.png
+│   │   │       ├── o2.png
+│   │   │       ├── os.png
+│   │   │       └── sen.png
+│   │   ├── components
+│   │   │   ├── admin
+│   │   │   │   ├── adminPanel
+│   │   │   │   │   ├── adminPanel.jsx
+│   │   │   │   │   ├── dashboard.jsx
+│   │   │   │   │   ├── sidebar.css
+│   │   │   │   │   └── sidebar.jsx
+│   │   │   │   ├── auth
+│   │   │   │   │   ├── login.jsx
+│   │   │   │   │   ├── setup2FA.jsx
+│   │   │   │   │   ├── updatePassword.jsx
+│   │   │   │   │   └── verify2FA.jsx
+│   │   │   │   ├── booklet
+│   │   │   │   │   ├── imgBooklets.jsx
+│   │   │   │   │   └── teoBooklets.jsx
+│   │   │   │   ├── certificate
+│   │   │   │   │   ├── certificate.jsx
+│   │   │   │   │   └── certificateInputs.jsx
+│   │   │   │   ├── education
+│   │   │   │   │   ├── adminPdfWiewer.jsx
+│   │   │   │   │   ├── assignEducationSet.jsx
+│   │   │   │   │   ├── createEducation.jsx
+│   │   │   │   │   ├── createEducationSet.jsx
+│   │   │   │   │   ├── education.jsx
+│   │   │   │   │   ├── educationDetail.jsx
+│   │   │   │   │   ├── educationExam.jsx
+│   │   │   │   │   ├── educationSet.jsx
+│   │   │   │   │   ├── educationSetDetail.jsx
+│   │   │   │   │   ├── pageDuration.jsx
+│   │   │   │   │   ├── updateEducation.jsx
+│   │   │   │   │   └── userTable.jsx
+│   │   │   │   ├── exam
+│   │   │   │   │   ├── createImgExam.css
+│   │   │   │   │   ├── createImgExam.jsx
+│   │   │   │   │   ├── createTeoExam.jsx
+│   │   │   │   │   ├── queDif.jsx
+│   │   │   │   │   ├── unifiedExam.jsx
+│   │   │   │   │   └── userList.jsx
+│   │   │   │   ├── library
+│   │   │   │   │   ├── category.jsx
+│   │   │   │   │   ├── createCategory.css
+│   │   │   │   │   ├── createCategory.jsx
+│   │   │   │   │   ├── createGallery.jsx
+│   │   │   │   │   ├── imageGalery.css
+│   │   │   │   │   ├── imageGallery.jsx
+│   │   │   │   │   └── updateGallery.jsx
+│   │   │   │   ├── pool
+│   │   │   │   │   ├── bulkPoolTeo.jsx
+│   │   │   │   │   ├── createPoolImg.css
+│   │   │   │   │   ├── createPoolImg.jsx
+│   │   │   │   │   ├── createPoolTeo.css
+│   │   │   │   │   ├── createPoolTeo.jsx
+│   │   │   │   │   ├── draggableOverlayImag.jsx
+│   │   │   │   │   ├── exportPoolImg.jsx
+│   │   │   │   │   ├── exportPoolTeo.jsx
+│   │   │   │   │   ├── imageBlender.jsx
+│   │   │   │   │   ├── imageMerger.jsx
+│   │   │   │   │   ├── makeWhiteTransparent.jsx
+│   │   │   │   │   ├── polygonEditor.jsx
+│   │   │   │   │   ├── poolImg.jsx
+│   │   │   │   │   ├── poolTeo.jsx
+│   │   │   │   │   ├── questionEditor.jsx
+│   │   │   │   │   ├── updatePoolImg.jsx
+│   │   │   │   │   └── updatePoolTeo.jsx
+│   │   │   │   ├── report
+│   │   │   │   │   ├── assignEducationSets.jsx
+│   │   │   │   │   ├── assignImgExams.jsx
+│   │   │   │   │   ├── assignTeoExams.jsx
+│   │   │   │   │   ├── educationReportDetail.jsx
+│   │   │   │   │   ├── educationSetReports.jsx
+│   │   │   │   │   ├── exportAssignEduSet.jsx
+│   │   │   │   │   ├── exportAssignImg.jsx
+│   │   │   │   │   ├── exportAssignTeo.jsx
+│   │   │   │   │   ├── exportImgReport.jsx
+│   │   │   │   │   ├── exportTeoReport.jsx
+│   │   │   │   │   ├── imgExamReports.jsx
+│   │   │   │   │   ├── imgQuestion
+│   │   │   │   │   │   ├── examInfo.jsx
+│   │   │   │   │   │   ├── questionDetail.jsx
+│   │   │   │   │   │   ├── questionList.jsx
+│   │   │   │   │   │   ├── questionNavigator.jsx
+│   │   │   │   │   │   └── userInfo.jsx
+│   │   │   │   │   ├── imgQuestionResult.jsx
+│   │   │   │   │   ├── imgReportDetail.jsx
+│   │   │   │   │   ├── questionCategory.jsx
+│   │   │   │   │   ├── teoExamReports.jsx
+│   │   │   │   │   ├── teoQuestion
+│   │   │   │   │   │   ├── examInfo.jsx
+│   │   │   │   │   │   ├── questionDetail.jsx
+│   │   │   │   │   │   ├── questionList.jsx
+│   │   │   │   │   │   ├── questionNavigator.jsx
+│   │   │   │   │   │   └── userInfo.jsx
+│   │   │   │   │   ├── teoQuestionResult.jsx
+│   │   │   │   │   └── teoReportDetail.jsx
+│   │   │   │   ├── role
+│   │   │   │   │   ├── authorized.css
+│   │   │   │   │   ├── authorized.jsx
+│   │   │   │   │   ├── permission.jsx
+│   │   │   │   │   ├── role.jsx
+│   │   │   │   │   └── roleLevel.jsx
+│   │   │   │   ├── settings
+│   │   │   │   │   ├── announcement.jsx
+│   │   │   │   │   ├── banSubs.jsx
+│   │   │   │   │   ├── downloaded.jsx
+│   │   │   │   │   ├── grpInst.jsx
+│   │   │   │   │   ├── illegalMoves.jsx
+│   │   │   │   │   ├── logActivity.jsx
+│   │   │   │   │   ├── practiceExam.jsx
+│   │   │   │   │   ├── session.jsx
+│   │   │   │   │   └── uploadFile.jsx
+│   │   │   │   └── user
+│   │   │   │       ├── UserFilter.css
+│   │   │   │       ├── UserList.css
+│   │   │   │       ├── bulkRegister.jsx
+│   │   │   │       ├── exportToExcel.jsx
+│   │   │   │       ├── register.css
+│   │   │   │       ├── register.jsx
+│   │   │   │       ├── userFilter.jsx
+│   │   │   │       └── userList.jsx
+│   │   │   ├── home
+│   │   │   │   ├── about.jsx
+│   │   │   │   ├── banner.css
+│   │   │   │   ├── banner.jsx
+│   │   │   │   ├── brands.css
+│   │   │   │   ├── brands.jsx
+│   │   │   │   ├── contact.jsx
+│   │   │   │   ├── graphic.css
+│   │   │   │   ├── graphic.jsx
+│   │   │   │   ├── homePage.jsx
+│   │   │   │   ├── serviceInfo.jsx
+│   │   │   │   └── topbar.jsx
+│   │   │   └── user
+│   │   │       ├── announcement
+│   │   │       │   └── announcement.jsx
+│   │   │       ├── auth
+│   │   │       │   ├── login.jsx
+│   │   │       │   ├── passwordEmail.jsx
+│   │   │       │   ├── setup2FA.jsx
+│   │   │       │   ├── updatePassword.jsx
+│   │   │       │   └── verify2FA.jsx
+│   │   │       ├── details
+│   │   │       │   ├── detail.jsx
+│   │   │       │   └── updateDetail.jsx
+│   │   │       ├── downloads
+│   │   │       │   └── downloads.jsx
+│   │   │       ├── education
+│   │   │       │   ├── PdfViewer.module.css
+│   │   │       │   ├── answerEducation.jsx
+│   │   │       │   ├── customVideoPlayer.jsx
+│   │   │       │   ├── education.css
+│   │   │       │   ├── education.jsx
+│   │   │       │   ├── educationProgressBar.jsx
+│   │   │       │   ├── educationSet.jsx
+│   │   │       │   ├── educationSetDetail.jsx
+│   │   │       │   ├── exam-info.css
+│   │   │       │   ├── exam-info.jsx
+│   │   │       │   └── pdfViewer.jsx
+│   │   │       ├── exam
+│   │   │       │   ├── BothExams.css
+│   │   │       │   ├── ImgExams.css
+│   │   │       │   ├── TeoExams.css
+│   │   │       │   ├── bothExams.jsx
+│   │   │       │   ├── imgExams.jsx
+│   │   │       │   ├── practiceExam.css
+│   │   │       │   ├── practiceExam.jsx
+│   │   │       │   └── teoExams.jsx
+│   │   │       ├── library
+│   │   │       │   └── imageGallery.jsx
+│   │   │       ├── question
+│   │   │       │   ├── Navbar.jsx
+│   │   │       │   ├── TeoQuestion.css
+│   │   │       │   ├── bothImgQuestion.css
+│   │   │       │   ├── bothImgQuestions.jsx
+│   │   │       │   ├── bothTeoQuestion.css
+│   │   │       │   ├── bothTeoQuestions.jsx
+│   │   │       │   ├── examSecurity.jsx
+│   │   │       │   ├── fullScreenWrapper.jsx
+│   │   │       │   ├── imgQuestion.css
+│   │   │       │   ├── imgQuestion.jsx
+│   │   │       │   ├── imgQuestion
+│   │   │       │   │   ├── filterButton.jsx
+│   │   │       │   │   ├── fullScreenModal.jsx
+│   │   │       │   │   └── imageMarker.jsx
+│   │   │       │   ├── practiceQuestions.jsx
+│   │   │       │   ├── resultModal.css
+│   │   │       │   ├── resultModal.jsx
+│   │   │       │   ├── summary
+│   │   │       │   │   ├── AnswerSummary.css
+│   │   │       │   │   └── answerSummary.jsx
+│   │   │       │   ├── teoQuestion.jsx
+│   │   │       │   ├── timer
+│   │   │       │   │   ├── imgTimer.jsx
+│   │   │       │   │   └── teoTimer.jsx
+│   │   │       │   └── x-ray
+│   │   │       │       ├── blackWhite.jsx
+│   │   │       │       ├── hi.jsx
+│   │   │       │       ├── modal.jsx
+│   │   │       │       ├── multiFilter.jsx
+│   │   │       │       ├── negative.jsx
+│   │   │       │       ├── o2.jsx
+│   │   │       │       ├── os.jsx
+│   │   │       │       ├── sen.jsx
+│   │   │       │       └── transparency.jsx
+│   │   │       ├── report
+│   │   │       │   ├── bothExamReport.jsx
+│   │   │       │   ├── bothImgQuestionReport.jsx
+│   │   │       │   ├── bothTeoQuestionReport.jsx
+│   │   │       │   ├── imgExamReport.jsx
+│   │   │       │   ├── imgQuestionReport.jsx
+│   │   │       │   ├── teoExamReport.jsx
+│   │   │       │   └── teoQuestionReport.jsx
+│   │   │       └── userPanel
+│   │   │           ├── continueEducation.jsx
+│   │   │           ├── graphic.jsx
+│   │   │           ├── navbar.jsx
+│   │   │           └── upcomingExam.jsx
+│   │   ├── data
+│   │   │   └── provinces.json
+│   │   ├── features
+│   │   │   ├── services
+│   │   │   │   ├── announcementService.js
+│   │   │   │   ├── authService.js
+│   │   │   │   ├── axiosInstance.js
+│   │   │   │   ├── banSubsService.js
+│   │   │   │   ├── bookletService.js
+│   │   │   │   ├── certificateService.js
+│   │   │   │   ├── educationService.js
+│   │   │   │   ├── educationSetService.js
+│   │   │   │   ├── eventEmitter.js
+│   │   │   │   ├── examService.js
+│   │   │   │   ├── grpInstService.js
+│   │   │   │   ├── illegalMovesService.js
+│   │   │   │   ├── imageGalleryCatService.js
+│   │   │   │   ├── imageGalleryService.js
+│   │   │   │   ├── logActivitiyService.js
+│   │   │   │   ├── poolImgService.js
+│   │   │   │   ├── poolTeoService.js
+│   │   │   │   ├── practiceExamService.js
+│   │   │   │   ├── queDifService.js
+│   │   │   │   ├── questionService.js
+│   │   │   │   ├── reportService.js
+│   │   │   │   ├── roleService.js
+│   │   │   │   ├── sessionService.js
+│   │   │   │   ├── uploadFileService.js
+│   │   │   │   └── userService.js
+│   │   │   ├── slices
+│   │   │   │   ├── announcementSlice.js
+│   │   │   │   ├── authSlice.js
+│   │   │   │   ├── banSubsSlice.js
+│   │   │   │   ├── bookletSlice.js
+│   │   │   │   ├── certificateSlice.js
+│   │   │   │   ├── durationSlice.js
+│   │   │   │   ├── educationSetSlice.js
+│   │   │   │   ├── educationSlice.js
+│   │   │   │   ├── examSlice.js
+│   │   │   │   ├── grpInstSlice.js
+│   │   │   │   ├── illegalMovesSlice.js
+│   │   │   │   ├── imageGalleryCatSlice.js
+│   │   │   │   ├── imageGallerySlice.js
+│   │   │   │   ├── logActivitiySlice.js
+│   │   │   │   ├── poolImgSlice.js
+│   │   │   │   ├── poolTeoSlice.js
+│   │   │   │   ├── practiceExamSlice.js
+│   │   │   │   ├── queDifSlice.js
+│   │   │   │   ├── questionSlice.js
+│   │   │   │   ├── reportSlice.js
+│   │   │   │   ├── roleSlice.js
+│   │   │   │   ├── sessionSlice.js
+│   │   │   │   ├── uploadFileSlice.js
+│   │   │   │   └── userSlice.js
+│   │   │   └── thunks
+│   │   │       ├── announcementThunk.js
+│   │   │       ├── authThunk.js
+│   │   │       ├── banSubsThunk.js
+│   │   │       ├── bookletThunk.js
+│   │   │       ├── certificateThunk.js
+│   │   │       ├── educationSetThunk.js
+│   │   │       ├── educationThunk.js
+│   │   │       ├── examThunk.js
+│   │   │       ├── grpInstThunk.js
+│   │   │       ├── illegalMovesThunk.js
+│   │   │       ├── imageGalleryCatThunk.js
+│   │   │       ├── imageGalleryThunk.js
+│   │   │       ├── logActivityThunk.js
+│   │   │       ├── poolImgThunk.js
+│   │   │       ├── poolTeoThunk.js
+│   │   │       ├── practiceExamThunk.js
+│   │   │       ├── queDifThunk.js
+│   │   │       ├── questionThunk.js
+│   │   │       ├── reportThunk.js
+│   │   │       ├── roleThunk.js
+│   │   │       ├── sessionThunk.js
+│   │   │       ├── uploadFileThunk.js
+│   │   │       └── userThunk.js
+│   │   ├── hooks
+│   │   │   ├── disariAktar.js
+│   │   │   └── useExamSecurity.js
+│   │   ├── layout
+│   │   │   ├── adminLayout.jsx
+│   │   │   ├── footer.jsx
+│   │   │   ├── navbar.css
+│   │   │   ├── navbar.jsx
+│   │   │   ├── scrollButton.jsx
+│   │   │   └── scrollToTop.jsx
+│   │   ├── main.jsx
+│   │   ├── pages
+│   │   │   ├── admin
+│   │   │   │   ├── adminPanel.jsx
+│   │   │   │   ├── announcement.jsx
+│   │   │   │   ├── assignEducationSet.jsx
+│   │   │   │   ├── assignEducationSets.jsx
+│   │   │   │   ├── assignImgExams.jsx
+│   │   │   │   ├── assignTeoExams.jsx
+│   │   │   │   ├── authorized.jsx
+│   │   │   │   ├── banSubs.jsx
+│   │   │   │   ├── bulkPoolTeo.jsx
+│   │   │   │   ├── bulkRegister.jsx
+│   │   │   │   ├── category.jsx
+│   │   │   │   ├── certificate.jsx
+│   │   │   │   ├── certificateInputs.jsx
+│   │   │   │   ├── createEducation.jsx
+│   │   │   │   ├── createEducationSet.jsx
+│   │   │   │   ├── createGallery.jsx
+│   │   │   │   ├── createGalleryCat.jsx
+│   │   │   │   ├── createImgExam.jsx
+│   │   │   │   ├── createPoolImg.jsx
+│   │   │   │   ├── createPoolTeo.jsx
+│   │   │   │   ├── createTeoExam.jsx
+│   │   │   │   ├── downloaded.jsx
+│   │   │   │   ├── education.jsx
+│   │   │   │   ├── educationDetail.jsx
+│   │   │   │   ├── educationReportDetail.jsx
+│   │   │   │   ├── educationSet.jsx
+│   │   │   │   ├── educationSetDetail.jsx
+│   │   │   │   ├── educationSetReports.jsx
+│   │   │   │   ├── grpInst.jsx
+│   │   │   │   ├── illegalMoves.jsx
+│   │   │   │   ├── imageGallery.jsx
+│   │   │   │   ├── imgBooklets.jsx
+│   │   │   │   ├── imgExamReports.jsx
+│   │   │   │   ├── imgQuestionResult.jsx
+│   │   │   │   ├── imgReportDetail.jsx
+│   │   │   │   ├── logActivity.jsx
+│   │   │   │   ├── login.jsx
+│   │   │   │   ├── pageDuration.jsx
+│   │   │   │   ├── poolImg.jsx
+│   │   │   │   ├── poolTeo.jsx
+│   │   │   │   ├── practiceExam.jsx
+│   │   │   │   ├── queDif.jsx
+│   │   │   │   ├── role.jsx
+│   │   │   │   ├── sessions.jsx
+│   │   │   │   ├── setup2FA.jsx
+│   │   │   │   ├── teoBooklets.jsx
+│   │   │   │   ├── teoExamReports.jsx
+│   │   │   │   ├── teoQuestionResult.jsx
+│   │   │   │   ├── teoReportDetail.jsx
+│   │   │   │   ├── unifiedExam.jsx
+│   │   │   │   ├── updateDetail.jsx
+│   │   │   │   ├── updateEducation.jsx
+│   │   │   │   ├── updateGallery.jsx
+│   │   │   │   ├── updatePassword.jsx
+│   │   │   │   ├── updatePoolImg.jsx
+│   │   │   │   ├── updatePoolTeo.jsx
+│   │   │   │   ├── uploadFile.jsx
+│   │   │   │   └── verify2FA.jsx
+│   │   │   ├── home
+│   │   │   │   ├── about.jsx
+│   │   │   │   ├── contact.jsx
+│   │   │   │   ├── homePage.jsx
+│   │   │   │   └── notFound.jsx
+│   │   │   ├── protectedRoute.jsx
+│   │   │   ├── unAuthorizedPage.jsx
+│   │   │   └── user
+│   │   │       ├── announcement.jsx
+│   │   │       ├── bothExams.jsx
+│   │   │       ├── bothImgQuestionReport.jsx
+│   │   │       ├── bothImgQuestions.jsx
+│   │   │       ├── bothTeoQuestionReport.jsx
+│   │   │       ├── bothTeoQuestions.jsx
+│   │   │       ├── details.jsx
+│   │   │       ├── downloads.jsx
+│   │   │       ├── education.jsx
+│   │   │       ├── educationDetail.jsx
+│   │   │       ├── educationSet.jsx
+│   │   │       ├── exam-info.jsx
+│   │   │       ├── imageGallery.jsx
+│   │   │       ├── imgExamReport.jsx
+│   │   │       ├── imgExams.jsx
+│   │   │       ├── imgQuestionReport.jsx
+│   │   │       ├── imgQuestions.jsx
+│   │   │       ├── login.jsx
+│   │   │       ├── passwordEmail.jsx
+│   │   │       ├── practiceExam.jsx
+│   │   │       ├── practiceQuestions.jsx
+│   │   │       ├── register.jsx
+│   │   │       ├── setup2FA.jsx
+│   │   │       ├── teoExamReport.jsx
+│   │   │       ├── teoExams.jsx
+│   │   │       ├── teoQuestionReport.jsx
+│   │   │       ├── teoQuestions.jsx
+│   │   │       ├── updatePassword.jsx
+│   │   │       ├── userPanel.jsx
+│   │   │       └── verifyCode.jsx
+│   │   └── store
+│   │       └── store.js
+│   ├── vercel.json
+│   └── vite.config.js
+├── readme.md
+└── server
+    ├── .gitignore
+    ├── DockerFile
+    ├── config
+    │   └── config.json
+    ├── controllers
+    │   ├── announcement.controller.js
+    │   ├── auth.controller.js
+    │   ├── banSubs.controller.js
+    │   ├── booklet.controller.js
+    │   ├── certificate.controller.js
+    │   ├── education.controller.js
+    │   ├── educationSet.controller.js
+    │   ├── exam.controller.js
+    │   ├── gallery.controller.js
+    │   ├── galleryCat.controller.js
+    │   ├── grpInst.controller.js
+    │   ├── illegalMoves.controller.js
+    │   ├── logActivitiy.controller.js
+    │   ├── poolImg.controller.js
+    │   ├── poolTeo.controller.js
+    │   ├── practiceExam.controller.js
+    │   ├── queDif.controller.js
+    │   ├── question.controller.js
+    │   ├── report.controller.js
+    │   ├── role.controller.js
+    │   ├── session.controller.js
+    │   ├── temp
+    │   │   ├── certificate_1753601640078.docx
+    │   │   └── certificate_1753601642128.docx
+    │   ├── temp_certs
+    │   │   ├── sertifika_1752235030520.docx
+    │   │   ├── sertifika_1752235166809.docx
+    │   │   └── sertifika_1752235617118.docx
+    │   ├── template.docx
+    │   ├── uploadFile.controller.js
+    │   └── user.controller.js
+    ├── data
+    │   ├── db.js
+    │   └── dummy-data.js
+    ├── helpers
+    │   ├── logActivity.js
+    │   └── sendMail.js
+    ├── middlewares
+    │   ├── authorize.js
+    │   ├── upload.js
+    │   └── verifyToken.js
+    ├── migrations
+    │   └── 20250714065210-add-primary-key-to-rolelevelperms.js
+    ├── models
+    │   ├── activityLog.js
+    │   ├── announcement.js
+    │   ├── banSubs.js
+    │   ├── booklet.js
+    │   ├── certificate.js
+    │   ├── courseNo.js
+    │   ├── courseType.js
+    │   ├── difLevel.js
+    │   ├── eduAndEduSets.js
+    │   ├── education.js
+    │   ├── educationExam.js
+    │   ├── educationPages.js
+    │   ├── educationSet.js
+    │   ├── educationSetUser.js
+    │   ├── educationUser.js
+    │   ├── educator.js
+    │   ├── exam.js
+    │   ├── examQuestions.js
+    │   ├── examUser.js
+    │   ├── gallery.js
+    │   ├── galleryCat.js
+    │   ├── gallerySubCat.js
+    │   ├── group.js
+    │   ├── illegalMoves.js
+    │   ├── index.js
+    │   ├── institution.js
+    │   ├── permission.js
+    │   ├── poolImg.js
+    │   ├── poolTeo.js
+    │   ├── practiceExam.js
+    │   ├── practiceExamQuestions.js
+    │   ├── practiceExamUser.js
+    │   ├── questionCategory.js
+    │   ├── requester.js
+    │   ├── role.js
+    │   ├── roleLevel.js
+    │   ├── roleLevelPerm.js
+    │   ├── session.js
+    │   ├── uploadFile.js
+    │   ├── uploadFileUser.js
+    │   ├── user.js
+    │   ├── userImgAnswers.js
+    │   └── userTeoAnswers.js
+    ├── package-lock.json
+    ├── package.json
+    ├── pdfservices-api-credentials.json
+    ├── routes
+    │   ├── announcement.routes.js
+    │   ├── auth.routes.js
+    │   ├── banSubs.routes.js
+    │   ├── booklet.routes.js
+    │   ├── certificate.routes.js
+    │   ├── education.routes.js
+    │   ├── educationSet.routes.js
+    │   ├── exam.routes.js
+    │   ├── gallery.routes.js
+    │   ├── galleryCat.routes.js
+    │   ├── grpInst.routes.js
+    │   ├── illegalMoves.routes.js
+    │   ├── logActivity.routes.js
+    │   ├── poolImg.routes.js
+    │   ├── poolTeo.routes.js
+    │   ├── practiceExam.routes.js
+    │   ├── queDif.routes.js
+    │   ├── question.routes.js
+    │   ├── report.routes.js
+    │   ├── role.routes.js
+    │   ├── session.routes.js
+    │   ├── uploadFile.routes.js
+    │   └── user.routes.js
+    ├── server.js
+    └── tmp
+        ├── 39a51002-d5e6-4c16-81d1-0ec75c12c243.pdf
+        ├── 40fd8854-da37-400a-ab00-b3ae9207b529.pdf
+        ├── 7d76a61a-06a5-4753-a08c-e05705bdfefc.pdf
+        ├── b65bfdae-ded8-449b-ac47-96ad213f8f5a.pdf
+        ├── c879f3fb-12f7-47a2-ba67-d21318b144a5
+        │   └── page-1.jpg
+        └── eca13efc-c3a4-40da-891e-d05126eff5ba.pdf
